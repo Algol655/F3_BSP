@@ -1,0 +1,9 @@
+send "?T"
+gettime datestr "%d/%m/%Y %H:%M:%S"
+messagebox datestr "Confirm Host Date/Time"
+gettime datestr1 "!T%d%m%Y%H%M%S"
+send datestr1
+pause 1
+send "?T"
+messagebox datestr "Date/Time set!"
+send #$04
