@@ -198,47 +198,32 @@ void MX_BlueNRG_2_Init(void)
 /*
  *  @brief	BlueNRG-2 background task; fills the beacon payload as follows:
  *
- * Environmental Data: manuf_data[27..28] = 0x0100; Minor number = 0x0001
- * manuf_data[9..10]: T_Out; manuf_data[11..14]: P0_Out; manuf_data[15..16]: Hum_Out
- * manuf_data[17]: forecast; manuf_data[18..19]: T2_Out; manuf_data[20..21]: T3_Out;
- * manuf_data[22..25]: P_Out; manuf_data[26]: forecast;
+ * Environmental Data: manuf_data[30] = 0x01;
+ * manuf_data[8..9]: T_Out; manuf_data[10..13]: P0_Out; manuf_data[14..15]: Hum_Out
+ * manuf_data[16..17]: T2_Out; manuf_data[18..19]: T3_Out; manuf_data[20..23]: P_Out;
+ * manuf_data[24]: forecast;
  *
- * Air Quality Data (page 1): manuf_data[27..28] = 0x0200; Minor number = 0x0002
- * manuf_data[9..10]: eq_TVOC; manuf_data[11..12]: eq_CO2; manuf_data[13..14]: CO
- * manuf_data[15..16]: NO2; manuf_data[17..18]: NH3;
- * manuf_data[19..22]: SensorStatusReg; manuf_data[23..26]: AnlgOvflStatusReg;
+ * Air Quality Data: manuf_data[30] = 0x02;
+ * manuf_data[8..9]: eq_TVOC; manuf_data[10..11]: eq_CO2; manuf_data[12..13]: CO
+ * manuf_data[14..15]: NO2; manuf_data[16..17]: NH3; manuf_data[18..19]: CH2O;
+ * manuf_data[20..21]: O3; manuf_data[22..23]: SO2; manuf_data[24..25]: C6H6;
+ * manuf_data[29]: Gas_AQI; bit 7 = RiskReport
  *
- * Air Quality Data (page 2): manuf_data[27..28] = 0x0201; Minor number = 0x0102
- * manuf_data[9..10]: CH2O; manuf_data[11..12]: O3; manuf_data[13..14]: SO2
- * manuf_data[15..16]: C6H6; manuf_data[17..18]: xx;
- * manuf_data[19]: Gas_AQI; manuf_data[20]: AVG_Gas_AQI; manuf_data[21]: AVG_PMx_AQI;
- * manuf_data[19], manuf_data[20], manuf_data[21] -> bit 7 = RiskReport
+ * Air Quality Data - Average values: manuf_data[30] = 0x03;
+ * manuf_data[8..9]: eq_TVOC_1h_Mean; manuf_data[10..11]: eq_CO2_8h_Mean; manuf_data[12..13]: CO_8h_Mean
+ * manuf_data[14..15]: NO2_1h_Mean; manuf_data[16..17]: NH3_8h_Mean; manuf_data[18..19]: CH2O_8h_Mean;
+ * manuf_data[20..21]: O3_8h_Mean; manuf_data[22..23]: SO2_1h_Mean; manuf_data[24..25]: C6H6_24h_Mean;
+ * manuf_data[29]: AVG_Gas_AQI; bit 7 = RiskReport
  *
- * Air Pollution Data: manuf_data[27..28] = 0x0300; Minor number = 0x0003
- * manuf_data[9..10]: MC_1p0; manuf_data[11..12]: MC_2p5;
- * manuf_data[13..14]: MC_4p0; manuf_data[15..16]: MC_10p0;
- * manuf_data[17..18]: NC_0p5;
- * manuf_data[19]: Gas_AQI; manuf_data[20]: AVG_Gas_AQI; manuf_data[21]: AVG_PMx_AQI;
- * manuf_data[19], manuf_data[20], manuf_data[21] -> bit 7 = RiskReport
+ * Air Pollution Data: manuf_data[30] = 0x04
+ * manuf_data[8..9]: MC_1p0; manuf_data[10..11]: MC_2p5; manuf_data[12..13]: MC_4p0;
+ * manuf_data[14..15]: MC_10p0; manuf_data[16..17]: NC_0p5;
+ * manuf_data[18..19]: MC_1p0_24h_Mean; manuf_data[20..21]: MC_2p5_24h_Mean; manuf_data[22..23]: MC_4p0_24h_Mean;
+ * manuf_data[24..25]: MC_10p0_24h_Mean;
+ * manuf_data[28], manuf_data[29]: AVG_PMx_AQI;
  *
- * Air Quality Average Data (page 1): manuf_data[27..28] = 0x0280; Minor number = 0x8002
- * manuf_data[9..10]: eq_TVOC_1h_Mean; manuf_data[11..12]: eq_CO2_8h_Mean; manuf_data[13..14]: CO_8h_Mean
- * manuf_data[15..16]: NO2_1h_Mean; manuf_data[17..18]: NH3_8h_Mean;
- * manuf_data[19]: Gas_AQI; manuf_data[20]: AVG_Gas_AQI; manuf_data[21]: AVG_PMx_AQI;
- * manuf_data[19], manuf_data[20], manuf_data[21] -> bit 7 = RiskReport
- *
- * Air Quality Average Data (page 2): manuf_data[27..28] = 0x0281; Minor number = 0x8102
- * manuf_data[9..10]: CH2O_8h_Mean; manuf_data[11..12]: O3_8h_Mean; manuf_data[13..14]: SO2_1h_Mean
- * manuf_data[15..116]: C6H6_24h_Mean; manuf_data[17..18]: xx_Mean;
- * manuf_data[19]: Gas_AQI; manuf_data[20]: AVG_Gas_AQI; manuf_data[21]: AVG_PMx_AQI;
- * manuf_data[19], manuf_data[20], manuf_data[21] -> bit 7 = RiskReport
- *
- * Air Pollution Data:manuf_data[27..28] = 0x0380; Minor number = 0x8003
- * manuf_data[9..10]: MC_1p0_24h_Mean; manuf_data[11..12]: MC_2p5_24h_Mean;
- * manuf_data[13..14]: MC_4p0_24h_Mean; manuf_data[15..16]: MC_10p0_24h_Mean;
- * manuf_data[17..18]: NC_0p5;
- * manuf_data[19]: Gas_AQI; manuf_data[20]: AVG_Gas_AQI; manuf_data[21]: AVG_PMx_AQI;
- * manuf_data[19], manuf_data[20], manuf_data[21] -> bit 7 = RiskReport
+ * Status Report: manuf_data[30] = 0x05
+ * manuf_data[8..11]: SensorStatusReg; manuf_data[12..15]: AnlgOvflStatusReg;
  *
  * @param  None
  * @retval None
@@ -329,8 +314,8 @@ void MX_BlueNRG_2_Process(void)
 		if(Adv_Code == 0x80)
 		{
 			//Send Device Status
-			HOST_TO_LE_32(manuf_data+man_data_offset+6, SensorStatusReg);
-			HOST_TO_LE_32(manuf_data+man_data_offset+10, AnlgOvflStatusReg);
+			HOST_TO_BE_32(manuf_data+man_data_offset+6, SensorStatusReg);
+			HOST_TO_BE_32(manuf_data+man_data_offset+10, AnlgOvflStatusReg);
 		}
 
 		if (adv_data_sent)
