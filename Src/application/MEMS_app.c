@@ -1066,6 +1066,34 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 }
 #endif
 
+void Refresh_AQI()
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+	static AirQualityParameters_st AQ_Level;
+#pragma GCC diagnostic pop
+
+#if (GAS_SENSOR_MODULE_PRESENT==1)
+#if (FULL_MODE==1)
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean,
+										   CH2O, CO, NO2, NH3, O3, SO2, C6H6,
+										   CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean,
+										   O3_8h_Mean, SO2_1h_Mean, C6H6_24h_Mean,
+										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
+#else	//FULL_MODE==0
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean,
+										   CH2O, CO, 0, 0, 0, 0, 0,
+										   CH2O_8h_Mean, CO_8h_Mean, 0, 0, 0, 0, 0,
+										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
+#endif	//FULL_MODE
+#else	//GAS_SENSOR_MODULE_PRESENT==0
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean,
+										   0, 0, 0, 0, 0, 0, 0,
+										   0, 0, 0, 0, 0, 0, 0,
+										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
+#endif //GAS_SENSOR_MODULE_PRESENT
+}
+
 #if (IMU_PRESENT==1)
 /**
  * @brief  Handles the LSM9DS1 ACC, GYR, MAG axes data getting/sending

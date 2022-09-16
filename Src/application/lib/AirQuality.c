@@ -716,7 +716,11 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 															(int32_t)AirQuality_Level.O3_AQ, (int32_t)AirQuality_Level.SO2_AQ,
 															(int32_t)AirQuality_Level.C6H6_AQ));
 	strcpy(AirQuality_Level.AvgGasAirQualityClass, AQ_Class[AirQuality_Level.AvgGasAirQualityIndex]);
-	AVG_Gas_AQI = AirQuality_Level.AvgGasAirQualityIndex;	//Used in BLE Beacon packet
+
+	if (AirQuality_Level.AvgGasAirQualityIndex <= AirQuality_Level.GasAirQualityIndex)	//The BLE Tx AQI is always the lower between..
+		AVG_Gas_AQI =  AirQuality_Level.AvgGasAirQualityIndex;	//..the average...
+	else
+		AVG_Gas_AQI = AirQuality_Level.GasAirQualityIndex;	//...and the instantaneous one. AVG_Gas_AQI Used in BLE Beacon packet
 
 	//Find the 24h average PM10 AirQuality level
 	// PM10_Excellent = 20,	//ug/m3

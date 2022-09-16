@@ -416,6 +416,8 @@ void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* B
 void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff);
 #endif
 
+void Refresh_AQI(void);
+
 #if (IMU_PRESENT==1)						//Defined in main.h
 /**
 * @brief  Handles the LSM9DS1 ACC, GYR, MAG axes data getting/sending

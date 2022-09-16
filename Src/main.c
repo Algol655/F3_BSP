@@ -438,6 +438,8 @@ int main(void)
 				ReDrawPage_S0(t_flip);
 				if (t_flip != 1)
 					ReDrawPage_S1(t_flip);
+		#elif ((BLE_SUPPORT) && (BEACON_APP))
+				Refresh_AQI();
 		#endif
 		#if ((BLE_SUPPORT) && (SENSOR_APP))
 				MX_BlueNRG_2_Process();
