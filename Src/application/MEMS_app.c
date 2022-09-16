@@ -35,13 +35,13 @@ const uint32_t Ser_Number = 1;
 	uint8_t VOC_Correction = 0;			//In units*100
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-	int8_t CH2O_Corr = 0;				//In mVolts/10In mVolts/10: 1 = 10mV Correction
-	int8_t O3_Corr = 0;					//In mVolts/10In mVolts/10: 1 = 10mV Correction
-	int8_t NO2_Corr = 0;				//In mVolts/10In mVolts/10: 1 = 10mV Correction
-	int8_t NH3_Corr = 0;				//In mVolts/10In mVolts/10: 1 = 10mV Correction
-	int8_t CO_Corr = 0;					//In mVolts/10In mVolts/10: 1 = 10mV Correction
-	int8_t SO2_Corr = 0;				//In mVolts/10In mVolts/10: 1 = 10mV Correction
-	int8_t C6H6_Corr = 0;				//In mVolts/10In mVolts/10: 1 = 10mV Correction
+	int8_t CH2O_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
+	int8_t O3_Corr = 0;					//In mVolts/10: 1 = 10mV Correction
+	int8_t NO2_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
+	int8_t NH3_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
+	int8_t CO_Corr = 0;					//In mVolts/10: 1 = 10mV Correction
+	int8_t SO2_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
+	int8_t C6H6_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
 	uint32_t MiCS_6814_CO_Ro = 0;		//In ohm
 	uint32_t MiCS_6814_NH3_Ro = 0;		//In ohm
 	uint32_t MiCS_6814_NO2_Ro = 0;		//In ohm
