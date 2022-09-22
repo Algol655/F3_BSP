@@ -43,15 +43,15 @@ typedef enum
 	RisingHighPressureLimit = 1030,
 	DropFallingPressure = 16,		//Delta mBar * 10
 	DropRisingPressure = 16,		//Delta mBar * 10
-	SunnyUP = 0x00,
+	SunnyUP = 0x00,					//bit 7 = 0 Pressure increasing;
 	CloudyUP = 0x01,
 	RainyUP = 0x02,
 	StormyUP = 0x03,
-	SunnySTDY = 0x40,
+	SunnySTDY = 0x40,				//bit 6 = 1 Pressure steady;
 	CloudySTDY = 0x41,
 	RainySTDY = 0x42,
 	StormySTDY = 0x43,
-	SunnyDWN = 0x80,
+	SunnyDWN = 0x80,				//bit 7 = 1 Pressure decreasing;
 	CloudyDWN = 0x81,
 	RainyDWN = 0x82,
 	StormyDWN = 0x83

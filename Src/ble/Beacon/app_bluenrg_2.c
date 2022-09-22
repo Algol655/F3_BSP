@@ -99,7 +99,7 @@ uint8_t manuf_data[] =
 	0x11, 0x12,										//Custom Data (manuf_data[25..26])
 	0x13, 0x14,										//Custom Data (manuf_data[27..28])
 	0x15,        									//Custom Data (manuf_data[29])
-	0x16        									//Packet Identifier (AdvCodes - manuf_data[30])
+	0x01        									//Packet Identifier (AdvCodes - manuf_data[30])
 };
 
 /*uint8_t manuf_data[] =
@@ -232,11 +232,7 @@ void MX_BlueNRG_2_Process(void)
 {
 	/* USER CODE BEGIN BlueNRG_2_Process_PreTreatment */
 #if (USE_SENSUS191==1)
-	uint16_t Lux_Out = 0x55AA;
-	#pragma GCC diagnostic ignored "-Wunused-variable"
-	#pragma GCC diagnostic push
-		const uint32_t Filler16 = 0; const uint32_t Filler32 = 0;
-	#pragma GCC diagnostic pop
+//	uint16_t Lux_Out = 0x55AA;
 	static uint8_t ret = 0;
 
 	beacon_number = 0;
@@ -246,6 +242,8 @@ void MX_BlueNRG_2_Process(void)
  */
 	do
 	{
+		memset(&manuf_data[8], 0xFF, 22);
+
 		manuf_data[man_data_offset+28] = Adv_Code;
 		if(Adv_Code == 0x01)
 		{
@@ -261,8 +259,10 @@ void MX_BlueNRG_2_Process(void)
 		if(Adv_Code == 0x02)
 		{
 			//Send Air Quality Data. Absolute values
+	#if (VOC_SENSOR_PRESENT)
 			HOST_TO_LE_16(manuf_data+man_data_offset+6, eq_TVOC);
 			HOST_TO_LE_16(manuf_data+man_data_offset+8, eq_CO2);
+	#endif
 	#if (GAS_SENSOR_MODULE_PRESENT)
 			HOST_TO_LE_16(manuf_data+man_data_offset+10, CO);
 			HOST_TO_LE_16(manuf_data+man_data_offset+16, CH2O);
@@ -307,9 +307,9 @@ void MX_BlueNRG_2_Process(void)
 			HOST_TO_LE_16(manuf_data+man_data_offset+18, MC_2p5_24h_Mean);
 			HOST_TO_LE_16(manuf_data+man_data_offset+20, MC_4p0_24h_Mean);
 			HOST_TO_LE_16(manuf_data+man_data_offset+22, MC_10p0_24h_Mean);
-	#endif	//PARTICULATE_SENSOR_PRESENT
 			manuf_data[man_data_offset+26] = AVG_PMx_AQI;	//Not averaged PMx_AQI is not calculated
 			manuf_data[man_data_offset+27] = AVG_PMx_AQI;
+	#endif	//PARTICULATE_SENSOR_PRESENT
 		} else
 		if(Adv_Code == 0x80)
 		{

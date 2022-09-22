@@ -140,15 +140,17 @@ typedef enum sensor_status
 	ENV_SENSOR_OK = 0x00000007,			//One or more Environmental sensor Ok
 	VOC_SENSOR_OK = 0x00000008,			//VOC_SENSOR check passed
 	PM_SENSOR_OK =  0x00000010,			//PARTICULATE_SENSOR check passed
-	GAS_SENSORS_OK = 0x00000020,		//Gas Sensors check passed
-	IMU_OK = 0x00000040,				//IMU check passed
+	GAS_SENSORS_OK = 0x00000020,		//Gas Sensors board check passed
+	GAS_SENSORS_FULL_OK = 0x00000040,	//Full Equipped Gas Sensors board check passed
+	IMU_OK = 0x00000080,				//IMU check passed
 	PRESSURE_SENSOR_INST = 0x00010000,	//PRESSURE_SENSOR Installed
 	HUMIDITY_SENSOR_INST = 0x00020000,	//HUMIDITY_SENSOR Installed
 	UVx_SENSOR_INST = 0x00040000,		//UVx_SENSOR Installed
 	VOC_SENSOR_INST = 0x00080000,		//VOC_SENSOR Installed
 	PM_SENSOR_INST =  0x00100000,		//PARTICULATE_SENSOR Installed
-	GAS_SENSORS_INST = 0x00000020,		//Gas Sensors Board Installed
-	IMU_INST = 0x00400000				//IMU Installed
+	GAS_SENSORS_INST =0x00200000,		//Gas Sensors Board Installed
+	GAS_SENSORS_FULL_INST =0x00400000,	//Full Equipped Gas Sensors Board Installed
+	IMU_INST = 0x00800000				//IMU Installed
 } SENSOR_STATUS;
 
 typedef struct board_master_data

@@ -129,6 +129,14 @@ void AB_Init(void)
 {
 	extern FLASH_DATA_ORG FlashDataOrg;
 
+/*	T_Out = 0xFFFF; P0_Out = 0xFFFFFFFF; Hum_Out = 0xFFFF; T2_Out = 0xFFFF; T3_Out = 0xFFFF; P_Out = 0xFFFFFFFF;
+	eq_TVOC = 0xFFFF; eq_CO2 = 0xFFFF; CO = 0xFFFF; CH2O = 0xFFFF; NO2 = 0xFFFF; NH3 = 0xFFFF; O3 = 0xFFFF; SO2 = 0xFFFF; C6H6 = 0xFFFF;
+	eq_TVOC_1h_Mean = 0xFFFF; eq_CO2_8h_Mean = 0xFFFF; CO_8h_Mean = 0xFFFF; CH2O_8h_Mean = 0xFFFF; NO2_1h_Mean = 0xFFFF; NH3_8h_Mean = 0xFFFF;
+	O3_8h_Mean = 0xFFFF; SO2_1h_Mean = 0xFFFF; C6H6_24h_Mean = 0xFFFF;
+	MC_1p0 = 0xFFFF; MC_2p5 = 0xFFFF; MC_4p0 = 0xFFFF; MC_10p0 = 0xFFFF; NC_0p5 = 0xFFFF;
+	MC_1p0_24h_Mean = 0xFFFF; MC_2p5_24h_Mean = 0xFFFF; MC_4p0_24h_Mean = 0xFFFF; MC_10p0_24h_Mean = 0xFFFF;
+	Gas_AQI = 0xFF; AVG_Gas_AQI = 0xFF; AVG_PMx_AQI = 0xFF; */
+
 	memset(ReadyDevices, 0, sizeof(ReadyDevices));
 	Read_Flash(NULL, 0);					//Update board data from flash
 #if (PRESSURE_SENSOR_PRESENT==1)			//Defined in main.h
@@ -222,7 +230,11 @@ void AB_Init(void)
 	NumberOfDevices++;				//Increment number of sensors mounted
 	strcat(ReadyDevices, "GAS_MODULE ");
 	BIT_SET(SensorStatusReg,5);		//Set Gas Sensor Module status in SensorStatusRegister
-    HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after Analog Module Init
+	#if (FULL_MODE)
+		BIT_SET(SensorStatusReg,22);	//Set Gas Sensor Full Equipped Module presence in SensorStatusRegister
+		BIT_SET(SensorStatusReg,6);		//Set Gas Sensor Full Equipped Module status in SensorStatusRegister
+	#endif
+    HAL_TIM_Base_Start_IT(&htim3);		//Start Timer3 after Analog Module Init
     //Set the calibration values
     CH2O_Corr = (int8_t)(FlashDataOrg.b_status.s9 & 0x000000FF);
     O3_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 8) & 0x000000FF);
