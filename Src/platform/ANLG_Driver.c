@@ -475,13 +475,18 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 	 * the first (used when the current value is greater than the average value
 	 * calculated up to then) is given by the value of the "AverageWindow" constant.
 	 * The second (used when the current value is less than or equal to the average
-	 * value calculated up to then) is equal to 0.
+	 * value calculated up to then) is given by the value of the "AverageWindow1" constant.
 	 */
 	static const uint32_t AverageWindow = 60;	//Analog sensors integration window of the is fixed at 5 minutes
+	static const uint32_t AverageWindow1 = 12;	//Analog sensors integration window1 of the is fixed at 1 minutes
 	const float32_t CorrectionFactor = (1+(1/AverageWindow));
+	const float32_t CorrectionFactor1 = (1+(1/AverageWindow1));
 	static float32_t ch2o_avg = 0; static float32_t o3_avg = 0;
 	static float32_t no2_avg = 0; static float32_t nh3_avg = 0;
 	static float32_t co_avg = 0; static float32_t so2_avg = 0;
+	static float32_t ch2o_avg1 = 0; static float32_t o3_avg1 = 0;
+	static float32_t no2_avg1 = 0; static float32_t nh3_avg1 = 0;
+	static float32_t co_avg1 = 0; static float32_t so2_avg1 = 0;
 	static float32_t ch2o_new_sample, o3_new_sample, no2_new_sample, nh3_new_sample;
 	static float32_t co_new_sample, so2_new_sample;
 	ANLG_Error_et ret = 0;
@@ -497,38 +502,56 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 	Measurement_Value->CH2O = CH2O_ppm2ugm3(ppm_CH2O);	//Calculate the CH2O concentration in ug/m3
 	ch2o_new_sample = Measurement_Value->CH2O;
 	ch2o_avg = approxMovingAverage(ch2o_avg, ch2o_new_sample, AverageWindow, CorrectionFactor);
-	if (ch2o_new_sample > ch2o_avg)
+	ch2o_avg1 = approxMovingAverage(ch2o_avg1, ch2o_new_sample, AverageWindow1, CorrectionFactor1);
+	if (ch2o_avg1 > ch2o_avg)
 		Measurement_Value->CH2O = ch2o_avg;
+	else
+		Measurement_Value->CH2O = ch2o_avg1;
 
 	Measurement_Value->O3 = O3_ppm2ugm3(ppm_O3);		//Calculate the O3 concentration in ug/m3
 	o3_new_sample = Measurement_Value->O3;
 	o3_avg = approxMovingAverage(o3_avg, o3_new_sample, AverageWindow, CorrectionFactor);
-	if (o3_new_sample > o3_avg)
+	o3_avg1 = approxMovingAverage(o3_avg1, o3_new_sample, AverageWindow1, CorrectionFactor1);
+	if (o3_avg1 > o3_avg)
 		Measurement_Value->O3 = o3_avg;
+	else
+		Measurement_Value->O3 = o3_avg1;
 
 	Measurement_Value->NO2 = NO2_ppm2ugm3(ppm_NO2);		//Calculate the NO2 concentration in ug/m3
 	no2_new_sample = Measurement_Value->NO2;
 	no2_avg = approxMovingAverage(no2_avg, no2_new_sample, AverageWindow, CorrectionFactor);
-	if (no2_new_sample > no2_avg)
+	no2_avg1 = approxMovingAverage(no2_avg1, no2_new_sample, AverageWindow1, CorrectionFactor1);
+	if (no2_avg1 > no2_avg)
 		Measurement_Value->NO2 = no2_avg;
+	else
+		Measurement_Value->NO2 = no2_avg1;
 
 	Measurement_Value->NH3 = NH3_ppm2ugm3(ppm_NH3);		//Calculate the NH3 concentration in ug/m3
 	nh3_new_sample = Measurement_Value->NH3;
 	nh3_avg = approxMovingAverage(nh3_avg, nh3_new_sample, AverageWindow, CorrectionFactor);
-	if (nh3_new_sample > nh3_avg)
+	nh3_avg1 = approxMovingAverage(nh3_avg1, nh3_new_sample, AverageWindow1, CorrectionFactor1);
+	if (nh3_avg1 > nh3_avg)
 		Measurement_Value->NH3 = nh3_avg;
+	else
+		Measurement_Value->NH3 = nh3_avg1;
 
 	Measurement_Value->CO = CO_ppm2ugm3(ppm_CO);		//Calculate the CO concentration in mg/m3
 	co_new_sample = Measurement_Value->CO;
 	co_avg = approxMovingAverage(co_avg, co_new_sample, AverageWindow, CorrectionFactor);
-	if (co_new_sample > co_avg)
+	co_avg1 = approxMovingAverage(co_avg1, co_new_sample, AverageWindow1, CorrectionFactor1);
+	if (co_avg1 > co_avg)
 		Measurement_Value->CO = co_avg;
+	else
+		Measurement_Value->CO = co_avg1;
 
 	Measurement_Value->SO2 = SO2_ppm2ugm3(ppm_SO2);		//Calculate the SO2 concentration in ug/m3
 	so2_new_sample = Measurement_Value->SO2;
 	so2_avg = approxMovingAverage(so2_avg, so2_new_sample, AverageWindow, CorrectionFactor);
-	if (so2_new_sample > so2_avg)
+	so2_avg1 = approxMovingAverage(so2_avg1, so2_new_sample, AverageWindow1, CorrectionFactor1);
+	if (so2_avg1 > so2_avg)
 		Measurement_Value->SO2 = so2_avg;
+	else
+		Measurement_Value->SO2 = so2_avg1;
 
 	Measurement_Value->C6H6  = 0;						//Calculate the C6H6 concentration in ug/m3
 //	Measurement_Value->C6H6  = C6H6_ppm2ugm3(ppm_C6H6);	//Calculate the C6H6 concentration in ug/m3

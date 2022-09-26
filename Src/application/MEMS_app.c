@@ -852,10 +852,13 @@ void VOC_Sensor_Handler(CCS811_MeasureTypeDef_st *voc, uint8_t* Buff)
 	const float32_t CorrectionFactor_1h = (1+(1/AverageWindow_1h));
 	static const uint32_t AverageWindow_5m = 60;	//300/5: Number of readings in 5 minutes
 	const float32_t CorrectionFactor_5m = (1+(1/AverageWindow_5m));
+	static const uint32_t AverageWindow_1m = 12;	//60/5: Number of readings in 1 minutes
+	const float32_t CorrectionFactor_1m = (1+(1/AverageWindow_1m));
 //	static const uint32_t AverageWindow_8h = 5760;	//3600*8/5: Number of readings in 8 hour
 //	const float32_t CorrectionFactor_8h = (1+(1/AverageWindow_8h));
 	static float32_t eTVOC_avg = 0; static float32_t eCO2_avg = 0;
 	static float32_t eTVOC_avg5m = 0; static float32_t eCO2_avg5m = 0;
+	static float32_t eTVOC_avg1m = 0; static float32_t eCO2_avg1m = 0;
 //	uint8_t save_status;
 
 /* A preliminary moving average is performed to prevent very high transient eTVOC or eCO values
@@ -863,17 +866,23 @@ void VOC_Sensor_Handler(CCS811_MeasureTypeDef_st *voc, uint8_t* Buff)
  * The moving average filter has two time constants: the first (used when the current value is
  * greater than the average value calculated up to then) is given by the value of the
  * "AverageWindow_5m" constant. The second (used when the present value is less than or equal
- * to the average value calculated up to then) is equal to 0.
+ * to the average value calculated up to then) is given by the value of the "AverageWindow_1m"constant.
  */
 	eq_TVOC = voc->eTVOC * VOC_Correction;
 	eTVOC_avg5m = approxMovingAverage(eTVOC_avg5m, (float32_t)eq_TVOC, AverageWindow_5m, CorrectionFactor_5m);
-	if ((float32_t)eq_TVOC > eTVOC_avg5m)
+	eTVOC_avg1m = approxMovingAverage(eTVOC_avg1m, (float32_t)eq_TVOC, AverageWindow_1m, CorrectionFactor_1m);
+	if (eTVOC_avg1m > eTVOC_avg5m)
 		eq_TVOC = eTVOC_avg5m;
+	else
+		eq_TVOC = eTVOC_avg1m;
 
 	eq_CO2 = voc->eCO2 * VOC_Correction;
 	eCO2_avg5m = approxMovingAverage(eCO2_avg5m, (float32_t)eq_CO2, AverageWindow_5m, CorrectionFactor_5m);
+	eCO2_avg1m = approxMovingAverage(eCO2_avg1m, (float32_t)eq_CO2, AverageWindow_1m, CorrectionFactor_1m);
 	if ((float32_t)eq_CO2 > eCO2_avg5m)
 		eq_CO2 = eCO2_avg5m;
+	else
+		eq_CO2 = eCO2_avg1m;
 
 #if (GAS_SENSOR_MODULE_PRESENT==0)
 	CO_Out = (uint32_t)(eq_CO2*100);	//Used by BLE in app_bluenrg_2.c User_Process() function
