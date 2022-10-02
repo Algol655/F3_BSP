@@ -340,9 +340,6 @@ void send_glcdmessage(char *str, uint8_t xpos, uint8_t ypos, uint8_t yspace, uin
 
 LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 {
-	extern double_t Pressure;
-	extern double_t Temperature;
-	extern uint8_t	Humidity;
 //	const uint8_t mystring[] = "P    Td    Tp\r\n";
 	const uint8_t mystring[] = {0xB0,0x43,0x0D,0x0A,0x00};	//°C\r\n";
 
@@ -382,7 +379,6 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_tf);
 				u8g2_DrawStr(&u8g2, 159, 13, (char*)&mystring[0]);
 		#endif
-				forecast = Weather_Forecast((float)Pressure, (float)Temperature, Humidity);
 				u8g2_SetFont(&u8g2, u8g2_font_unifont_t_weather);
 				switch (forecast & 0x3F)	//Mask Steady and pressure increase/decrease bits
 				{

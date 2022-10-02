@@ -15,7 +15,8 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 	static Z_WheatherParameters_st Wheather_Values =
 					{.PreviousPressVal = 1023.0, .CurrentPressVal=1023.0, .WeatherF_DeltaPressVal=0.0,
 			         .PreviousTempVal=25.0, .CurrentTempVal=25.0, .DeltaTempVal=0.0, .PreviousHumVal=50,
-					 .CurrentHumVal=50, .DeltaHumVal=0, .DeltaTime=0, .ForecastEstimate=0, .PrevForecastEstimate=0};
+					 .CurrentHumVal=50, .DeltaHumVal=0, .DeltaTime=0,
+					 .ForecastEstimate=0, .PrevForecastEstimate=0, .Z_ForecastEstimate=0};
 	static int16_t WeatherF_DeltaP = 0;
 	static uint16_t CountTick = 0;
 	static uint8_t Z_Value = 1;
@@ -35,7 +36,8 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 		//to restore here the weather values used by the WeatherForecast function
 		//Use the last Weather status after a reset or after a power cycle
 		WeatherF_DeltaP = (int16_t)(FlashDataOrg.b_status.s6 & 0x0000FFFF);
-		Wheather_Values.ForecastEstimate = (uint8_t)((FlashDataOrg.b_status.s6 >> 16) & 0x000000FF);
+		forecast = Wheather_Values.ForecastEstimate = (uint8_t)((FlashDataOrg.b_status.s6 >> 16) & 0x000000FF);
+		Z_forecast = Wheather_Values.Z_ForecastEstimate = (uint8_t)((FlashDataOrg.b_status.s6 >> 24) & 0x000000FF);
 		CountTick++;	//So we enter this branch only once
 	} else
 	if (++CountTick > DELTA_T)
@@ -82,11 +84,16 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 			Z_Value = 1;
 		if (Z_Value > 32)
 			Z_Value = 32;
-		Wheather_Values.ForecastEstimate = Z_Symbols[Z_Value-1];
+		Z_forecast = Wheather_Values.Z_ForecastEstimate = Z_Value;
+		forecast = Wheather_Values.ForecastEstimate = Z_Symbols[Z_Value-1];
 		//Stores the weather values in the board data structure.
 		//They will be flashed within one hour, when the timeout expires in the
 		//HAL_RTCEx_RTCEventCallback function in port.c
-		FlashDataOrg.b_status.s6 = (uint32_t)((Wheather_Values.ForecastEstimate << 16) | (uint16_t)(WeatherF_DeltaP));
+//		FlashDataOrg.b_status.s6 = (uint32_t)((Wheather_Values.ForecastEstimate << 16) | (uint16_t)(WeatherF_DeltaP));
+		FlashDataOrg.b_status.s6 = ((uint32_t)(Wheather_Values.Z_ForecastEstimate & 0xFF) << 24) |
+								   ((uint32_t)(Wheather_Values.ForecastEstimate & 0xFF) << 16) |
+								   ((uint32_t)(WeatherF_DeltaP & 0xFFFF));
+
 	}
 
 	return Wheather_Values.ForecastEstimate;

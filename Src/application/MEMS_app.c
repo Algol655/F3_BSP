@@ -797,9 +797,7 @@ void Humidity_Sensor_Handler(HTS221_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 		ServiceTimerStart(STim_2);
 		ServiceTimerStart(STim_3);
 	}
-	//When GLCD_SUPPORT == 0 use the Weather Forecast calculated here
-	//Otherwise, the one calculated in function ReDrawPage_S0 in lcd.c will be used
-	forecast = Weather_Forecast((float)Pressure, (float)Temperature, Humidity);
+	Weather_Forecast((float)Pressure, (float)Temperature, Humidity);
 #if (GUI_SUPPORT==1)				//Defined in main.h
 	Temperature_C_1_data[0] = temp_value;	//For UnicleoGUI
 	Temperature_C_2_data[0] = HI;			//For UnicleoGUI

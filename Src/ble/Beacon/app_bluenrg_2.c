@@ -131,6 +131,8 @@ uint8_t AdvCodes[] =	//manuf_data[30]
 
 const uint8_t man_data_offset = 2;	//Advertising data: manufacturer specific data offset
 const uint8_t N_AdvCodes = 5;
+//const char AQ_Class[6][10]={{"EXCELLENT"},{"FINE     "},{"MODERATE "},{"POOR     "},
+//					 	 	{"VERY POOR"},{"SEVERE   "}};
 uint8_t Adv_Code = 0;
 uint8_t beacon_number = 0;
 bool adv_data_sent = false;
@@ -254,7 +256,7 @@ void MX_BlueNRG_2_Process(void)
 			HOST_TO_LE_16(manuf_data+man_data_offset+14, T2_Out);	//Dew Point
 			HOST_TO_LE_16(manuf_data+man_data_offset+16, T3_Out);	//Heat Index
 			HOST_TO_LE_32(manuf_data+man_data_offset+18, P_Out);	//Absolute Pressure
-			manuf_data[man_data_offset+22] = forecast;
+			manuf_data[man_data_offset+22] = Z_forecast;
 		} else
 		if(Adv_Code == 0x02)
 		{

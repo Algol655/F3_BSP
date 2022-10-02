@@ -236,7 +236,7 @@ bool display_gas_data, send_lcl_gas_data, lcl_gas_data_rdy;
 bool service_timer0_expired;
 bool update_1s, update1h, update1d;
 uint8_t t_flip, NumberOfDevices, PreviousPage;
-uint8_t forecast, Gas_AQI, AVG_Gas_AQI, AVG_PMx_AQI;
+uint8_t Z_forecast, forecast, Gas_AQI, AVG_Gas_AQI, AVG_PMx_AQI;
 uint16_t stby_timer, stby_timer_timeout;
 uint16_t led_pc6_timer, led_pc7_timer, led_pc8_timer, led_pc9_timer;
 uint16_t service_timer0, service_timer3;	//Service_timer3 uses 5s timer3 tick

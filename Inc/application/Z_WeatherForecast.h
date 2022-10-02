@@ -29,8 +29,9 @@ typedef struct
 	uint8_t CurrentHumVal;
 	uint8_t DeltaHumVal;
 	uint8_t DeltaTime;
-	uint8_t ForecastEstimate;
+	uint8_t ForecastEstimate;		//This value will be used on the local display
 	uint8_t PrevForecastEstimate;
+	uint8_t Z_ForecastEstimate;		//This value will be used on the remote display (BLE, LORA, etc.)
 } Z_WheatherParameters_st;
 
 typedef enum
