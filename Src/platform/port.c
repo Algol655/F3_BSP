@@ -24,9 +24,14 @@
 	extern VEML6075_MeasureTypeDef_st UVx_Values;
 #endif
 #if (VOC_SENSOR_PRESENT==1)					//Defined in main.h
+#if (CCS811)
 	#include "platform/CCS811_Driver.h"
 	extern CCS811_MeasureTypeDef_st VOC_Values;
-#endif
+#elif (ENS160)
+	#include "platform/ENS160_Driver.h"
+	extern ENS160_MeasureTypeDef_st VOC_Values;
+#endif	// CCS811
+#endif	// VOC_SENSOR_PRESENT
 #if (PARTICULATE_SENSOR_PRESENT==1)			//Defined in main.h
 	#include "platform/SPS30_Driver.h"
 	extern SPS30_MeasureTypeDef_st PMS_Values;
@@ -775,7 +780,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		HAL_NVIC_DisableIRQ(TIM6_DAC_IRQn);
 		timer5s_expired = true;
 #if (VOC_SENSOR_PRESENT==1)
+	#if (CCS811)
 		Store_CCS811_Baseline = true;
+	#endif
 #endif
 	}
 	if (htim->Instance==htim3.Instance)
@@ -864,7 +871,7 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 	static uint16_t h = 0;
 //	static uint8_t d = 0;
 	static uint16_t WarmUp_Couter = 0;
-	const uint16_t CCS811_Baseline_El_Store_Period = 24*7;
+	const uint16_t Baseline_El_Store_Period = 24*7;
 	const uint16_t GAS_SesorBoard_WarmUp = 60*30;	//Do not acquire the the analog sensors values
 													//before the warm-up period has elapsed
 	FlashDataOrg.b_status.s1++;				//Increment the total uptime timer
@@ -886,10 +893,12 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 			update1d = true;
 			hd = 0;
 		}
-		if (++h > CCS811_Baseline_El_Store_Period)	//Store CCS811 Baseline every week
+		if (++h > Baseline_El_Store_Period)	//Store CCS811 Baseline every week
 		{
 #if (VOC_SENSOR_PRESENT==1)
+	#if (CCS811)
 			Store_CCS811_Baseline = true;	//Update CCS811 Baseline in board database structure
+	#endif
 #endif
 			h = 0;
 		}
@@ -1361,13 +1370,23 @@ void process_timer3_irq(void)
 	//If available Set Set Environment Parameters for CCS811 environmental compensation
 	#if (HUMIDITY_SENSOR_PRESENT==1)
 		extern float hum_value, temp_value;
+	#if (CCS811)
 		CCS811_SetEnvironmentalData(hum_value, temp_value);
 //		CCS811_SetEnvironmentalData(65.0, 25.0);
+	#elif (ENS160)
+		ENS160_SetEnvironmentalData(hum_value, temp_value);
+//		ENS160_SetEnvironmentalData(65.0, 25.0);
+	#endif	//CCS811
+	#endif	//HUMIDITY_SENSOR_PRESENT
+	#if (CCS811)
+		CCS811_status = CCS811_Get_Measurement(&VOC_Values);
+	#elif (ENS160)
+		ENS160_status = ENS160_Get_Measurement(&VOC_Values);
 	#endif
-	CCS811_status = CCS811_Get_Measurement(&VOC_Values);
 	lcl_voc_data_rdy = true;
 	send_lcl_voc_data = true;
 	display_voc_data = StartDataStrmng;
+	#if (CCS811)
 	if ((WarmUpPeriod_expired) && (CCS811_Save_Baseline_Reserved))
 	{
 		CCS811_Save_Baseline(true);
@@ -1375,6 +1394,7 @@ void process_timer3_irq(void)
 	}
 	if (service_timer3 == RUN_IN_TIME)
 		load_baseline = true;
+	#endif
 #endif
 #if (PARTICULATE_SENSOR_PRESENT==1)		//Defined in main.h
 	SPS30_status = SPS30_Get_Measurement(&PMS_Values);

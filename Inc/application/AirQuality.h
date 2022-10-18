@@ -48,11 +48,11 @@ typedef enum
 	eTVOC_Poor = 2200,		//ppb
 	eTVOC_Unhealty = 5500,	//ppb
 	//
-	eCO2_FreshAir = 450,	//ppm
-	eCO2_Normal = 1832,		//ppm = 6.5*eTVOC_Good + 402
-	eCO2_Acceptable = 4692,	//ppm = 6.5*eTVOC_Moderate + 402
-	eCO2_Drowsiness = 14702,//ppm = 6.5*eTVOC_Poor + 402
-	eCO2_Harmful = 36152,	//ppm = 6.5*eTVOC_Unhealty + 402
+	eCO2_FreshAir = 600,	//ppm Excellent
+	eCO2_Normal = 800,		//ppm Good
+	eCO2_Acceptable = 1000,	//ppm Moderate
+	eCO2_Drowsiness = 2500, //ppm Poor
+	eCO2_Harmful = 5000,	//ppm VeryPoor
 	//
 	CH2O_Exellent = 20,		//ug/m3
 	CH2O_Fine = 40,			//ug/m3

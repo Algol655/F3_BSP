@@ -89,7 +89,6 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 		//Stores the weather values in the board data structure.
 		//They will be flashed within one hour, when the timeout expires in the
 		//HAL_RTCEx_RTCEventCallback function in port.c
-//		FlashDataOrg.b_status.s6 = (uint32_t)((Wheather_Values.ForecastEstimate << 16) | (uint16_t)(WeatherF_DeltaP));
 		FlashDataOrg.b_status.s6 = ((uint32_t)(Wheather_Values.Z_ForecastEstimate & 0xFF) << 24) |
 								   ((uint32_t)(Wheather_Values.ForecastEstimate & 0xFF) << 16) |
 								   ((uint32_t)(WeatherF_DeltaP & 0xFFFF));

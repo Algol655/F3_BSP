@@ -195,12 +195,21 @@ void AB_Init(void)
 	/* tVOC_Init() CO2_Init() */
 	BIT_SET(SensorStatusReg,19);	//Set VOC sensor presence in SensorStatusRegister
 	NumberOfDevices++;				//Increment number of sensors mounted
+#if (CCS811)
     CCS811_status = MX_CCS811_Init();		//Initialize (disabled) Sensor
 	if (CCS811_status == (uint8_t)CCS811_OK)
 	{
 		strcat(ReadyDevices, "CCS811 ");
 		BIT_SET(SensorStatusReg,3);	//Set VOC sensor status in SensorStatusRegister
 	}
+#elif (ENS160)
+    ENS160_status = MX_ENS160_Init();		//Initialize (disabled) Sensor
+	if (ENS160_status == (uint8_t)ENS160_OK)
+	{
+		strcat(ReadyDevices, "ENS160 ");
+		BIT_SET(SensorStatusReg,3);	//Set VOC sensor status in SensorStatusRegister
+	}
+#endif
     HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after CCS811 Init
 	CCS811_VOC_Ro_Stored = FlashDataOrg.b_status.s0;
 	VOC_Correction = (uint8_t)(((FlashDataOrg.b_status.sf) & 0x000000FF) / 100);
@@ -844,7 +853,11 @@ void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff)
  * @param  Buff: Stream pointer
  * @retval None
  */
+#if (CCS811)
 void VOC_Sensor_Handler(CCS811_MeasureTypeDef_st *voc, uint8_t* Buff)
+#elif (ENS160)
+void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
+#endif
 {
 	static const uint32_t AverageWindow_1h = 720;	//3600/5: Number of readings in one hour
 	const float32_t CorrectionFactor_1h = (1+(1/AverageWindow_1h));
@@ -893,7 +906,7 @@ void VOC_Sensor_Handler(CCS811_MeasureTypeDef_st *voc, uint8_t* Buff)
 
 	eq_TVOC_1h_Mean = voc->eTVOC_mean;
 	eq_CO2_8h_Mean = voc->eCO2_mean;
-
+#if (CCS811)
 	if (Store_CCS811_Baseline)			//Perform a Baseline storage when button is pressed for more than 5s
 	{									//or on a weekly basis. (Function HAL_RTCEx_RTCEventCallback in port.c)
 		Store_CCS811_Baseline = false;
@@ -906,11 +919,16 @@ void VOC_Sensor_Handler(CCS811_MeasureTypeDef_st *voc, uint8_t* Buff)
 		load_baseline = false;
 		baseline_loaded = true;
 	}
+#endif	//CCS811
 #if (GUI_SUPPORT==1)
 	eTVOC_1_data[0] = (float)eq_TVOC;	//For UnicleoGUI
 	eCO2_1_data[0] = (float)eq_TVOC;	//For UnicleoGUI
 #endif
+#if (CCS811)
 	(void)memcpy((void *)&Buff[31], voc, sizeof(CCS811_MeasureTypeDef_st));
+#elif (ENS160)
+	(void)memcpy((void *)&Buff[31], voc, 12);
+#endif
 	/* sizeof(CCS811_MeasureTypeDef_st) == 12 */
 }
 #endif

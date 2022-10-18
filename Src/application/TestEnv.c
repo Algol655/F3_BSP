@@ -1061,7 +1061,9 @@ void L70_menu()
 			case 0x35:
 				app.usbbuf[len-1] = 0;
 				mystring3[0] = 0;
+	#if (CCS811)
 				CCS811_Save_Baseline(false);
+	#endif
 				PrintNumHeader((uint8_t*)mystring11a, (uint8_t*)mystring11c, CCS811_VOC_Ro, false, " ");
 				PrintNumHeader((uint8_t*)mystring11b, (uint8_t*)mystring11d, CCS811_VOC_Ro_Stored, false, " ");
 				GetNumericString(false, false);

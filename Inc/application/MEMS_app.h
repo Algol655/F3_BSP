@@ -230,8 +230,13 @@ bool SendCntrlMsg;
 	#endif
 #endif
 #if (VOC_SENSOR_PRESENT==1)					//Defined in main.h
-	#include "platform/CCS811_Driver.h"
-	CCS811_MeasureTypeDef_st VOC_Values;
+	#if (CCS811)
+		#include "platform/CCS811_Driver.h"
+		CCS811_MeasureTypeDef_st VOC_Values;
+	#elif (ENS160)
+		#include "platform/ENS160_Driver.h"
+		ENS160_MeasureTypeDef_st VOC_Values;
+	#endif
 	uint16_t eq_TVOC, eq_CO2;
 	uint16_t eq_TVOC_1h_Mean, eq_CO2_8h_Mean;
 	uint32_t CO_Out;	//Used by BLE in app_bluenrg_2.c User_Process() function
@@ -379,7 +384,7 @@ void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff);
 
 #if (VOC_SENSOR_PRESENT==1)					//Defined in main.h
 /**
- * @brief  Handles the CCS811 sensor data getting/sending.
+ * @brief  Handles the CCS811/ENS160 sensor data getting/sending.
  * @brief  Build the Buff array from the float (LSB first)
  * @brief  Calculate the hourly/daily average of the concentration values
  * @brief  Fill the eTVOC, eCO2 parts of the Buff stream
@@ -387,7 +392,11 @@ void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff);
  * @param  Buff: Stream pointer
  * @retval None
  */
-void VOC_Sensor_Handler(CCS811_MeasureTypeDef_st *voc, uint8_t* Buff);
+	#if (CCS811)
+	void VOC_Sensor_Handler(CCS811_MeasureTypeDef_st *voc, uint8_t* Buff);
+	#elif (ENS160)
+	void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff);
+	#endif
 #endif
 
 #if (PARTICULATE_SENSOR_PRESENT==1)			//Defined in main.h

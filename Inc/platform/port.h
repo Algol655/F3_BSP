@@ -85,12 +85,14 @@ app_t 	app;
 can_t 	can1app, can2app;
 usart_t	usart2app, usart3app;
 
-#define num_digital_in				(16U-1U)			//Number of digital inputs
+#define num_digital_in				(16U-1U)		//Number of digital inputs
 #if (IMU_PRESENT==1)
 	extern uint8_t MagCalRequest, AccCalRequest, ActRecRequest, GyroCalRequest;
 #endif
 #if (VOC_SENSOR_PRESENT==1)
 	extern bool load_baseline, baseline_loaded, CCS811_Save_Baseline_Reserved;
+	#define CCS811	(1)				//When 1 "ENS160_Driver.c" must be excluded from build
+	#define ENS160	(0)				//When 1 "CCS811_Driver.c" must be excluded from build
 #endif
 uint8_t Message_Length;
 
@@ -223,7 +225,7 @@ SENSOR_TYPE Sensor_Type;
 SENSOR_STATUS Sensor_Status;
 
 HAL_StatusTypeDef MCP23017_status, LSM9DS1_status, LPS25HB_status, HTS221_status, VEML6075_status;
-HAL_StatusTypeDef CCS811_status, SPS30_status, ANLG_status, TLCD_status, GLCD_status;
+HAL_StatusTypeDef CCS811_status, ENS160_status, SPS30_status, ANLG_status, TLCD_status, GLCD_status;
 bool Test_Mode, leds_test, timer5s_expired, update_5s, conversion_ended, RiskReport;
 bool input_changed, I2C_done, can_tx_done, refresh, WarmUpPeriod_expired;
 bool display_imu_data, send_lcl_imu_data, send_lcl_imu_data_to_ble, lcl_imu_data_rdy;
