@@ -198,7 +198,7 @@ ENS160_Error_et ENS160_Idle_Mode(uint8_t B_Addr)
 {
 	ENS160_Error_et ret = 0;
 
-	if (ENS160_WriteReg(B_Addr, ENS160_COMMAND, 1, ENS160_COMMAND_NOP))
+	if (ENS160_WriteReg(B_Addr, ENS160_COMMAND, 1, (uint8_t*)ENS160_COMMAND_NOP))
 		return ENS160_ERROR;
 	if (ENS160_WriteReg(B_Addr, ENS160_COMMAND, 1, (uint8_t*)ENS160_COMMAND_CLRGPR))
 		return ENS160_ERROR;
@@ -221,10 +221,12 @@ ENS160_Error_et ENS160_Idle_Mode(uint8_t B_Addr)
 ENS160_Error_et ENS160_Std_Mode(uint8_t B_Addr)
 {
 	ENS160_Error_et ret = 0;
+	uint8_t OpMode[1] = {0x02};
 
-	if (ENS160_WriteReg(B_Addr, ENS160_OPMODE, 1, (uint8_t*)ENS160_OPMODE_STD))
+//	if (ENS160_WriteReg(B_Addr, ENS160_OPMODE, 1, (uint8_t*)ENS160_OPMODE_STD))
+	if (ENS160_WriteReg(B_Addr, ENS160_OPMODE, 1, (uint8_t*)OpMode))
 		return ENS160_ERROR;
-	Sleep(10);
+	Sleep(20);
 
 	return ret;
 }
@@ -412,9 +414,13 @@ ENS160_Error_et MX_ENS160_Init()
 	if (ENS160_Get_FW_Ver(ENS160_BADDR, (uint8_t*)FW_Ver, false))
 		return ENS160_ERROR;
 
-	// Initialize Standard mode and confirms
-	if (ENS160_Std_Mode(ENS160_BADDR))
+	// Initialize Standard mode, set references temperature and humidity and confirms
+	if (ENS160_Init(ENS160_BADDR, ENS160_OPMODE, &ENS160_1[0], 7))
 		return ENS160_ERROR;
+
+	// Initialize Standard mode and confirms
+/*	if (ENS160_Std_Mode(ENS160_BADDR))
+		return ENS160_ERROR; */
 
 	return ENS160_OK;
 }

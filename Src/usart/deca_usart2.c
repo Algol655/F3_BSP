@@ -60,7 +60,6 @@ rx1handle={.Lock = HAL_UNLOCKED};
 #endif
 //extern HAL_StatusTypeDef usart2_port_tx_msg(uint8_t* str, uint16_t len);
 
-#pragma GCC optimize ("O3")
 /* @fn		mymemcpy
  * @brief 	Copies n characters from memory area src to memory area dest
  * 			To avoid buffer overflow, when end of src area is reached but len is > 0,
@@ -90,7 +89,6 @@ rx1handle={.Lock = HAL_UNLOCKED};
   return dest;
 } */
 
-#pragma GCC optimize ("O3")
 /* @fn		usart2_flush_report_buff
  * @brief 	FLUSH should have higher priority than usart2_port_tx_msg()
  * 			it shall be called periodically from process, which usart not be locked,
@@ -146,7 +144,6 @@ HAL_StatusTypeDef flush_usart2_report_buff(void)
 	return HAL_OK;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn		flush_usart2_local_buff
  * @brief 	FLUSH should have high priority
  * 			it shall be called periodically from process, which usart not be locked,
@@ -194,7 +191,6 @@ HAL_StatusTypeDef flush_usart2_local_buff(void)
 	return HAL_OK;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn 		usart2_port_tx_msg()
  * @brief 	put message to circular report buffer
  * 			it will be transmitted in background ASAP from flushing Thread
@@ -237,7 +233,6 @@ HAL_StatusTypeDef usart2_port_tx_msg(uint8_t *str, int16_t len)
     return ret;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn 		usart2_port_rx_msg()
  * @brief 	put message to circular local buffer
  * 			it will be transmitted in background ASAP from flushing Thread
@@ -280,7 +275,6 @@ HAL_StatusTypeDef usart2_port_rx_msg(uint8_t *str, int16_t len)
     return ret;
 }
 
-#pragma GCC optimize ("O3")
 /**
   * @brief  DW_USART2_DataTx
   *         received data to be send over USART2 endpoint are managed in
@@ -300,7 +294,6 @@ USARTD_StatusTypeDef DW_USART2_DataTx (uint8_t* Buf, uint16_t Len)
 	return usart2_port_tx_msg(Buf, Len);
 }
 
-#pragma GCC optimize ("O3")
 /**
   * @brief  DW_USART2_DataRx
   *         Data received from USART2 device
@@ -360,7 +353,6 @@ USARTD_StatusTypeDef DW_USART2_DataRx (uint8_t* Buf, uint16_t Len)
 #endif
 }
 
-#pragma GCC optimize ("O3")
 USARTD_StatusTypeDef process_usart2message(uint8_t* Buf)
 {
 	USARTD_StatusTypeDef result = USARTD_OK;
@@ -391,7 +383,6 @@ USARTD_StatusTypeDef process_usart2message(uint8_t* Buf)
 	return result;
 }
 
-#pragma GCC optimize ("O3")
 void send_usart2message(uint8_t *string, int16_t len)
 {
 	if(usart_ready(&huart2))
@@ -420,7 +411,6 @@ void send_usart2message(uint8_t *string, int16_t len)
 	}
 }
 
-#pragma GCC optimize ("O3")
 void usart2_run(void)
 {
 	uint16_t prev_usart2len = 0;

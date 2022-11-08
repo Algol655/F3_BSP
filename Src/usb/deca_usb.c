@@ -74,7 +74,6 @@ uint16_t DW_VCP_Ctrl (uint32_t Cmd, uint8_t* Buf, uint32_t Len)
    return USBD_OK;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn		flush_report_buff
  * @brief 	FLUSH should have higher priority than port_tx_msg()
  * 			it shall be called periodically from process, which can not be locked,
@@ -130,7 +129,6 @@ HAL_StatusTypeDef flush_report_buff(void)
 	return HAL_OK;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn		flush_local_buff
  * @brief 	FLUSH should have high priority
  * 			it shall be called periodically from process, which can not be locked,
@@ -175,7 +173,6 @@ HAL_StatusTypeDef flush_local_buff(void)		//Added & Modified By Me!!
 	return HAL_OK;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn 		port_tx_msg()
  * @brief 	put message to circular report buffer
  * 			it will be transmitted in background ASAP from flushing Thread
@@ -218,7 +215,6 @@ HAL_StatusTypeDef port_tx_msg(uint8_t *str, int len)
     return ret;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn 		can1_port_rx_msg()
  * @brief 	put message to circular local buffer
  * 			it will be transmitted in background ASAP from flushing Thread
@@ -261,7 +257,6 @@ HAL_StatusTypeDef port_rx_msg(uint8_t *str, int16_t len)
     return ret;
 }
 
-#pragma GCC optimize ("O3")
 /**
   * @brief  DW_VCP_DataTx
   *         CDC received data to be send over USB IN endpoint are managed in
@@ -281,7 +276,6 @@ USBD_StatusTypeDef DW_VCP_DataTx (uint8_t* Buf, uint32_t Len)
 	return port_tx_msg(Buf, Len);
 }
 
-#pragma GCC optimize ("O3")
 /**
   * @brief  DW_VCP_DataRx
   * @brief	Data received from host device;
@@ -382,7 +376,6 @@ USBD_StatusTypeDef DW_VCP_DataRx (uint8_t* Buf, uint32_t Len)
   return USBD_OK;
 }
 
-#pragma GCC optimize ("O3")
 USBD_StatusTypeDef process_usbmessage(uint8_t* Buf)
 {
 	USBD_StatusTypeDef result = USBD_OK;
@@ -399,7 +392,6 @@ USBD_StatusTypeDef process_usbmessage(uint8_t* Buf)
 	return result;
 }
 
-#pragma GCC optimize ("O3")
 void send_usbmessage(uint8_t *string, int len)
 {
     if(usb_ready())
@@ -435,7 +427,6 @@ int usb_init(void)
     return 0;
 }
 
-#pragma GCC optimize ("O3")
 void usb_run(void)
 {
 	uint16_t prev_usblen = 0;

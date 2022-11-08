@@ -20,6 +20,8 @@ float32_t ppm_CH2O, ppm_O3, ppm_NO2, ppm_NH3, ppm_CO, ppm_SO2, ppm_C6H6;
 void Ain1_Check(uint8_t* b, uint8_t* a, AIN1_FUNCTION An_Func)
 {
 	uint16_t mask;
+	static uint32_t ErrorTimeOut = 0;
+	static bool ErrorTimerStarted = false;
 
 	switch(An_Func)
 	{
@@ -63,9 +65,28 @@ void Ain1_Check(uint8_t* b, uint8_t* a, AIN1_FUNCTION An_Func)
 			b[5] = mask;
 		}
 		break;
+		/*
+		 * At the moment the C6H6 sensor input is not used and always has a value of 0.
+		 * It is used to check the correct operation of the ADC.
+		 * In a subsequent release of the HW of the Sensus191 board,
+		 * one of the 32 analog inputs will be dedicated to this purpose
+		 */
 		case AIN_06_1_C6H6:
 		{
 			mask = *a;
+			if (mask > 0x55)
+			{
+				if (!(ErrorTimerStarted))
+				{
+					ErrorTimeOut = HAL_GetTick();
+					ErrorTimerStarted = true;
+				}
+				if ((HAL_GetTick() - ErrorTimeOut) > OVFL_TIMEOUT)
+					NVIC_SystemReset();
+			} else
+			{
+				ErrorTimerStarted = false;
+			}
 			b[6] = mask;
 		}
 		break;
@@ -242,15 +263,15 @@ void Ain2_Check(uint8_t* b, uint8_t* a, AIN2_FUNCTION An_Func)
 void read_analogs(void)
 {
 	uint8_t i, j, k, n;
-	uint16_t mask1 = 0xFF8;	//4088: Filter for 7mV sensitivity
 	const uint8_t mask1_shift = 4;
+	uint16_t mask1 = 0xFF8;	//4088: Filter for 7mV sensitivity
 //	uint16_t mask1 = 0xFF0;	//4080: Filter for 13mV sensitivity
 //	uint16_t mask1 = 0xF80;	//3968: Filter for 100mV sensitivity
 	uint16_t mask2 = 0xFF0;	//4080: Filter for 13mV sensitivity
-	const uint8_t mask2_shift = 4;
 //	uint16_t mask2 = 0xF80;	//3968: Filter for 100mV sensitivity
 //	uint16_t mask2 = 0xFC0;	//4032: Filter for 52mV sensitivity
-	uint16_t mask3 = 0xFE0;	//4064: Filter for 26mV sensitivity
+//	uint16_t mask3 = 0xFE0;	//4064: Filter for 26mV sensitivity
+	const uint8_t mask2_shift = 4;
 	static uint32_t Ovfl_Time0 = 0;
 	static uint32_t Ovfl_Time1 = 0;
 
@@ -318,8 +339,9 @@ void read_analogs(void)
 	}
 	AnlgOvflStatusReg &= mux_channels_enabled;	//Clear the two multiplexers unused channels overflow events
 	//Read CPU Temperature
-//	Vsense = (float)((((adc_values[2] & mask3) * Vref) / ADC_RESOLUTION));	//Read Internal Temperature (Volt)
-	Vrsense = (float)(adc_values[2] & mask3);								//Read Internal Temperature (Row Data)
+	Vsense = (float32_t)((((adc_values[2] & 0xFF0) * ADC_REFERENCE_VOLTAGE_MV) / ADC_MAX_OUTPUT_VALUE));
+	CPU_Temp = (float32_t)(((TEMP_SENSOR_VOLTAGE_MV_AT_25 - Vsense) / TEMP_SENSOR_AVG_SLOPE_MV_PER_CELSIUS) + 25.0);
+	//Vrsense = (float)(adc_values[2] & mask3);				//Read Internal Temperature (Row Data)
 	//If in test-mode then display values.
 	if (Test_Mode)
 	{

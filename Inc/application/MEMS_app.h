@@ -238,7 +238,7 @@ bool SendCntrlMsg;
 		ENS160_MeasureTypeDef_st VOC_Values;
 	#endif
 	uint16_t eq_TVOC, eq_CO2;
-	uint16_t eq_TVOC_1h_Mean, eq_CO2_8h_Mean;
+	uint16_t eq_TVOC_1h_Mean, eq_CO2_1h_Mean;
 	uint32_t CO_Out;	//Used by BLE in app_bluenrg_2.c User_Process() function
 	#if (GUI_SUPPORT==1)					//Defined in main.h
 		int32_t eTVOC_1_data[1], eCO2_1_data[1];
@@ -265,7 +265,7 @@ bool SendCntrlMsg;
 	uint16_t CH2O, CH2O_8h_Mean, CO, CO_8h_Mean;
 	#if (FULL_MODE==1)
 		uint16_t NO2, NH3, O3, SO2, C6H6;
-		uint16_t NO2_1h_Mean, NH3_8h_Mean, O3_8h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
+		uint16_t NO2_1h_Mean, NH3_8h_Mean, O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
 	#endif
 	#if (GUI_SUPPORT==1)			//Defined in main.h
 		int32_t CO_data[1]; int32_t CH2O_data[1];	//For UnicleoGUI
@@ -426,6 +426,11 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff);
 #endif
 
 void Refresh_AQI(void);
+
+#if (USE_BKUP_SRAM)
+void Store_MeanValues_BackupRTC(void);
+void ReStore_MeanValues_BackupRTC(void);
+#endif
 
 #if (IMU_PRESENT==1)						//Defined in main.h
 /**

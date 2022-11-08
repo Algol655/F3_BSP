@@ -139,7 +139,7 @@ typedef struct
 	float32_t no2_1h_mean;
 	float32_t nh3_8h_mean;
 	float32_t ch2o_8h_mean;
-	float32_t o3_8h_mean;
+	float32_t o3_1h_mean;
 	float32_t so2_1h_mean;
 	float32_t c6h6_24h_mean;
 } ANLG_MeasureTypeDef_st;

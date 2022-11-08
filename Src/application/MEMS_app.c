@@ -131,8 +131,8 @@ void AB_Init(void)
 
 /*	T_Out = 0xFFFF; P0_Out = 0xFFFFFFFF; Hum_Out = 0xFFFF; T2_Out = 0xFFFF; T3_Out = 0xFFFF; P_Out = 0xFFFFFFFF;
 	eq_TVOC = 0xFFFF; eq_CO2 = 0xFFFF; CO = 0xFFFF; CH2O = 0xFFFF; NO2 = 0xFFFF; NH3 = 0xFFFF; O3 = 0xFFFF; SO2 = 0xFFFF; C6H6 = 0xFFFF;
-	eq_TVOC_1h_Mean = 0xFFFF; eq_CO2_8h_Mean = 0xFFFF; CO_8h_Mean = 0xFFFF; CH2O_8h_Mean = 0xFFFF; NO2_1h_Mean = 0xFFFF; NH3_8h_Mean = 0xFFFF;
-	O3_8h_Mean = 0xFFFF; SO2_1h_Mean = 0xFFFF; C6H6_24h_Mean = 0xFFFF;
+	eq_TVOC_1h_Mean = 0xFFFF; eq_CO2_1h_Mean = 0xFFFF; CO_8h_Mean = 0xFFFF; CH2O_8h_Mean = 0xFFFF; NO2_1h_Mean = 0xFFFF; NH3_8h_Mean = 0xFFFF;
+	O3_1h_Mean = 0xFFFF; SO2_1h_Mean = 0xFFFF; C6H6_24h_Mean = 0xFFFF;
 	MC_1p0 = 0xFFFF; MC_2p5 = 0xFFFF; MC_4p0 = 0xFFFF; MC_10p0 = 0xFFFF; NC_0p5 = 0xFFFF;
 	MC_1p0_24h_Mean = 0xFFFF; MC_2p5_24h_Mean = 0xFFFF; MC_4p0_24h_Mean = 0xFFFF; MC_10p0_24h_Mean = 0xFFFF;
 	Gas_AQI = 0xFF; AVG_Gas_AQI = 0xFF; AVG_PMx_AQI = 0xFF; */
@@ -211,10 +211,12 @@ void AB_Init(void)
 	}
 #endif
     HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after CCS811 Init
+#if (CCS811)
 	CCS811_VOC_Ro_Stored = FlashDataOrg.b_status.s0;
 	VOC_Correction = (uint8_t)(((FlashDataOrg.b_status.sf) & 0x000000FF) / 100);
 	if ((VOC_Correction == 0xFF) || (VOC_Correction == 0x0))
 		VOC_Correction = 1;			//If no value has been programmed then set with the default value
+#endif
 #endif
 
 #if (PARTICULATE_SENSOR_PRESENT==1)
@@ -870,6 +872,9 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 	static float32_t eTVOC_avg = 0; static float32_t eCO2_avg = 0;
 	static float32_t eTVOC_avg5m = 0; static float32_t eCO2_avg5m = 0;
 	static float32_t eTVOC_avg1m = 0; static float32_t eCO2_avg1m = 0;
+#if (USE_BKUP_SRAM)
+	static bool VOC_mean_init = true;
+#endif
 //	uint8_t save_status;
 
 /* A preliminary moving average is performed to prevent very high transient eTVOC or eCO values
@@ -899,13 +904,21 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 	CO_Out = (uint32_t)(eq_CO2*100);	//Used by BLE in app_bluenrg_2.c User_Process() function
 #endif
 //Calculate mean values in an hour
+#if (USE_BKUP_SRAM)						//Restores the average values if a watch-dog event has occurred
+	if (VOC_mean_init)					//or following a short power-cycle (<1 min)
+	{
+		eTVOC_avg = (float32_t)eq_TVOC_1h_Mean;
+		eCO2_avg = (float32_t)eq_CO2_1h_Mean;
+		VOC_mean_init = false;
+	}
+#endif
 	eTVOC_avg = approxMovingAverage(eTVOC_avg, (float32_t)eq_TVOC, AverageWindow_1h, CorrectionFactor_1h);
 	voc->eTVOC_mean = (uint16_t)lrintf(eTVOC_avg);
 	eCO2_avg = approxMovingAverage(eCO2_avg, (float32_t)eq_CO2, AverageWindow_1h, CorrectionFactor_1h);
 	voc->eCO2_mean = (uint16_t)lrintf(eCO2_avg);
 
 	eq_TVOC_1h_Mean = voc->eTVOC_mean;
-	eq_CO2_8h_Mean = voc->eCO2_mean;
+	eq_CO2_1h_Mean = voc->eCO2_mean;
 #if (CCS811)
 	if (Store_CCS811_Baseline)			//Perform a Baseline storage when button is pressed for more than 5s
 	{									//or on a weekly basis. (Function HAL_RTCEx_RTCEventCallback in port.c)
@@ -952,6 +965,9 @@ void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* B
 	static float32_t mc_4p0_avg = 0;
 	static float32_t mc_10p0_avg = 0;
 	static float32_t MC_1p0_f, MC_2p5_f, MC_4p0_f, MC_10p0_f;
+#if (USE_BKUP_SRAM)
+	static bool PMx_mean_init = true;
+#endif
 
 //	MC_1p0_f = (uint16_t)(Particulate->mc_1p0);
 //	MC_2p5_f = (uint16_t)(Particulate->mc_2p5);
@@ -979,6 +995,16 @@ void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* B
 	//PM1.0: ??; PM2.5: 25 μg/mc 24-hour mean; PM4.0: ??; PM10: 50 μg/mm 24-hour mean.
 	//From World Health Organization Ambient (outdoor) air pollution Fact Sheet.
 	//https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+#if (USE_BKUP_SRAM)						//Restores the average values if a watch-dog event has occurred
+	if (PMx_mean_init)					//or following a short power-cycle (<1 min)
+	{
+		mc_1p0_avg = (float32_t)MC_1p0_24h_Mean;
+		mc_2p5_avg = (float32_t)MC_2p5_24h_Mean;
+		mc_4p0_avg = (float32_t)MC_4p0_24h_Mean;
+		mc_10p0_avg = (float32_t)MC_10p0_24h_Mean;
+		PMx_mean_init = false;
+	}
+#endif
 	mc_1p0_avg = approxMovingAverage(mc_1p0_avg, MC_1p0_f, AverageWindow, CorrectionFactor);
 	Particulate->mc_1p0_mean = mc_1p0_avg;
 	mc_2p5_avg = approxMovingAverage(mc_2p5_avg, MC_2p5_f, AverageWindow, CorrectionFactor);
@@ -1032,9 +1058,12 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 #if (FULL_MODE==1)
 	static float32_t no2_1h_avg = 0;
 	static float32_t nh3_8h_avg = 0;
-	static float32_t o3_8h_avg = 0;
+	static float32_t o3_1h_avg = 0;
 	static float32_t so2_1h_avg = 0;
 	static float32_t c6h6_24h_avg = 0;
+#endif
+#if (USE_BKUP_SRAM)
+	static bool Gases_mean_init = true;
 #endif
 
 	// Caution!!! Only for linear relationships between analog value and gas concentration
@@ -1060,6 +1089,21 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	//Moving Average on AverageWindow readings for Air quality values estimation.
 	//From World Health Organization Ambient (outdoor) air pollution Fact Sheet.
 	//https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+#if (USE_BKUP_SRAM)					//Restores the average values if a watch-dog event has occurred
+	if (Gases_mean_init)			//or following a short power-cycle (<1 min)
+	{
+		co_8h_avg = (float32_t)CO_8h_Mean;
+		ch2o_8h_avg = (float32_t)CH2O_8h_Mean;
+	#if (FULL_MODE==1)
+		no2_1h_avg = (float32_t)NO2_1h_Mean;
+		nh3_8h_avg = (float32_t)NH3_8h_Mean;
+		o3_1h_avg = (float32_t)O3_1h_Mean;
+		so2_1h_avg = (float32_t)SO2_1h_Mean;
+		c6h6_24h_avg = (float32_t)C6H6_24h_Mean;
+	#endif
+		Gases_mean_init = false;
+	}
+#endif
 	co_8h_avg = approxMovingAverage(co_8h_avg, anlg->CO, AverageWindow_8h, CorrectionFactor_8h);
 	anlg->co_8h_mean = co_8h_avg;
 	ch2o_8h_avg = approxMovingAverage(ch2o_8h_avg, anlg->CH2O, AverageWindow_8h, CorrectionFactor_8h);
@@ -1069,8 +1113,8 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	anlg->no2_1h_mean = no2_1h_avg;
 	nh3_8h_avg = approxMovingAverage(nh3_8h_avg, anlg->NH3, AverageWindow_8h, CorrectionFactor_8h);
 	anlg->nh3_8h_mean = nh3_8h_avg;
-	o3_8h_avg = approxMovingAverage(o3_8h_avg, anlg->O3, AverageWindow_8h, CorrectionFactor_8h);
-	anlg->o3_8h_mean = o3_8h_avg;
+	o3_1h_avg = approxMovingAverage(o3_1h_avg, anlg->O3, AverageWindow_1h, CorrectionFactor_1h);
+	anlg->o3_1h_mean = o3_1h_avg;
 	so2_1h_avg = approxMovingAverage(so2_1h_avg, anlg->SO2, AverageWindow_1h, CorrectionFactor_1h);
 	anlg->so2_1h_mean = so2_1h_avg;
 	c6h6_24h_avg = approxMovingAverage(c6h6_24h_avg, anlg->C6H6, AverageWindow_24h, CorrectionFactor_24h);
@@ -1082,7 +1126,7 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 #if (FULL_MODE==1)
 	NO2_1h_Mean = (uint16_t)lrintf(anlg->no2_1h_mean);
 	NH3_8h_Mean = (uint16_t)lrintf(anlg->nh3_8h_mean);
-	O3_8h_Mean = (uint16_t)lrintf(anlg->o3_8h_mean);
+	O3_1h_Mean = (uint16_t)lrintf(anlg->o3_1h_mean);
 	SO2_1h_Mean = (uint16_t)lrintf(anlg->so2_1h_mean);
 	C6H6_24h_Mean = (uint16_t)lrintf(anlg->c6h6_24h_mean);
 #endif
@@ -1103,7 +1147,7 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 }
 #endif
 
-void Refresh_AQI()
+void Refresh_AQI(void)
 {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
@@ -1112,24 +1156,105 @@ void Refresh_AQI()
 
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 #if (FULL_MODE==1)
-	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean,
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 										   CH2O, CO, NO2, NH3, O3, SO2, C6H6,
 										   CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean,
-										   O3_8h_Mean, SO2_1h_Mean, C6H6_24h_Mean,
+										   O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
 #else	//FULL_MODE==0
-	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean,
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 										   CH2O, CO, 0, 0, 0, 0, 0,
 										   CH2O_8h_Mean, CO_8h_Mean, 0, 0, 0, 0, 0,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
 #endif	//FULL_MODE
 #else	//GAS_SENSOR_MODULE_PRESENT==0
-	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean,
+	#if (PARTICULATE_SENSOR_PRESENT)
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 										   0, 0, 0, 0, 0, 0, 0,
 										   0, 0, 0, 0, 0, 0, 0,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
+	#else
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
+										   0, 0, 0, 0, 0, 0, 0,
+										   0, 0, 0, 0, 0, 0, 0,
+										   0, 0);
+	#endif
 #endif //GAS_SENSOR_MODULE_PRESENT
 }
+
+#if (USE_BKUP_SRAM)
+/*
+ * @brief Every 5 seconds the average values of the sensors are stored in the processor's
+ * 		  Static Ram Backup. In this way, after a "short" reset (not a power-cycle)
+ * 		  the previous average values will not be lost and will be immediately available
+ * 		  for transmission.
+ * @param  None
+ * @retval None
+ */
+void Store_MeanValues_BackupRTC(void)
+{
+	//Store Air Quality Data. Averaged values
+#if (VOC_SENSOR_PRESENT)
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+6, eq_TVOC_1h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+8, eq_CO2_1h_Mean);
+#endif
+#if (GAS_SENSOR_MODULE_PRESENT)
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+10, CO_8h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+16, CH2O_8h_Mean);
+#if (FULL_MODE)
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+12, NO2_1h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+14, NH3_8h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+18, O3_1h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+20, SO2_1h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+22, C6H6_24h_Mean);
+#endif
+#endif	//GAS_SENSOR_MODULE_PRESENT
+	//Store Air pollution Data. Averaged values
+#if (PARTICULATE_SENSOR_PRESENT)
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+24, MC_1p0_24h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+26, MC_2p5_24h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+28, MC_4p0_24h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+30, MC_10p0_24h_Mean);
+#endif	//PARTICULATE_SENSOR_PRESENT
+	//Write in the backup register domain
+	enable_backup_rtc();
+	writeBkpRTC((uint8_t *)BakUpRTC_Data, sizeof(BakUpRTC_Data), 0);
+	disable_backup_rtc();
+}
+
+/*
+ * The average values of the sensors, written by the Store_MeanValues_BackupRTC()
+ * function, are restored by this function
+ * @param  None
+ * @retval None
+ */
+void ReStore_MeanValues_BackupRTC(void)
+{
+	//Restore Air Quality Data. Averaged values
+#if (VOC_SENSOR_PRESENT)
+	memcpy(&eq_TVOC_1h_Mean, &BakUpRTC_Data[6], 2);
+	memcpy(&eq_CO2_1h_Mean, &BakUpRTC_Data[8], 2);
+#endif
+#if (GAS_SENSOR_MODULE_PRESENT)
+	memcpy(&CO_8h_Mean, &BakUpRTC_Data[10], 2);
+	memcpy(&CH2O_8h_Mean, &BakUpRTC_Data[16], 2);
+#if (FULL_MODE)
+	memcpy(&NO2_1h_Mean, &BakUpRTC_Data[12], 2);
+	memcpy(&NH3_8h_Mean, &BakUpRTC_Data[14], 2);
+	memcpy(&O3_1h_Mean, &BakUpRTC_Data[18], 2);
+	memcpy(&SO2_1h_Mean, &BakUpRTC_Data[20], 2);
+	memcpy(&C6H6_24h_Mean, &BakUpRTC_Data[22], 2);
+#endif
+#endif	//GAS_SENSOR_MODULE_PRESENT
+	//Restore Air pollution Data. Averaged values
+#if (PARTICULATE_SENSOR_PRESENT)
+	memcpy(&MC_1p0_24h_Mean, &BakUpRTC_Data[24], 2);
+	memcpy(&MC_2p5_24h_Mean, &BakUpRTC_Data[26], 2);
+	memcpy(&MC_4p0_24h_Mean, &BakUpRTC_Data[28], 2);
+	memcpy(&MC_10p0_24h_Mean, &BakUpRTC_Data[30], 2);
+#endif	//PARTICULATE_SENSOR_PRESENT
+}
+#endif	//USE_BKUP_SRAM
 
 #if (IMU_PRESENT==1)
 /**

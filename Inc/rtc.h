@@ -48,11 +48,32 @@ typedef struct
   uint8_t date[3];
   uint8_t time[3];
 } DateTime_t;
+
+/** @brief Macro that stores Value into Backup register in Little Endian Format (2 bytes)*/
+#define HOST_TO_BKPR_LE_16(buf, val)	( ((buf)[0] =  (uint8_t) (val)    ) , \
+										((buf)[1] =  (uint8_t) (val>>8) ) )
+
+/** @brief Macro that stores Value into Backup registers in Little Endian Format (4 bytes) */
+#define HOST_TO_BKPR_LE_32(buf, val)	( ((buf)[0] =  (uint8_t) (val)     ) , \
+										((buf)[1] =  (uint8_t) (val>>8)  ) , \
+										((buf)[2] =  (uint8_t) (val>>16) ) , \
+										((buf)[3] =  (uint8_t) (val>>24) ) )
+
+/** @brief Macro that stores Value into Backup registers in Big Endian Format (2 bytes) */
+#define HOST_TO_BKPR_BE_16(buf, val)	( ((buf)[1] =  (uint8_t) (val)    ) , \
+										((buf)[0] =  (uint8_t) (val>>8) ) )
+
+/** @brief Macro that stores Value into Backup registers in Big Endian Format (4 bytes) */
+#define HOST_TO_BKPR_BE_32(buf, val)	( ((buf)[3] =  (uint8_t) (val)     ) , \
+										((buf)[2] =  (uint8_t) (val>>8)  ) , \
+										((buf)[1] =  (uint8_t) (val>>16) ) , \
+										((buf)[0] =  (uint8_t) (val>>24) ) )
 /* USER CODE END Private defines */
 
 void MX_RTC_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+uint32_t RTC_GetCounter(void);
 void RTC_DateTimeStamp(RTC_HandleTypeDef* rtcHandle, DateTime_t *Stamp);
 void RTC_Handler(RTC_HandleTypeDef* rtcHandle, uint8_t* Buff);
 void RTC_DateRegulate(RTC_HandleTypeDef* rtcHandle, uint8_t y, uint8_t m, uint8_t d, uint8_t dw);

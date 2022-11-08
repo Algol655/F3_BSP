@@ -154,6 +154,31 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
  *                          MY RTC CODE
  ************************************************************************/
 /**
+  * @brief  Gets the RTC counter value.
+  * @param  None
+  * @retval RTC counter value.
+  */
+uint32_t RTC_GetCounter(void)
+{
+  uint16_t high1 = 0, high2 = 0, low = 0;
+
+  high1 = RTC->CNTH;
+  low   = RTC->CNTL;
+  high2 = RTC->CNTH;
+
+  if (high1 != high2)
+  { /* In this case the counter roll over during reading of CNTL and CNTH registers,
+       read again CNTL register then return the counter value */
+    return (((uint32_t) high2 << 16 ) | RTC->CNTL);
+  }
+  else
+  { /* No counter roll over during reading of CNTL and CNTH registers, counter
+       value is equal to first value of CNTL and CNTH */
+    return (((uint32_t) high1 << 16 ) | low);
+  }
+}
+
+/**
  * @brief  Handles the time+date getting
  * @param  Stamp time + date
  * @retval None
@@ -348,7 +373,10 @@ int8_t writeBkpRTC(uint8_t *data, uint16_t bytes, uint16_t offset)
 	uint32_t base_addr = (uint32_t)BKP_BASE;
 	uint16_t i;
 	uint16_t val = 0;
+	uint16_t ofst = 0;
+	uint8_t bank = 0;
 
+	ofst = offset;
 	if( bytes + offset > RTC_BKUP_SIZE+2)
 	{
 	/* ERROR : the last byte is outside the backup SRAM region */
@@ -367,8 +395,12 @@ int8_t writeBkpRTC(uint8_t *data, uint16_t bytes, uint16_t offset)
 	__HAL_RCC_BKP_CLK_ENABLE();
 	for( i = 0; i < bytes; i++ )
 	{
-		val =  ((uint16_t)(*(data + i*2 + 1) & 0xFF) << 8) | (uint16_t)(*(data + i*2) & 0xFF);
-		*(__IO uint32_t *)(base_addr + offset + i*4 + 4) = val;
+		if ((uint8_t)(i+ofst) < 10)
+			bank = 0;
+		else
+			bank = 20;
+		val =  ((uint16_t)(*(data + i*2 + ofst + 1) & 0xFF) << 8) | (uint16_t)(*(data + i*2 + ofst) & 0xFF);
+		*(__IO uint32_t *)(base_addr + bank + offset + i*4 + 4) = val;
 //		HAL_RTCEx_BKUPWrite(&hrtc, (offset << 2), val);
 	}
 	/* Disable clock to BKPRTC */
@@ -391,7 +423,10 @@ uint8_t readBkpRTC(uint8_t *data, uint16_t bytes, uint16_t offset)
 	uint32_t base_addr = (uint32_t)BKP_BASE;
 	uint16_t i;
 	uint16_t val = 0;
+	uint16_t ofst = 0;
+	uint8_t bank = 0;
 
+	ofst = offset;
 	if( bytes + offset > RTC_BKUP_SIZE+2)
 	{
 	/* ERROR : the last byte is outside the backup SRAM region */
@@ -409,9 +444,13 @@ uint8_t readBkpRTC(uint8_t *data, uint16_t bytes, uint16_t offset)
 	/* read should be 16 bit aligned */
 	for( i = 0; i < bytes; i++ )
 	{
-		val = *(__IO uint32_t *)(base_addr + offset + i*4 + 4);
-		*(data + i*2) = (uint8_t)(val & 0xFF);
-		*(data + i*2 + 1) = (uint8_t)((val >> 8) & 0xFF);
+		if ((uint8_t)(i+ofst) < 10)
+			bank = 0;
+		else
+			bank = 20;
+		val = *(__IO uint32_t *)(base_addr + bank + offset + i*4 + 4);
+		*(data + i*2 + ofst) = (uint8_t)(val & 0xFF);
+		*(data + i*2 + +ofst + 1) = (uint8_t)((val >> 8) & 0xFF);
 	}
 
 	return 0;

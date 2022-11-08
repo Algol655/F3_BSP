@@ -19,11 +19,11 @@ uint8_t CalcAQI(uint16_t C_low, uint16_t C_high, uint16_t C, uint8_t I_low, uint
 	return w_aqi;
 }
 
-AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t eq_TVOC_1h_Mean, uint16_t eq_CO2_8h_Mean,
+AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t eq_TVOC_1h_Mean, uint16_t eq_CO2_1h_Mean,
 								   uint16_t CH2O, uint16_t CO, uint16_t NO2, uint16_t NH3,
 								   uint16_t O3, uint16_t SO2, uint16_t C6H6,
 								   uint16_t CH2O_8h_Mean, uint16_t CO_8h_Mean, uint16_t NO2_1h_Mean, uint16_t NH3_8h_Mean,
-								   uint16_t O3_8h_Mean, uint16_t SO2_1h_Mean, uint16_t C6H6_24h_Mean,
+								   uint16_t O3_1h_Mean, uint16_t SO2_1h_Mean, uint16_t C6H6_24h_Mean,
 								   uint16_t MC_10p0_24h_Mean, uint16_t MC_2p5_24h_Mean)
 {
 	const char AQ_Class[6][16]={{"1: EXCELLENT \r\n"},{"   2: FINE   \r\n"},{" 3: MODERATE \r\n"},{"   4: POOR   \r\n"},
@@ -419,35 +419,35 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 	// eCO2_Acceptable = 4692,	//ppm = 6.5*eTVOC_Moderate + 402
 	// eCO2_Drowsiness = 14702,	//ppm = 6.5*eTVOC_Poor + 402
 	// eCO2_Harmful = 36152,	//ppm = 6.5*eTVOC_Unhealty + 402
-	if (InRange(0, eCO2_FreshAir, eq_CO2_8h_Mean) == 1)
+	if (InRange(0, eCO2_FreshAir, eq_CO2_1h_Mean) == 1)
 	{
 //		AirQuality_Level.eCO2_AQ = 0;
-		AirQuality_Level.eCO2_AQ = CalcAQI(0, eCO2_FreshAir, eq_CO2_8h_Mean, 0, 1);
+		AirQuality_Level.eCO2_AQ = CalcAQI(0, eCO2_FreshAir, eq_CO2_1h_Mean, 0, 1);
 	} else
-	if (InRange(eCO2_FreshAir, eCO2_Normal, eq_CO2_8h_Mean) == 1)
+	if (InRange(eCO2_FreshAir, eCO2_Normal, eq_CO2_1h_Mean) == 1)
 	{
 //		AirQuality_Level.eCO2_AQ = 1;
-		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_FreshAir, eCO2_Normal, eq_CO2_8h_Mean, 1, 2);
+		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_FreshAir, eCO2_Normal, eq_CO2_1h_Mean, 1, 2);
 	} else
-	if (InRange(eCO2_Normal, eCO2_Acceptable, eq_CO2_8h_Mean) == 1)
+	if (InRange(eCO2_Normal, eCO2_Acceptable, eq_CO2_1h_Mean) == 1)
 	{
 //		AirQuality_Level.eCO2_AQ = 2;
-		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_Normal, eCO2_Acceptable, eq_CO2_8h_Mean, 2, 3);
+		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_Normal, eCO2_Acceptable, eq_CO2_1h_Mean, 2, 3);
 	} else
-	if (InRange(eCO2_Acceptable, eCO2_Drowsiness, eq_CO2_8h_Mean) == 1)
+	if (InRange(eCO2_Acceptable, eCO2_Drowsiness, eq_CO2_1h_Mean) == 1)
 	{
 //		AirQuality_Level.eCO2_AQ = 3;
-		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_Acceptable, eCO2_Drowsiness, eq_CO2_8h_Mean, 3, 4);
+		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_Acceptable, eCO2_Drowsiness, eq_CO2_1h_Mean, 3, 4);
 	} else
-	if (InRange(eCO2_Drowsiness, eCO2_Harmful, eq_CO2_8h_Mean) == 1)
+	if (InRange(eCO2_Drowsiness, eCO2_Harmful, eq_CO2_1h_Mean) == 1)
 	{
 //		AirQuality_Level.eCO2_AQ = 4;
-		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_Drowsiness, eCO2_Harmful, eq_CO2_8h_Mean, 4, 5);
+		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_Drowsiness, eCO2_Harmful, eq_CO2_1h_Mean, 4, 5);
 	} else
-	if (InRange(eCO2_Drowsiness, eCO2_Harmful, eq_CO2_8h_Mean) == 2)
+	if (InRange(eCO2_Drowsiness, eCO2_Harmful, eq_CO2_1h_Mean) == 2)
 	{
 //		AirQuality_Level.eCO2_AQ = 5;
-		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_Drowsiness, eCO2_Harmful, eq_CO2_8h_Mean, 5, 6);
+		AirQuality_Level.eCO2_AQ = CalcAQI(eCO2_Drowsiness, eCO2_Harmful, eq_CO2_1h_Mean, 5, 6);
 	}
 
 	//Find the 8h average CH2O AirQuality level
@@ -604,35 +604,35 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 	// O3_Moderate = 80,	//ug/m3
 	// O3_Poor = 120,		//ug/m3
 	// O3_VeryPoor = 160	//ug/m3
-	if (InRange(0, O3_Exellent, O3_8h_Mean) == 1)
+	if (InRange(0, O3_Exellent, O3_1h_Mean) == 1)
 	{
 //		AirQuality_Level.O3_AQ = 0;
-		AirQuality_Level.O3_AQ = CalcAQI(0, O3_Exellent, O3_8h_Mean, 0, 1);
+		AirQuality_Level.O3_AQ = CalcAQI(0, O3_Exellent, O3_1h_Mean, 0, 1);
 	} else
-	if (InRange(O3_Exellent, O3_Fine, O3_8h_Mean) == 1)
+	if (InRange(O3_Exellent, O3_Fine, O3_1h_Mean) == 1)
 	{
 //		AirQuality_Level.O3_AQ = 1;
-		AirQuality_Level.O3_AQ = CalcAQI(O3_Exellent, O3_Fine, O3_8h_Mean, 1, 2);
+		AirQuality_Level.O3_AQ = CalcAQI(O3_Exellent, O3_Fine, O3_1h_Mean, 1, 2);
 	} else
-	if (InRange(O3_Fine, O3_Moderate, O3_8h_Mean) == 1)
+	if (InRange(O3_Fine, O3_Moderate, O3_1h_Mean) == 1)
 	{
 //		AirQuality_Level.O3_AQ = 2;
-		AirQuality_Level.O3_AQ = CalcAQI(O3_Fine, O3_Moderate, O3_8h_Mean, 2, 3);
+		AirQuality_Level.O3_AQ = CalcAQI(O3_Fine, O3_Moderate, O3_1h_Mean, 2, 3);
 	} else
-	if (InRange(O3_Moderate, O3_Poor, O3_8h_Mean) == 1)
+	if (InRange(O3_Moderate, O3_Poor, O3_1h_Mean) == 1)
 	{
 //		AirQuality_Level.O3_AQ = 3;
-		AirQuality_Level.O3_AQ = CalcAQI(O3_Moderate, O3_Poor, O3_8h_Mean, 3, 4);
+		AirQuality_Level.O3_AQ = CalcAQI(O3_Moderate, O3_Poor, O3_1h_Mean, 3, 4);
 	} else
-	if (InRange(O3_Poor, O3_VeryPoor, O3_8h_Mean) == 1)
+	if (InRange(O3_Poor, O3_VeryPoor, O3_1h_Mean) == 1)
 	{
 //		AirQuality_Level.O3_AQ = 4;
-		AirQuality_Level.O3_AQ = CalcAQI(O3_Poor, O3_VeryPoor, O3_8h_Mean, 4, 5);
+		AirQuality_Level.O3_AQ = CalcAQI(O3_Poor, O3_VeryPoor, O3_1h_Mean, 4, 5);
 	} else
-	if (InRange(O3_Poor, O3_VeryPoor, O3_8h_Mean) == 2)
+	if (InRange(O3_Poor, O3_VeryPoor, O3_1h_Mean) == 2)
 	{
 //		AirQuality_Level.O3_AQ = 5;
-		AirQuality_Level.O3_AQ = CalcAQI(O3_Poor, O3_VeryPoor, O3_8h_Mean, 5, 6);
+		AirQuality_Level.O3_AQ = CalcAQI(O3_Poor, O3_VeryPoor, O3_1h_Mean, 5, 6);
 	}
 
 	//Find the 1h average SO2 AirQuality level

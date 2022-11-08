@@ -581,7 +581,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 	static uint8_t len = 0;
 	static AirQualityParameters_st AQ_Level;
 #if (VOC_SENSOR_PRESENT==1)
-	extern uint16_t eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean;
+	extern uint16_t eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean;
 #endif
 #if (PARTICULATE_SENSOR_PRESENT==1)
 	extern uint16_t MC_1p0_24h_Mean, MC_2p5_24h_Mean, MC_4p0_24h_Mean, MC_10p0_24h_Mean;
@@ -590,31 +590,38 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 	extern uint16_t CH2O, CO, CH2O_8h_Mean, CO_8h_Mean;
 	#if (FULL_MODE==1)
 		extern uint16_t NO2, NH3, O3, SO2, C6H6;
-		extern uint16_t NO2_1h_Mean, NH3_8h_Mean, O3_8h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
+		extern uint16_t NO2_1h_Mean, NH3_8h_Mean, O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
 	#endif
 #endif
 	//Calculate the air quality index
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-#if (FULL_MODE==1)
-	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean,
+	#if (FULL_MODE==1)
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 										   CH2O, CO, NO2, NH3, O3, SO2, C6H6,
 										   CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean,
-										   O3_8h_Mean, SO2_1h_Mean, C6H6_24h_Mean,
+										   O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
-#else	//FULL_MODE==0
-	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean,
+	#else	//FULL_MODE==0
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 										   CH2O, CO, 0, 0, 0, 0, 0,
 										   CH2O_8h_Mean, CO_8h_Mean, 0, 0, 0, 0, 0,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
-#endif	//FULL_MODE
+	#endif	//FULL_MODE
 #else	//GAS_SENSOR_MODULE_PRESENT==0
-	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean,
+	#if (PARTICULATE_SENSOR_PRESENT)
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 										   0, 0, 0, 0, 0, 0, 0,
 										   0, 0, 0, 0, 0, 0, 0,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
+	#else
+	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
+										   0, 0, 0, 0, 0, 0, 0,
+										   0, 0, 0, 0, 0, 0, 0,
+										   0, 0);
+	#endif
 #endif //GAS_SENSOR_MODULE_PRESENT
 
-//	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_8h_Mean, MC_10p0_24h_Mean, MC_2p5_24h_Mean);
+//	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean, MC_10p0_24h_Mean, MC_2p5_24h_Mean);
 
 	if (!(PageNumb == PreviousPage))
 	{
@@ -716,7 +723,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_mf);
 				sprintf((char*)&ch2o_v_8h_Mean[0],  "%u", CH2O_8h_Mean);
 				u8g2_DrawStr(&u8g2, 2, 30, (char*)&ch2o_v_8h_Mean[0]);
-				sprintf((char*)&o3v_8h_Mean[0],  "%u", O3_8h_Mean);
+				sprintf((char*)&o3v_8h_Mean[0],  "%u", O3_1h_Mean);
 				u8g2_DrawStr(&u8g2, 50, 30, (char*)&o3v_8h_Mean[0]);
 				sprintf((char*)&so2_v_24h_Mean[0],  "%u", SO2_1h_Mean);
 				u8g2_DrawStr(&u8g2, 98, 30, (char*)&so2_v_24h_Mean[0]);
@@ -753,7 +760,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_mf);
 				sprintf((char*)&etvoc_v_1h_Mean[0],  "%u", eq_TVOC_1h_Mean);
 				u8g2_DrawStr(&u8g2, 2, 30, (char*)&etvoc_v_1h_Mean[0]);
-				sprintf((char*)&eco2_v_8h_Mean[0],  "%u", eq_CO2_8h_Mean);
+				sprintf((char*)&eco2_v_8h_Mean[0],  "%u", eq_CO2_1h_Mean);
 				u8g2_DrawStr(&u8g2, 50, 30, (char*)&eco2_v_8h_Mean[0]);
 				sprintf((char*)&ch2o_v_8h_Mean[0],  "%u", CH2O_8h_Mean);
 				u8g2_DrawStr(&u8g2, 98, 30, (char*)&ch2o_v_8h_Mean[0]);
@@ -843,6 +850,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 		break;
 		case 0x03:	//Air Pollution page
 		{
+	#if(PARTICULATE_SENSOR_PRESENT)
 			if (PM_toggle == 2)		//+1 because PM_toggle is incremented at the end of the
 			{						//PARTICULATE_SENSOR section of the FormatDisplayString function
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
@@ -900,6 +908,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 			u8g2_DrawRFrame(&u8g2, 48, 11, 47, 21, 3);
 			u8g2_DrawRFrame(&u8g2, 96, 11, 47, 21, 3);
 			u8g2_DrawRFrame(&u8g2, 144, 11, 48, 21, 3);
+	#endif	//PARTICULATE_SENSOR_PRESENT
 		}
 		break;
 	}
@@ -1078,7 +1087,9 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 			{
 				if ((SensorStatusReg) & (PRESSURE_SENSOR_OK))
 				{
+			#if (UVx_SENSOR_PRESENT)
 					if (!UVx_Display)
+			#endif
 						PM_toggle = 1;			//Not display UVx page when UV-Index < 0.5
 					if (PM_toggle == 1)
 					{
@@ -1145,7 +1156,9 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 				u8g2_SetFontMode(&u8g2, 0);
 				if ((SensorStatusReg) & (PRESSURE_SENSOR_OK))
 				{
+				#if (UVx_SENSOR_PRESENT)
 					if (!UVx_Display)
+				#endif
 						PM_toggle = 1;			//Not display UVx page when UV-Index < 0.5
 					if (PM_toggle == 1)
 					{
@@ -1327,7 +1340,7 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 		case VOC_SENSOR:
 		{
 	#if (VOC_SENSOR_PRESENT==1)				//Defined in main.h
-		#if (TLCD_SUPPORT==1)					//Defined in main.h
+		#if (TLCD_SUPPORT==1)				//Defined in main.h
 			if (t_flip == 2)	//t_flip identifies the display page number: Page 2 -> Air Quality Page
 			{
 				if ((SensorStatusReg) & (VOC_SENSOR_OK))

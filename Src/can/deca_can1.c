@@ -56,7 +56,6 @@ rx1handle={.Lock = HAL_UNLOCKED};
 #endif
 //extern HAL_StatusTypeDef can1_port_tx_msg(uint8_t* str, uint16_t len);
 
-#pragma GCC optimize ("O3")
 /* @fn		mymemcpy
  * @brief 	Copies n characters from memory area src to memory area dest
  * 			To avoid buffer overflow, when end of src area is reached but len is > 0,
@@ -88,7 +87,6 @@ void * mymemcpy (void *dest, const void *src, const void *isrc, const void *esrc
   return dest;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn		can1_flush_report_buff
  * @brief 	FLUSH should have higher priority than can1_port_tx_msg()
  * 			it shall be called periodically from process, which can not be locked,
@@ -168,7 +166,6 @@ HAL_StatusTypeDef flush_can1_report_buff(void)
 	return HAL_OK;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn		flush_can1_local_buff
  * @brief 	FLUSH should have high priority
  * 			it shall be called periodically from process, which can not be locked,
@@ -213,7 +210,6 @@ HAL_StatusTypeDef flush_can1_local_buff(void)
 	return HAL_OK;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn 		can1_port_tx_msg()
  * @brief 	put message to circular report buffer
  * 			it will be transmitted in background ASAP from flushing Thread
@@ -256,7 +252,6 @@ HAL_StatusTypeDef can1_port_tx_msg(uint8_t *str, int16_t len)
     return ret;
 }
 
-#pragma GCC optimize ("O3")
 /* @fn 		can1_port_rx_msg()
  * @brief 	put message to circular local buffer
  * 			it will be transmitted in background ASAP from flushing Thread
@@ -299,7 +294,6 @@ HAL_StatusTypeDef can1_port_rx_msg(uint8_t *str, int16_t len)
     return ret;
 }
 
-#pragma GCC optimize ("O3")
 /**
   * @brief  DW_CAN1_DataTx
   *         received data to be send over CAN1 endpoint are managed in
@@ -319,7 +313,6 @@ CAND_StatusTypeDef DW_CAN1_DataTx (uint8_t* Buf, uint16_t Len)
 	return can1_port_tx_msg(Buf, Len);
 }
 
-#pragma GCC optimize ("O3")
 /**
   * @brief  DW_CAN1_DataRx
   *         Data received from CAN1 device
@@ -382,7 +375,6 @@ CAND_StatusTypeDef DW_CAN1_DataRx (uint8_t* Buf, uint16_t Len)
 #endif
 }
 
-#pragma GCC optimize ("O3")
 CAND_StatusTypeDef process_can1message(uint8_t* Buf)
 {
 	CAND_StatusTypeDef result = CAND_OK;
@@ -430,7 +422,6 @@ CAND_StatusTypeDef process_can1message(uint8_t* Buf)
 	return result;
 }
 
-#pragma GCC optimize ("O3")
 void send_can1message(uint8_t *string, int16_t len)
 {
 	memcpy(&can1_tx_buff[0], string, len);
@@ -445,7 +436,6 @@ void send_can1message(uint8_t *string, int16_t len)
 	flush_can1_report_buff();
 }
 
-#pragma GCC optimize ("O3")
 void can1_run(void)
 {
 	uint16_t prev_can1len = 0;

@@ -79,10 +79,10 @@ typedef enum
 	NH3_VeryPoor = 1800,	//ug/m3
 	//
 	O3_Exellent = 33,		//ug/m3
-	O3_Fine = 50,			//ug/m3
-	O3_Moderate = 80,		//ug/m3
-	O3_Poor = 120,			//ug/m3
-	O3_VeryPoor = 160,		//ug/m3
+	O3_Fine = 80,			//ug/m3
+	O3_Moderate = 120,		//ug/m3
+	O3_Poor = 180,			//ug/m3
+	O3_VeryPoor = 240,		//ug/m3
 	//
 	SO2_Exellent = 25,		//ug/m3
 	SO2_Fine = 100,			//ug/m3
@@ -112,10 +112,10 @@ typedef enum
 AQ_LimitsParameters_st AQ_Limits;
 
 //Exported Functions
-AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t eq_TVOC_1h_Mean, uint16_t eq_CO2_8h_Mean,
+AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t eq_TVOC_1h_Mean, uint16_t eq_CO2_1h_Mean,
 								   uint16_t CH2O, uint16_t CO, uint16_t NO2, uint16_t NH3,
 								   uint16_t O3, uint16_t SO2, uint16_t C6H6,
 								   uint16_t CH2O_8h_Mean, uint16_t CO_8h_Mean, uint16_t NO2_1h_Mean, uint16_t NH3_8h_Mean,
-								   uint16_t O3_8h_Mean, uint16_t SO2_1h_Mean, uint16_t C6H6_24h_Mean,
+								   uint16_t O3_1h_Mean, uint16_t SO2_1h_Mean, uint16_t C6H6_24h_Mean,
 								   uint16_t MC_10p0_24h_Mean, uint16_t MC_2p5_24h_Mean);
 #endif /* APPLICATION_AIRQUALITY_H_ */

@@ -127,6 +127,9 @@ void Error_Handler(void);
 #define CAN1_TX_Pin GPIO_PIN_9
 #define CAN1_TX_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
+/**************************/
+/*   Board FW Settings    */
+/**************************/
 #define NORMAL_MODE (1)					//As an alternative to DATA_MODE, GUI_SUPPORT
 #define DATA_MODE	(0)					//1 when the node is used as an end-point of a wireless data link (e.g. BLE, LORA, UWB ...)
 #define IO_EXP_PRESENT (1)
@@ -145,12 +148,16 @@ void Error_Handler(void);
 #define BOOTLOADER_MODE (1)				//0 = UART Mode; 1 = DFU Mode (USB)
 #define STBY_MODE		(0)				//0 = Disable entering Stand By mode
 #define DATA_EEPROM_BASE (0x0803F800)	//Last flash sector (127) is used as EEPROM to store/load data. See processor reference manual
-#define USE_BKUP_SRAM	(0)				//1 = Internal Back-Up SRAM is used
-#define RTC_BKUP_SIZE	(20)			//Internal Back-Up SRAM size: 10 x 16bit (20 bytes). See processor reference manual
-//GUI defines section
+#define USE_BKUP_SRAM	(1)				//1 = Internal Back-Up SRAM is used
+#define RTC_BKUP_SIZE	(84)			//Internal Back-Up SRAM size: 42 x 16bit (84 bytes). See processor reference manual
+#define USE_IWDGT 		(1)				//1 = IWDGT activated
+/**************************/
+/*    Project Settings    */
+/**************************/
 #define CALC_DEWPOINT	(1)				//When at 1 the DewPoint is calculated and displayed. CALC_ALTITUDE must be 0
 #define CALC_ALTITUDE	(0)				//When at 1 the altitude calculated according to barometric formula
 										//to the atmospheric pressure will be displayed. CALC_DEWPOINT must be 0
+//GUI defines section
 #define TLCD_SUPPORT	(0)				//1 to support a Text LCD 24xN. GLCD_SUPPORT and TFT_SUPPORT must both be zero!
 #define GLCD_SUPPORT	(0)				//1 to support a Graphic LCD 192x64. TLCD_SUPPORT and TFT_SUPPORT must both be zero!
 #define TFT_SUPPORT		(0)				//1 to support a TouchScreen TFT Graphic LCD. TLCD_SUPPORT and GLCD_SUPPORT must both be zero!

@@ -337,7 +337,7 @@ void top_menu()
 		app.usbbuf[app.usblen-1] = 0;
 	leds_test = true;
 	FirstTime = false;
-	Test_Mode = false;
+	Test_Mode = true;
 	led_pc6_timer = 0;
 
 	CDC_Tx_FS((uint8_t*)mystring0,strlen((const char*)mystring0));		//Transmit welcome string
@@ -417,6 +417,7 @@ void top_menu()
 				memcpy(&mystring3[0], (const uint8_t *) "ESC", 3);
 				CDC_Tx_FS((uint8_t*)mystring4,strlen((const char*)mystring4));
 				FirstTime = true;
+				Test_Mode = false;
 //				leds_test = false;
 				led_off(LED_ALL);
 #if	(CAN1_TEST==1)
