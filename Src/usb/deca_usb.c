@@ -358,9 +358,17 @@ USBD_StatusTypeDef DW_VCP_DataRx (uint8_t* Buf, uint32_t Len)
 		  local_buff_offset = 0;
 		  local_buff_length = 0;
 		  local_have_data = 1;
+	  } else	//Check if the reboot reservation command is present (Cntrl-S)
+	  if (local_buff[local_buff_offset] == 0x13)
+	  {
+		  local_buff[0] = (uint8_t)DEV_ADDR;	//Put in Buff[0] DEV_ADDR = 50U
+		  local_buff[2] = 0x13;					//Put ^S in the command field Buff[2]
+
+		  local_buff_offset = 0;
+		  local_buff_length = 0;
+		  local_have_data = 1;
 	  }
-  }
-  else if (!Test_Mode) 			//If no useful message has been received, it moves the pointer to the first free location
+  } else if (!Test_Mode) 		//If no useful message has been received, it moves the pointer to the first free location
   {								//of the receive buffer, that is to the first byte of the next message.
 	  local_have_data = 0;
 	  local_buff_length = Len + local_buff_offset;

@@ -200,7 +200,7 @@ void MX_TIM7_Init(void)
 
   /* USER CODE END TIM7_Init 1 */
   htim7.Instance = TIM7;
-  htim7.Init.Prescaler = 32000;
+  htim7.Init.Prescaler = 36000;
   htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim7.Init.Period = 199;
   htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -366,6 +366,11 @@ void ServiceTimersInit(void)
 	ServiceTimer3.Counter = 0;
 	ServiceTimer3.Start = false;
 	ServiceTimer3.Expired = false;
+
+	ServiceTimer4.TimeOut = ServiceTimer4_Timeout;
+	ServiceTimer4.Counter = 0;
+	ServiceTimer4.Start = false;
+	ServiceTimer4.Expired = false;
 }
 
 void ServiceTimerStart(Service_Timer nTim)
@@ -391,6 +396,13 @@ void ServiceTimerStart(Service_Timer nTim)
 			ServiceTimer3.Counter = 0;
 			ServiceTimer3.Start = true;
 			ServiceTimer3.Expired = false;
+		}
+		break;
+		case STim_4:
+		{
+			ServiceTimer4.Counter = 0;
+			ServiceTimer4.Start = true;
+			ServiceTimer4.Expired = false;
 		}
 		break;
 	}

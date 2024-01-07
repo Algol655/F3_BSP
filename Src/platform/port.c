@@ -7,23 +7,42 @@
  */
 
 #include "platform/port.h"
-#if (IO_EXP_PRESENT==1)						//Defined in main.h
+#if (IO_EXP_PRESENT==1)
 	#include "platform/mcp23017.h"
 #endif
-#if (PRESSURE_SENSOR_PRESENT==1)			//Defined in main.h
+#if (PRESSURE_SENSOR_PRESENT==1)
+#if (LPS25HB)
 	#include "platform/LPS25HB_Driver.h"
 	extern LPS25HB_MeasureTypeDef_st PRS_Values;
-	extern int64_t MEMS_LclData;
-#endif
+#elif (LPS22HB)
+	#include "platform/LPS22HB_Driver.h"
+	extern LPS22HB_MeasureTypeDef_st PRS_Values;
+#endif	// LPS25HB
+//	extern int64_t MEMS_LclData;
+#endif	// PRESSURE_SENSOR_PRESENT
 #if (HUMIDITY_SENSOR_PRESENT==1)
+#if (HTS221)
 	#include "platform/HTS221_Driver.h"
 	extern HTS221_MeasureTypeDef_st HUM_Values;
-#endif
+#elif (SHT4x)
+	#include "platform/SHT4x_Driver.h"
+	extern SHT4x_MeasureTypeDef_st HUM_Values;
+#endif	// HTS221
+#endif	// HUMIDITY_SENSOR_PRESENT
 #if (UVx_SENSOR_PRESENT==1)
+#if (VEML6075)
 	#include "platform/VEML6075_Driver.h"
 	extern VEML6075_MeasureTypeDef_st UVx_Values;
+#elif (LTR390UV)
+	#include "platform/LTR390UV_Driver.h"
+	extern LTR390UV_MeasureTypeDef_st UVx_Values;
+#endif	// VEML6075
+#endif	// UVx_SENSOR_PRESENT
+#if (ALS_SENSOR_PRESENT==1)
+	#include "platform/VEML7700_Driver.h"
+	extern VEML7700_MeasureTypeDef_st ALS_Values;
 #endif
-#if (VOC_SENSOR_PRESENT==1)					//Defined in main.h
+#if (VOC_SENSOR_PRESENT==1)
 #if (CCS811)
 	#include "platform/CCS811_Driver.h"
 	extern CCS811_MeasureTypeDef_st VOC_Values;
@@ -32,20 +51,17 @@
 	extern ENS160_MeasureTypeDef_st VOC_Values;
 #endif	// CCS811
 #endif	// VOC_SENSOR_PRESENT
-#if (PARTICULATE_SENSOR_PRESENT==1)			//Defined in main.h
+#if (PARTICULATE_SENSOR_PRESENT==1)
 	#include "platform/SPS30_Driver.h"
 	extern SPS30_MeasureTypeDef_st PMS_Values;
 #endif
-#if (GAS_SENSOR_MODULE_PRESENT==1)			//Defined in main.h
+#if (GAS_SENSOR_MODULE_PRESENT==1)
 	#include "platform/ANLG_Driver.h"
 	extern ANLG_MeasureTypeDef_st GAS_Values;
 #endif
-#if (IMU_PRESENT==1)						//Defined in main.h
+#if (IMU_PRESENT==1)
 	#include "platform/LSM9DS1_Driver.h"
 	extern LSM9DS1_MeasureTypeDef_st IMU_Values;
-#endif
-#if (BLE_SUPPORT==1)
-	#include "OpModes.h"
 #endif
 
 const uint8_t UART_delay = 20;
@@ -139,6 +155,14 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.sd_offset, FlashDataOrg.b_status.sd);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.se_offset, FlashDataOrg.b_status.se);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.sf_offset, FlashDataOrg.b_status.sf);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s10_offset, FlashDataOrg.b_status.s10);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s11_offset, FlashDataOrg.b_status.s11);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s12_offset, FlashDataOrg.b_status.s12);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s13_offset, FlashDataOrg.b_status.s13);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s14_offset, FlashDataOrg.b_status.s14);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s15_offset, FlashDataOrg.b_status.s15);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s16_offset, FlashDataOrg.b_status.s16);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s17_offset, FlashDataOrg.b_status.s17);
 	HAL_FLASH_Lock();
 }
 
@@ -182,6 +206,14 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 	FlashDataOrg.b_status.sd = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.sd_offset));
 	FlashDataOrg.b_status.se = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.se_offset));
 	FlashDataOrg.b_status.sf = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.sf_offset));
+	FlashDataOrg.b_status.s10 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s10_offset));
+	FlashDataOrg.b_status.s11 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s11_offset));
+	FlashDataOrg.b_status.s12 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s12_offset));
+	FlashDataOrg.b_status.s13 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s13_offset));
+	FlashDataOrg.b_status.s14 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s14_offset));
+	FlashDataOrg.b_status.s15 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s15_offset));
+	FlashDataOrg.b_status.s16 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s16_offset));
+	FlashDataOrg.b_status.s17 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s17_offset));
 
 	//Format the RTC Current Date & Time read from flash in the time data structure
 	memcpy(&Stamp.date[0], &FlashDataOrg.b_date, 3);
@@ -236,11 +268,11 @@ void enter_stby_mode(void)
   */
 void NVIC_SetVectorTable(uint32_t NVIC_VectTab, uint32_t Offset)
 {
-  /* Check the parameters */
-  assert_param(IS_NVIC_VECTTAB(NVIC_VectTab));
-  assert_param(IS_NVIC_OFFSET(Offset));
+	/* Check the parameters */
+	assert_param(IS_NVIC_VECTTAB(NVIC_VectTab));
+	assert_param(IS_NVIC_OFFSET(Offset));
 
-  SCB->VTOR = NVIC_VectTab | (Offset & (uint32_t)0x1FFFFF80);
+	SCB->VTOR = NVIC_VectTab | (Offset & (uint32_t)0x1FFFFF80);
 }
 
 /* @fn    	JumpToBootloader
@@ -255,6 +287,9 @@ void jump_to_bootloader(void)
 {
 	uint8_t i;
 	void (*SysMemBootJump)(void);
+#if (USE_IWDGT)
+	extern IWDG_HandleTypeDef hiwdg;
+#endif
 
 	// 1)  reset USARTx via RCC_APB2RSTR
     __HAL_RCC_USART3_FORCE_RESET();
@@ -291,7 +326,7 @@ void jump_to_bootloader(void)
 	}
 
 	// 7) Re-enable all interrupts if DFU mode selected
-#if (BOOTLOADER_MODE == 1)		//Defined in main.h
+#if (BOOTLOADER_MODE == 1)
 	__enable_irq();
 #endif
 	// ARM Cortex-M Programming Guide to Memory Barrier Instructions
@@ -311,6 +346,17 @@ void jump_to_bootloader(void)
 
 	// 10) Set main stack pointer.
 	__set_MSP(*(uint32_t *)addr);
+
+	// 10a) Set the IWDT timeout to the maximum value to prevent the system from resetting
+	// before starting the DFU bootloader. The bootloader runs with IWDT disabled
+#if (USE_IWDGT)
+	hiwdg.Init.Reload = 4095;
+	if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	HAL_IWDG_Refresh(&hiwdg);
+#endif
 
 	// 11)  Call our function to jump to set location
 	SysMemBootJump();
@@ -471,8 +517,28 @@ uint8_t FlipFlop(bool ResetFF, uint8_t mask, uint8_t period)
  * @param	N: the number of samples where you want to average over;
  * @return  the approximated rolling average over N samples;
  * */
-float32_t approxMovingAverage(float32_t avg, float32_t new_sample, uint32_t N, float32_t CorrectionFactor)
+float32_t approxMovingAverage(float32_t avg, float32_t new_sample, uint32_t N)
 {
+	float32_t CorrectionFactor;
+
+/*	if ((service_timer3 > (N-1)) || (ColdRestart))
+		CorrectionFactor = 1.0;
+	else
+		CorrectionFactor = 1.0+(1.0/N); */
+	if ((service_timer3 > (N-1)) || (ColdRestart))
+	{
+		if ((new_sample - avg) > 0)
+		{
+			CorrectionFactor = 1.0+(1.0/N);
+		} else
+		{
+			CorrectionFactor = 1.0-(1.0/N);
+		}
+	} else
+	{
+		CorrectionFactor = 1.0+(1.0/N);
+	}
+
     avg -= avg / N;
     avg = (avg + new_sample/N) * CorrectionFactor;
 
@@ -575,7 +641,6 @@ int usleep(useconds_t usec)
 #pragma GCC ivdep
 		for(j=0;j<2;j++)
 		{
-			__NOP();
 			__NOP();
 			__NOP();
 		}
@@ -809,35 +874,30 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void HAL_SYSTICK_Callback()
 {
 	static uint16_t led_pc6_timer = 0;
-	static uint16_t led_pc7_timer = 150;
+//	static uint16_t led_pc7_timer = 150;
 //	static uint16_t led_pc8_timer = 0;
 //	static uint16_t led_pc9_timer = 0;
 
-	service_timer0++;
 	 /* We call this handler every 1ms */
 	if (leds_test)
 	{
-		led_pc6_timer++;
-		led_pc7_timer++;
-//		led_pc8_timer++;
-//		led_pc9_timer++;
-		if (led_pc6_timer >= LedPc6Timer_TimeOut)
+		if (++led_pc6_timer >= LedPc6Timer_TimeOut)
 		{
 //			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
 			led_toggle(LED_PC6); 					//Led "STAT" on PC12 in Olimex H405 Board!!
 			led_pc6_timer = 0;
 		}
-/*		if (led_pc7_timer >= 450)
+/*		if (++led_pc7_timer >= 450)
 		{
 			led_toggle(LED_PC7);
 			led_pc7_timer = 150;
 		}
-		if (led_pc8_timer == 1000)
+		if (++led_pc8_timer == 1000)
 		{
 			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8);
 			led_pc8_timer = 0;
 		}
-		if (led_pc9_timer == 1000)
+		if (++led_pc9_timer == 1000)
 		{
 			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_9);
 			led_pc9_timer = 0;
@@ -850,7 +910,7 @@ void HAL_SYSTICK_Callback()
 		led_off(LED_PC9); */
 	}
 	//Free running ServiceTimer0 management
-	if (service_timer0 >= ServiceTimer0_TimeOut)
+	if (++service_timer0 >= ServiceTimer0_TimeOut)
 	{
 		service_timer0_expired = true;
 		service_timer0 = 0;
@@ -871,18 +931,19 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 #endif
 //	static DateTime_t Stamp;
 	static uint16_t s = 0;
+	static uint16_t m = 0;
 	static uint16_t hd = 0;
 	static uint16_t h = 0;
 //	static uint8_t d = 0;
-	static uint16_t WarmUp_Couter = 0;
 #if (USE_BKUP_SRAM)
 	static uint32_t counter_time = 0;
+	extern void Store_MeanValues_BackupRTC(void);
 #endif
 	const uint16_t Baseline_El_Store_Period = 24*7;
-	const uint16_t GAS_SesorBoard_WarmUp = 60*30;	//Do not acquire the the analog sensors values
-													//before the warm-up period has elapsed
-	if (Test_Mode)
-	{
+	const uint16_t GAS_SesorBoard_WarmUp = 45;	//Do not acquire the the analog sensors values
+												//before the warm-up period (in minutes) has elapsed
+	if (Test_Mode)								//GAS_SesorBoard_WarmUp must be greater timeout RUN_IN_TIME
+	{											//where the CCS811 VOC sensor loads the BaseLine
 	#if ((BLE_SUPPORT) && (BEACON_APP) && (USE_IWDGT))
 		HAL_IWDG_Refresh(&hiwdg);
 	#endif
@@ -892,33 +953,55 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 		 * The current timestamp will be used in the main() function to recognize
 		 * if the reset was generated by the WatchDog Timer or by a power-cycle
 		 */
+		BakUpRTC_Data[0] = BLE_MAGIC_NUMBER;
 		BakUpRTC_Data[1] = (uint8_t)(counter_time & 0xFF);
 		BakUpRTC_Data[2] = (uint8_t)((counter_time >> 8) & 0xFF);
 		BakUpRTC_Data[3] = (uint8_t)((counter_time >> 16) & 0xFF);
 		BakUpRTC_Data[4] = (uint8_t)((counter_time >> 24) & 0xFF);
-		enable_backup_rtc();
-		writeBkpRTC((uint8_t *)BakUpRTC_Data, 6, 0);
-		disable_backup_rtc();
 #endif
 	}
+#if (USE_BKUP_SRAM)
+	enable_backup_rtc();					//Store the timestamp every second
+	writeBkpRTC((uint8_t *)BakUpRTC_Data, 6, 0);
+	disable_backup_rtc();
+#endif
 
 	FlashDataOrg.b_status.s1++;				//Increment the total uptime timer
 	update_1s = true;
-	if (++WarmUp_Couter > GAS_SesorBoard_WarmUp)
+	if (++s > 59)
 	{
-		WarmUpPeriod_expired = true;
+		update_1m = true;
+		m++;
+		if (m > GAS_SesorBoard_WarmUp)
+			WarmUpPeriod_expired = true;
+#if (CCS811)
+		if (m == RUN_IN_TIME)
+			load_baseline = true;
+#endif
+#if ((BLE_SUPPORT) && (BEACON_APP))
+		BLE_DataReady = true;	//To allow BLE transmission to occur when valid sensor data
+#endif				//is certainly available, start beaconing after 1 minute from the start of sensor reading.
+		s = 0;
 	}
-	if (++s > 3599)
+	if (m > 59)
 	{
 		Write_Flash(0, 0);					//Store board data-base every hour
-		update1h = true;
-		s = 0;
+#if (USE_BKUP_SRAM)
+		/*
+		 * Every hour the average values of the sensors are stored in the processor's Static Ram Backup.
+		 * In this way, after a "short" reset (not a power-cycle) the daily statistic will not be lost
+		 * and will be immediately available for transmission.
+		 */
+		Store_MeanValues_BackupRTC();
+#endif
+		update_1h = true;
+		m = 0;
 		if (++hd > 24)						//Perform HTS221 memory boot every day
 		{
-#if (HUMIDITY_SENSOR_PRESENT==1)
+#if (HTS221)
 			HTS221_status = HTS221_MemoryBoot(HTS221_BADDR);
 #endif
-			update1d = true;
+			update_1d = true;
 			hd = 0;
 		}
 		if (++h > Baseline_El_Store_Period)	//Store CCS811 Baseline every week
@@ -1094,11 +1177,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 	{
 	    HAL_NVIC_ClearPendingIRQ(USART2_IRQn);
 	}
-/*	if(UartHandle->Instance==USART3)
+	if(UartHandle->Instance==USART3)
 	{
 	    HAL_NVIC_ClearPendingIRQ(USART3_IRQn);
-	}*/
-	if(HAL_UART_Receive_DMA(UartHandle, (uint8_t *)aRxBuffer, RXBUFFERSIZE) != HAL_OK)		//Re-Enable reception
+	}
+	if(HAL_UART_Receive_DMA(UartHandle, (uint8_t *)aRxBuffer, RXBUFFERSIZE) != HAL_OK)	//Re-Enable reception
 	{
 		rx_done = false;
 		/* Start Error Routine*/
@@ -1106,7 +1189,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 	}
 	else
 	{
-		process_USART_RX_irq(UartHandle, (uint8_t *)aRxBuffer, RXBUFFERSIZE);
+		process_USART_RX_irq(UartHandle, (uint8_t *)aRxBuffer, usart3RxLength);
 		rx_done = true;
 	}
 }
@@ -1159,6 +1242,60 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
 #endif
 
 /**
+ * @brief UART IDLE callback.
+ * @param UartHandle: pointer to a UART_HandleTypeDef structure that contains
+ *        the configuration information for the specified UART module.
+ * @param DMAtHandle: pointer to a DMA_HandleTypeDef structure that contains
+ *        the configuration information for the specified UART module.
+ * @retval None
+ */
+void HAL_UART_IdleCpltCallback(UART_HandleTypeDef *UartHandle, DMA_HandleTypeDef *DMAHandle)
+{
+//	uint32_t j = 0;
+
+	/* When the Host transmits an RS232 data packet it may happen that between one frame and
+	 * another there may be a delay; when this delay is greater than the duration of one byte
+	 * the idle callback is called before the end of the packet. This causes a shorter packet
+	 * received than the transmitted one, and therefore a frame error.
+	 * Sleep(x) introduces a delay in the execution of the idle callback, allowing the missing
+	 * frames to be received. The value of x depends on the application, but cannot be greater
+	 * than the duration of the packet. It may not even be necessary to introduce the delay
+	 */
+	Sleep(1);
+
+	__HAL_UART_CLEAR_IDLEFLAG(UartHandle);			//Clear Idle Status Bit
+
+	/* As an alternative to Sleep(x), when the length of the packet is known and fixed, it is
+	 * possible to wait until the entire packet has been received
+	 */
+/*	while (RXBUFFERSIZE - (__HAL_DMA_GET_COUNTER(DMAHandle)) < PACKET_LENGTH)
+	{
+		j++;
+		if(j>0xffffe)
+			break;
+	} */
+//Start the timer to measure the latency time between receiving the packet and writing the GPIOs
+/*	tick_start = HAL_GetTick();
+#if (USE_TIMER6_AS_uS_DELAY==1)
+	__HAL_TIM_SET_COUNTER(&htim6,0);
+//	HAL_GPIO_WritePin(IO_CONN1_GPIO_Port, IO_CONN1_Pin, GPIO_PIN_SET);
+#endif */
+
+	usart3RxLength = RXBUFFERSIZE - (__HAL_DMA_GET_COUNTER(DMAHandle)); // Get length
+	// DMA count reload, DMA completion interrupt will be generated,
+    // Refer to RM0033-9.3.13, when DMA is off, DMA completion interrupt will be generated
+    // Refer to RM0033-DMA_SxNDTR, when DMA is off, reload counter
+	if (usart3RxLength)
+	{
+		__HAL_DMA_DISABLE(DMAHandle);					//Close DMA
+		huart3.hdmarx->Instance->CNDTR = RXBUFFERSIZE;	//Reset DMA pointer
+		__HAL_DMA_ENABLE(DMAHandle);					//Enable DMA
+	}
+	UartHandle->RxState= HAL_UART_STATE_READY;
+	HAL_UART_RxCpltCallback(UartHandle);			//Needed only for M3 series
+}
+
+/**
   * @brief  Conversion complete callback in non blocking mode
   * @param  AdcHandle : AdcHandle handle
   * @note   Report end of conversion.
@@ -1182,7 +1319,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle)
  */
 void process_timer1_irq(void)
 {
-#if (IMU_PRESENT==1)							//Defined in main.h
+#if (IMU_PRESENT==1)
 	if (update_100Hz)
 	{
 	//Get Local IMU Values
@@ -1241,24 +1378,48 @@ void button_manage(void)
 	//Reset to sub-page 1 on page change
 	PM_toggle = 1;
 #if (GUI_SUPPORT==0)
-	#if (PRESSURE_SENSOR_PRESENT==1)
-	send_lcl_prs_data = true; display_prs_data = true;
-	#endif
-	#if (HUMIDITY_SENSOR_PRESENT==1)
-	send_lcl_hum_data = true; display_hum_data = true;
-	#endif
-	#if (UVx_SENSOR_PRESENT==1)
-	send_lcl_uvx_data = true; display_uvx_data = true;
-	#endif
-	#if (VOC_SENSOR_PRESENT==1)
-	send_lcl_voc_data = true; display_voc_data = true;
-	#endif
-	#if (PARTICULATE_SENSOR_PRESENT==1)
-	send_lcl_pms_data = true; display_pms_data = true;
-	#endif
-	#if (GAS_SENSOR_MODULE_PRESENT==1)
-	send_lcl_gas_data = true; display_gas_data = true;
-	#endif
+	#if (PRESSURE_SENSOR_PRESENT)
+	send_lcl_prs_data = true;
+	#if (GLCD_SUPPORT)
+	display_prs_data = true;
+	#endif	//GLCD_SUPPORT
+	#endif	//PRESSURE_SENSOR_PRESENT
+	#if (HUMIDITY_SENSOR_PRESENT)
+	send_lcl_hum_data = true;
+	#if (GLCD_SUPPORT)
+	display_hum_data = true;
+	#endif	//GLCD_SUPPORT
+	#endif	//HUMIDITY_SENSOR_PRESENT
+	#if (UVx_SENSOR_PRESENT)
+	send_lcl_uvx_data = true;
+	#if (GLCD_SUPPORT)
+	display_uvx_data = true;
+	#endif	//GLCD_SUPPORT
+	#endif	//UVx_SENSOR_PRESENT
+	#if (ALS_SENSOR_PRESENT)
+	send_lcl_als_data = true;
+	#if (GLCD_SUPPORT)
+	display_als_data = true;
+	#endif	//GLCD_SUPPORT
+	#endif	//ALS_SENSOR_PRESENT
+	#if (VOC_SENSOR_PRESENT)
+	send_lcl_voc_data = true;
+	#if (GLCD_SUPPORT)
+	display_voc_data = true;
+	#endif	//GLCD_SUPPORT
+	#endif	//VOC_SENSOR_PRESENT
+	#if (PARTICULATE_SENSOR_PRESENT)
+	send_lcl_pms_data = true;
+	#if (GLCD_SUPPORT)
+	display_pms_data = true;
+	#endif	//GLCD_SUPPORT
+	#endif	//PARTICULATE_SENSOR_PRESENT
+	#if (GAS_SENSOR_MODULE_PRESENT)
+	send_lcl_gas_data = true;
+	#if (GLCD_SUPPORT)
+	display_gas_data = true;
+	#endif	//GLCD_SUPPORT
+	#endif	//GAS_SENSOR_MODULE_PRESENT
 #endif	//GUI_SUPPORT==0
 #if (IMU_PRESENT==1)
 	MagCalRequest = 1;							//Request magnetometer recalibration  on push button
@@ -1340,6 +1501,15 @@ void process_timer3_irq(void)
 {
 	static uint16_t DeltaT = 0;
 	extern FLASH_DATA_ORG FlashDataOrg;
+#if ((BLE_SUPPORT) && (BEACON_APP))
+	#if (CCS811)
+	extern void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
+							CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate);
+	#elif(ENS160)
+	extern void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
+	                        ENS160_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate);
+	#endif
+#endif
 #if ((BLE_SUPPORT) && (SENSOR_APP))
 	static bool button_manage_done = false;
 #endif
@@ -1350,7 +1520,8 @@ void process_timer3_irq(void)
 	HAL_TIM_Base_Start_IT(&htim3);		//Start Timer3
 	HAL_NVIC_EnableIRQ(TIM3_IRQn);
 	timer3_expired = false;
-	service_timer3++;
+	if (WarmUpPeriod_expired)			//service_timer3 takes into account the sensors operating
+		service_timer3++;				//period, starting from the end of the warm_up time.
 	if (++DeltaT >= (3600/APPLICATION_RUN_CYCLE))
 	{
 #if (PARTICULATE_SENSOR_PRESENT==1)		//Check every hour if the VOC sensor fan needs cleaning
@@ -1368,31 +1539,50 @@ void process_timer3_irq(void)
 	RTC_Handler(&hrtc, &dataseq[0]);
 #else
 	RTC_Handler(&hrtc, &dataseq1[0]);
+	#if ((BLE_SUPPORT) && (BEACON_APP))
+	dataseq1[6] = 0x0a;
+	memcpy(&BLE_TimeStamp, &dataseq1[3], 4);
+	#endif
 #endif
-#if (PRESSURE_SENSOR_PRESENT==1)		//Defined in main.h
-//Get Local MEMS Values and format MEMS_LclData;
-	LPS25HB_status = LPS25HB_Get_Measurement(LPS25HB_BADDR, &PRS_Values);
-	MEMS_LclData = (uint32_t)PRS_Values.Pout; MEMS_LclData <<= 16;
-	MEMS_LclData |= (uint16_t)PRS_Values.Tout;
-//	LPS25HB_status = LPS25HB_Set_Reference_Pressure(LPS25HB_BADDR, P_OutR);
-//	LPS25HB_status = LPS25HB_Get_ReferencePressure(LPS25HB_BADDR, &RefP);	//For Test
+#if (PRESSURE_SENSOR_PRESENT==1)
+	#if (LPS25HB)
+		LPS25HB_status = LPS25HB_Get_Measurement(LPS25HB_BADDR, &PRS_Values);
+	#elif (LPS22HB)
+		LPS22HB_status = LPS22HB_Get_Measurement(LPS22HB_BADDR, &PRS_Values);
+	#endif	// LPS25HB
+//	MEMS_LclData = (uint32_t)PRS_Values.Pout; MEMS_LclData <<= 16;
+//	MEMS_LclData |= (uint16_t)PRS_Values.Tout;
 	lcl_prs_data_rdy = true;
 	send_lcl_prs_data = true;
 	display_prs_data = StartDataStrmng;
-#endif
+#endif	// PRESSURE_SENSOR_PRESENT
 #if (HUMIDITY_SENSOR_PRESENT==1)
-	HTS221_status = HTS221_Get_Measurement(HTS221_BADDR, &HUM_Values);
+	#if (HTS221)
+		HTS221_status = HTS221_Get_Measurement(HTS221_BADDR, &HUM_Values);
+	#elif (SHT4x)
+		SHT4x_status = SHT4x_Get_Measurement(SHT4x_BADDR, &HUM_Values);
+	#endif	// HTS221
 	lcl_hum_data_rdy = true;
 	send_lcl_hum_data = true;
 	display_hum_data = StartDataStrmng;
-#endif
+#endif	// HUMIDITY_SENSOR_PRESENT
 #if (UVx_SENSOR_PRESENT==1)
-	VEML6075_status = VEML6075_Get_Measurement(&hi2c1, &UVx_Values);
+	#if (VEML6075)
+		VEML6075_status = VEML6075_Get_Measurement(&hi2c1, &UVx_Values);
+	#elif (LTR390UV)
+		LTR390UV_status = LTR390UV_Get_Measurement(LTR390UV_BADDR, &UVx_Values);
+	#endif	//VEML6075
 	lcl_uvx_data_rdy = true;
 	send_lcl_uvx_data = true;
 	display_uvx_data = StartDataStrmng;
+#endif	//UVx_SENSOR_PRESENT
+#if (ALS_SENSOR_PRESENT==1)
+	VEML7700_status = VEML7700_Get_Measurement(&hi2c1, &ALS_Values);
+	lcl_als_data_rdy = true;
+	send_lcl_als_data = true;
+	display_als_data = StartDataStrmng;
 #endif
-#if (VOC_SENSOR_PRESENT==1)				//Defined in main.h
+#if (VOC_SENSOR_PRESENT==1)
 	//If available Set Set Environment Parameters for CCS811 environmental compensation
 	#if (HUMIDITY_SENSOR_PRESENT==1)
 		extern float hum_value, temp_value;
@@ -1404,11 +1594,15 @@ void process_timer3_irq(void)
 //		ENS160_SetEnvironmentalData(65.0, 25.0);
 	#endif	//CCS811
 	#endif	//HUMIDITY_SENSOR_PRESENT
+		if (WarmUpPeriod_expired)
+		{
 	#if (CCS811)
-		CCS811_status = CCS811_Get_Measurement(&VOC_Values);
+			CCS811_status = CCS811_Get_Measurement(&VOC_Values);
 	#elif (ENS160)
-		ENS160_status = ENS160_Get_Measurement(&VOC_Values);
+			ENS160_status = ENS160_Get_Measurement(&VOC_Values);
+			ENS160_status = ENS160_Get_Raw_Data(&VOC_Values);
 	#endif
+		}
 	lcl_voc_data_rdy = true;
 	send_lcl_voc_data = true;
 	display_voc_data = StartDataStrmng;
@@ -1418,11 +1612,9 @@ void process_timer3_irq(void)
 		CCS811_Save_Baseline(true);
 		CCS811_Save_Baseline_Reserved = false;		//From TestEnv function
 	}
-	if (service_timer3 == RUN_IN_TIME)
-		load_baseline = true;
 	#endif
 #endif
-#if (PARTICULATE_SENSOR_PRESENT==1)		//Defined in main.h
+#if (PARTICULATE_SENSOR_PRESENT==1)
 	SPS30_status = SPS30_Get_Measurement(&PMS_Values);
 	lcl_pms_data_rdy = true;
 	send_lcl_pms_data = true;
@@ -1431,11 +1623,38 @@ void process_timer3_irq(void)
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	if (WarmUpPeriod_expired)
 	{
+		/*
+		 * After the WarmUp period of the analog sensors the "read_analogs()" function is called
+		 * inside the "ANLG_Get_Measurement(&GAS_Values)" function
+		 */
 		ANLG_status = ANLG_Get_Measurement(&GAS_Values);
+	} else
+	{
+		/*
+		 * During the wait, the analog inputs are still read to allow the PB IIR filters
+		 * inserted on the analog inputs to stabilize the reading of the sensors analog values.
+		 */
+		if(!Test_Mode)
+			read_analogs();
 	}
 	lcl_gas_data_rdy = true;
 	send_lcl_gas_data = true;
 	display_gas_data = StartDataStrmng;
+#endif
+#if ((BLE_SUPPORT) && (BEACON_APP))
+	if ((MidNight) && !(MinMaxStored))
+	{
+		StoreMinMax(&PRS_Values, &HUM_Values, &GAS_Values, &VOC_Values, &PMS_Values);
+		MinMaxStored = true;
+		if (Restart_Reverved)
+		{
+			NVIC_SystemReset();
+		}
+	} else
+	if (!(MidNight) && (MinMaxStored))
+	{
+		MinMaxStored = false;
+	}
 #endif
 /*
  * In the "Sensor" application the button_manage() function, which activates the BLE
@@ -1496,12 +1715,12 @@ void process_timer7_irq(void)
 			ServiceTimer2.Expired = true;
 			ServiceTimer2.Start = false;
 			ServiceTimer2.Counter = 0;
-#if (HUMIDITY_SENSOR_PRESENT==1)
+#if (HTS221)
 			HTS221_status = HTS221_Set_HeaterState(HTS221_BADDR, HTS221_DISABLE);
 #endif
 		}
 	}
-	//ServiceTimer3 management: HTS221 time interval between two heater activations
+	//ServiceTimer3 management: HTS221 waiting time between two heater activations
 	if (ServiceTimer3.Start)
 	{
 		ServiceTimer3.Counter++;
@@ -1510,6 +1729,17 @@ void process_timer7_irq(void)
 			ServiceTimer3.Expired = true;
 			ServiceTimer3.Start = false;
 			ServiceTimer3.Counter = 0;
+		}
+	}
+	//ServiceTimer4 management: HTS221 waiting time to measures restart after the heater activation
+	if (ServiceTimer4.Start)
+	{
+		ServiceTimer4.Counter++;
+		if (ServiceTimer4.Counter >= ServiceTimer4.TimeOut)
+		{
+			ServiceTimer4.Expired = true;
+			ServiceTimer4.Start = false;
+			ServiceTimer4.Counter = 0;
 		}
 	}
 
@@ -1522,7 +1752,7 @@ void process_timer7_irq(void)
  */
 void process_IO_Expander_irq(void)
 {
-#if (IO_EXP_PRESENT==1)					//Defined in main.h
+#if (IO_EXP_PRESENT==1)
 	static uint16_t i = 0;
 
 	mcp23017_read_registers(MCP23017_MASTER1_BADDR, 0, 22);	//Read all MC23017_1 Registers
@@ -1649,22 +1879,22 @@ uint8_t process_CAN_TX_irq(CAN_HandleTypeDef* hcan)
 }
 #endif	//CAN_SUPPORT==1
 
- /**
-  * @Function: process_ADC_irq(ADC_HandleTypeDef* hcan)
-  * @brief  ADCx Conversion end ISR
-  * @param  hadc: pointer to a ADC_HandleTypeDef structure that contains
-  *         the configuration information for the specified ADC.
-  * @retval Result of the operation: ADCD_OK if all operations are OK else ADCD_FAIL
-  */
- uint8_t process_ADC_irq(ADC_HandleTypeDef* hadc)
- {
+/**
+ * @Function: process_ADC_irq(ADC_HandleTypeDef* hcan)
+ * @brief  ADCx Conversion end ISR
+ * @param  hadc: pointer to a ADC_HandleTypeDef structure that contains
+ *         the configuration information for the specified ADC.
+ * @retval Result of the operation: ADCD_OK if all operations are OK else ADCD_FAIL
+ */
+uint8_t process_ADC_irq(ADC_HandleTypeDef* hadc)
+{
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-	 memcpy((void*)&adc_values, (void*)&ADCxConvertedValue, sizeof(ADCxConvertedValue));	// Extract ADC values from buffer
-	 conversion_ended = true;
+	memcpy((void*)&adc_values, (void*)&ADCxConvertedValue, sizeof(ADCxConvertedValue));	// Extract ADC values from buffer
+	conversion_ended = true;
 #endif
 
-	 return (ADCD_OK);
- }
+	return (ADCD_OK);
+}
 
 #if (USART_SUPPORT==1)
 /**

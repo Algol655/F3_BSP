@@ -10,6 +10,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "application/AirQuality.h"
 
+/*
+ * Technical Assistance Document for the Reporting of Daily Air Quality
+ * the Air Quality Index (AQI) (PDF) (Report). U.S.
+ * https://www.airnow.gov/sites/default/files/2018-05/aqi-technical-assistance-document-may2016.pdf
+ */
 uint8_t CalcAQI(uint16_t C_low, uint16_t C_high, uint16_t C, uint8_t I_low, uint8_t I_high)
 {
 	uint8_t w_aqi;
@@ -21,7 +26,7 @@ uint8_t CalcAQI(uint16_t C_low, uint16_t C_high, uint16_t C, uint8_t I_low, uint
 
 AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t eq_TVOC_1h_Mean, uint16_t eq_CO2_1h_Mean,
 								   uint16_t CH2O, uint16_t CO, uint16_t NO2, uint16_t NH3,
-								   uint16_t O3, uint16_t SO2, uint16_t C6H6,
+								   uint16_t O3, uint16_t SO2, uint16_t C6H6, uint16_t MC_10p0, uint16_t MC_2p5,
 								   uint16_t CH2O_8h_Mean, uint16_t CO_8h_Mean, uint16_t NO2_1h_Mean, uint16_t NH3_8h_Mean,
 								   uint16_t O3_1h_Mean, uint16_t SO2_1h_Mean, uint16_t C6H6_24h_Mean,
 								   uint16_t MC_10p0_24h_Mean, uint16_t MC_2p5_24h_Mean)
@@ -30,9 +35,12 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 						 	 	{"5: VERY POOR \r\n"},{"  6: SEVERE  \r\n"}};
 	static AirQualityParameters_st AirQuality_Level =
 								{.eTVOC_AQ=2, .eCO2_AQ=2, .PM10_AQ=2, .PM2p5_AQ=2, .CH2O_AQ=2, .CO_AQ=2, .NO2_AQ=2, .NH3_AQ=2,
-								 .O3_AQ=2, .SO2_AQ=2, .C6H6_AQ= 2, .AvgGasAirQualityIndex=2,
-								 .AvgPMxAirQualityIndex=2, .AvgGasAirQualityClass={}, .AvgPMxAirQualityClass={}};
+								 .O3_AQ=2, .SO2_AQ=2, .C6H6_AQ= 2, .GasAirQualityIndex=2, .AvgGasAirQualityIndex=2,
+								 .PMxAirQualityIndex=2, .AvgPMxAirQualityIndex=2, .AvgGasAirQualityClass={}, .AvgPMxAirQualityClass={}};
 
+/*
+ * Gases current AirQuality level calculation
+ */
 	//Find the current eTVOC AirQuality level
 	// eTVOC_Excellent = 65,	//ppb
 	// eTVOC_Good = 220,		//ppb
@@ -374,8 +382,12 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 														 (int32_t)AirQuality_Level.O3_AQ, (int32_t)AirQuality_Level.SO2_AQ,
 														 (int32_t)AirQuality_Level.C6H6_AQ));
 	strcpy(AirQuality_Level.GasAirQualityClass, AQ_Class[AirQuality_Level.GasAirQualityIndex]);
+
 	Gas_AQI = AirQuality_Level.GasAirQualityIndex;	//Used in BLE Beacon packet
 
+/*
+ * Gases average AirQuality level calculation
+ */
 	//Find the 1h average eTVOC AirQuality level
 	// eTVOC_Excellent = 65,	//ppb
 	// eTVOC_Good = 220,		//ppb
@@ -717,11 +729,110 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 															(int32_t)AirQuality_Level.C6H6_AQ));
 	strcpy(AirQuality_Level.AvgGasAirQualityClass, AQ_Class[AirQuality_Level.AvgGasAirQualityIndex]);
 
-	if (AirQuality_Level.AvgGasAirQualityIndex <= AirQuality_Level.GasAirQualityIndex)	//The BLE Tx AQI is always the lower between..
-		AVG_Gas_AQI =  AirQuality_Level.AvgGasAirQualityIndex;	//..the average...
+	T_AVG_Gas_AQI =  AirQuality_Level.AvgGasAirQualityIndex;	//The "true" average AQI. Used by BLE
+	/*
+	 * The BLE Tx GAS_AQI is the lower between the average and the instantaneous one.
+	 * AVG_Gas_AQI is used in BLE Beacon packet and it is the AQI value of the gaseous
+	 * pollutants that is shown on the home automation system's main screen.
+	 */
+	if (AirQuality_Level.AvgGasAirQualityIndex <= AirQuality_Level.GasAirQualityIndex)
+		AVG_Gas_AQI =  AirQuality_Level.AvgGasAirQualityIndex;
 	else
-		AVG_Gas_AQI = AirQuality_Level.GasAirQualityIndex;	//...and the instantaneous one. AVG_Gas_AQI Used in BLE Beacon packet
+		AVG_Gas_AQI = AirQuality_Level.GasAirQualityIndex;
 
+	//Find the 24h current PM10 AirQuality level
+	// PM10_Excellent = 20,	//ug/m3
+	// PM10_Fine = 35,		//ug/m3
+	// PM10_Moderate = 50,	//ug/m3
+	// PM10_Poor = 100,		//ug/m3
+	// PM10_VeryPoor = 150,	//ug/m3
+	if (InRange(0, PM10_Exellent, MC_10p0) == 1)
+	{
+//		AirQuality_Level.PM10_AQ = 0;
+		AirQuality_Level.PM10_AQ = CalcAQI(0, PM10_Exellent, MC_10p0, 0, 1);
+	} else
+	if (InRange(PM10_Exellent, PM10_Fine, MC_10p0) == 1)
+	{
+//		AirQuality_Level.PM10_AQ = 1;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Exellent, PM10_Fine, MC_10p0, 1, 2);
+	} else
+	if (InRange(PM10_Fine, PM10_Moderate, MC_10p0) == 1)
+	{
+//		AirQuality_Level.PM10_AQ = 2;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Fine, PM10_Moderate, MC_10p0, 2, 3);
+	} else
+	if (InRange(PM10_Moderate, PM10_Poor, MC_10p0) == 1)
+	{
+//		AirQuality_Level.PM10_AQ = 3;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Moderate, PM10_Poor, MC_10p0, 3, 4);
+	} else
+	if (InRange(PM10_Poor, PM10_VeryPoor, MC_10p0) == 1)
+	{
+//		AirQuality_Level.PM10_AQ = 4;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Poor, PM10_VeryPoor, MC_10p0, 4, 5);
+	} else
+	if (InRange(PM10_Poor, PM10_VeryPoor, MC_10p0) == 2)
+	{
+//		AirQuality_Level.PM10_AQ = 5;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Poor, PM10_VeryPoor, MC_10p0, 5, 6);
+	}
+
+/*
+ * PMx current AirQuality level calculation
+ */
+	//Find the 24h current PM2.5 AirQuality level
+	// PM2p5_Exellent = 10,	//ug/m3
+	// PM2p5_Fine = 20,		//ug/m3
+	// PM2p5_Moderate = 25,	//ug/m3
+	// PM2p5_Poor = 50,		//ug/m3
+	// PM2p5_VeryPoor = 110	//ug/m3
+	if (InRange(0, PM2p5_Exellent, MC_2p5) == 1)
+	{
+//		AirQuality_Level.PM2p5_AQ = 0;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(0, PM10_Exellent, MC_2p5, 0, 1);
+	} else
+	if (InRange(PM2p5_Exellent, PM2p5_Fine, MC_2p5) == 1)
+	{
+//		AirQuality_Level.PM2p5_AQ = 1;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Exellent, PM2p5_Fine, MC_2p5, 1, 2);
+	} else
+	if (InRange(PM2p5_Fine, PM2p5_Moderate, MC_2p5) == 1)
+	{
+//		AirQuality_Level.PM2p5_AQ = 2;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Fine, PM2p5_Moderate, MC_2p5, 2, 3);
+	} else
+	if (InRange(PM2p5_Moderate, PM2p5_Poor, MC_2p5) == 1)
+	{
+//		AirQuality_Level.PM2p5_AQ = 3;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Moderate, PM2p5_Poor, MC_2p5, 3, 4);
+	} else
+	if (InRange(PM2p5_Poor, PM2p5_VeryPoor, MC_2p5) == 1)
+	{
+//		AirQuality_Level.PM2p5_AQ = 4;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Poor, PM2p5_VeryPoor, MC_2p5, 4, 5);
+	} else
+	if (InRange(PM2p5_Poor, PM2p5_VeryPoor, MC_2p5) == 2)
+	{
+//		AirQuality_Level.PM2p5_AQ = 5;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Poor, PM2p5_VeryPoor, MC_2p5, 5, 6);
+	}
+
+	//Find the overall air quality index due to 1h current of PMx pollutants
+	if (AirQuality_Level.PM10_AQ < AirQuality_Level.PM2p5_AQ)
+	{
+		AirQuality_Level.PMxAirQualityIndex = AirQuality_Level.PM2p5_AQ;
+	}
+	else
+	{
+		AirQuality_Level.PMxAirQualityIndex = AirQuality_Level.PM10_AQ;
+	}
+	strcpy(AirQuality_Level.PMxAirQualityClass, AQ_Class[AirQuality_Level.PMxAirQualityIndex]);
+
+	PMx_AQI =  AirQuality_Level.PMxAirQualityIndex;	//Used in BLE Beacon packet
+
+/*
+ * PMx average AirQuality level calculation
+ */
 	//Find the 24h average PM10 AirQuality level
 	// PM10_Excellent = 20,	//ug/m3
 	// PM10_Fine = 35,		//ug/m3
@@ -730,27 +841,33 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 	// PM10_VeryPoor = 150,	//ug/m3
 	if (InRange(0, PM10_Exellent, MC_10p0_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM10_AQ = 0;
+//		AirQuality_Level.PM10_AQ = 0;
+		AirQuality_Level.PM10_AQ = CalcAQI(0, PM10_Exellent, MC_10p0_24h_Mean, 0, 1);
 	} else
 	if (InRange(PM10_Exellent, PM10_Fine, MC_10p0_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM10_AQ = 1;
+//		AirQuality_Level.PM10_AQ = 1;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Exellent, PM10_Fine, MC_10p0_24h_Mean, 1, 2);
 	} else
 	if (InRange(PM10_Fine, PM10_Moderate, MC_10p0_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM10_AQ = 2;
+//		AirQuality_Level.PM10_AQ = 2;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Fine, PM10_Moderate, MC_10p0_24h_Mean, 2, 3);
 	} else
 	if (InRange(PM10_Moderate, PM10_Poor, MC_10p0_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM10_AQ = 3;
+//		AirQuality_Level.PM10_AQ = 3;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Moderate, PM10_Poor, MC_10p0_24h_Mean, 3, 4);
 	} else
 	if (InRange(PM10_Poor, PM10_VeryPoor, MC_10p0_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM10_AQ = 4;
+//		AirQuality_Level.PM10_AQ = 4;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Poor, PM10_VeryPoor, MC_10p0_24h_Mean, 4, 5);
 	} else
 	if (InRange(PM10_Poor, PM10_VeryPoor, MC_10p0_24h_Mean) == 2)
 	{
-		AirQuality_Level.PM10_AQ = 5;
+//		AirQuality_Level.PM10_AQ = 5;
+		AirQuality_Level.PM10_AQ = CalcAQI(PM10_Poor, PM10_VeryPoor, MC_10p0_24h_Mean, 5, 6);
 	}
 
 	//Find the 24h average PM2.5 AirQuality level
@@ -761,27 +878,33 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 	// PM2p5_VeryPoor = 110	//ug/m3
 	if (InRange(0, PM2p5_Exellent, MC_2p5_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM2p5_AQ = 0;
+//		AirQuality_Level.PM2p5_AQ = 0;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(0, PM10_Exellent, MC_2p5_24h_Mean, 0, 1);
 	} else
 	if (InRange(PM2p5_Exellent, PM2p5_Fine, MC_2p5_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM2p5_AQ = 1;
+//		AirQuality_Level.PM2p5_AQ = 1;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Exellent, PM2p5_Fine, MC_2p5_24h_Mean, 1, 2);
 	} else
 	if (InRange(PM2p5_Fine, PM2p5_Moderate, MC_2p5_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM2p5_AQ = 2;
+//		AirQuality_Level.PM2p5_AQ = 2;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Fine, PM2p5_Moderate, MC_2p5_24h_Mean, 2, 3);
 	} else
 	if (InRange(PM2p5_Moderate, PM2p5_Poor, MC_2p5_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM2p5_AQ = 3;
+//		AirQuality_Level.PM2p5_AQ = 3;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Moderate, PM2p5_Poor, MC_2p5_24h_Mean, 3, 4);
 	} else
 	if (InRange(PM2p5_Poor, PM2p5_VeryPoor, MC_2p5_24h_Mean) == 1)
 	{
-		AirQuality_Level.PM2p5_AQ = 4;
+//		AirQuality_Level.PM2p5_AQ = 4;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Poor, PM2p5_VeryPoor, MC_2p5_24h_Mean, 4, 5);
 	} else
 	if (InRange(PM2p5_Poor, PM2p5_VeryPoor, MC_2p5_24h_Mean) == 2)
 	{
-		AirQuality_Level.PM2p5_AQ = 5;
+//		AirQuality_Level.PM2p5_AQ = 5;
+		AirQuality_Level.PM2p5_AQ = CalcAQI(PM2p5_Poor, PM2p5_VeryPoor, MC_2p5_24h_Mean, 5, 6);
 	}
 
 	//Find the overall air quality index due to 1h average of PMx pollutants
@@ -794,7 +917,17 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 		AirQuality_Level.AvgPMxAirQualityIndex = AirQuality_Level.PM10_AQ;
 	}
 	strcpy(AirQuality_Level.AvgPMxAirQualityClass, AQ_Class[AirQuality_Level.AvgPMxAirQualityIndex]);
-	AVG_PMx_AQI = AirQuality_Level.AvgPMxAirQualityIndex;	//Used in BLE Beacon packet
+
+	T_AVG_PMx_AQI =  AirQuality_Level.AvgPMxAirQualityIndex;	//The "true" average AQI. Used by BLE
+	/*
+	 * The BLE Tx PMx_AQI is the lower between the average and the instantaneous one.
+	 * AVG_PMx_AQI is used in BLE Beacon packet and it is the AQI value of particulate
+	 * pollutants that is shown on the home automation system's main screen.
+	 */
+	if (AirQuality_Level.AvgPMxAirQualityIndex <= AirQuality_Level.PMxAirQualityIndex)
+		AVG_PMx_AQI =  AirQuality_Level.AvgPMxAirQualityIndex;
+	else
+		AVG_PMx_AQI = AirQuality_Level.PMxAirQualityIndex;
 
 	if((AirQuality_Level.GasAirQualityIndex > 3) || (AnlgOvflStatusReg))
 	{

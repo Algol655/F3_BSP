@@ -64,7 +64,7 @@ __attribute__((__section__(".user_data"))) const char userConfig[64];
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-#if (IMU_PRESENT==1)						//Defined in main.h
+#if (IMU_PRESENT==1)
 //	const double_t g = 9.80665;				//g is the acceleration of gravity
 	const double_t g_to_ms2 = 9.80665;		//g to m/s^2 conversion factor
 	const double_t mg_to_g = 0.001;			//mg to g conversion factor
@@ -89,7 +89,8 @@ __attribute__((__section__(".user_data"))) const char userConfig[64];
 	uint8_t Sensors_Enabled = 1;
 #endif
 bool button_pressed = false;
-int64_t MEMS_LclData;
+uint8_t Version[] = "\r\nHW Version: X.X - FW Version: X.X.xx";
+//int64_t MEMS_LclData;
 
 FLASH_DATA_ORG FlashDataOrg = {.b_date_offset = 0x00, .b_time_offset = 0x04,
 .b_mdata.DeviceName_offset = 0x08, .b_mdata.HW_Version_offset = 0x0C, .b_mdata.SW_Version_offset = 0x10,
@@ -97,7 +98,10 @@ FLASH_DATA_ORG FlashDataOrg = {.b_date_offset = 0x00, .b_time_offset = 0x04,
 .b_status.s0_offset = 0x24, .b_status.s1_offset = 0x28, .b_status.s2_offset = 0x2C, .b_status.s3_offset = 0x30,
 .b_status.s4_offset = 0x34, .b_status.s5_offset = 0x38, .b_status.s6_offset = 0x3C, .b_status.s7_offset = 0x40,
 .b_status.s8_offset = 0x44, .b_status.s9_offset = 0x48, .b_status.sa_offset = 0x4C, .b_status.sb_offset = 0x50,
-.b_status.sc_offset = 0x54, .b_status.sd_offset = 0x58, .b_status.se_offset = 0x5C, .b_status.sf_offset = 0x60};
+.b_status.sc_offset = 0x54, .b_status.sd_offset = 0x58, .b_status.se_offset = 0x5C, .b_status.sf_offset = 0x60,
+.b_status.s10_offset = 0x64, .b_status.s11_offset = 0x68, .b_status.s12_offset = 0x6C, .b_status.s13_offset = 0x70,
+.b_status.s14_offset = 0x74, .b_status.s15_offset = 0x78, .b_status.s16_offset = 0x7C, .b_status.s17_offset = 0x80,
+.b_status.s12 = 0xF50000};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -177,7 +181,8 @@ int main(void)
   HAL_NVIC_ClearPendingIRQ(TIM3_IRQn);
   HAL_NVIC_DisableIRQ(TIM6_DAC_IRQn);
   __HAL_RTC_SECOND_ENABLE_IT(&hrtc,RTC_FLAG_SEC);	//Enable RTC per second interrupt
-  HAL_RTCEx_SetSmoothCalib(&hrtc, 0, 0, *((uint32_t*)(DATA_EEPROM_BASE+FlashDataOrg.b_status.s7_offset)));	//Adjust RTC precision
+  HAL_RTCEx_SetSmoothCalib(&hrtc, RTC_SMOOTHCALIB_PERIOD_32SEC,		//Adjust RTC precision
+		  	  	  	  	   RTC_SMOOTHCALIB_PLUSPULSES_RESET, *((uint32_t*)(DATA_EEPROM_BASE+FlashDataOrg.b_status.s7_offset)));
   HAL_NVIC_DisableIRQ(EXTI2_IRQn);
   HAL_NVIC_DisableIRQ(EXTI4_IRQn);
   HAL_NVIC_DisableIRQ(RTC_Alarm_IRQn);
@@ -198,19 +203,23 @@ int main(void)
   lcl_prs_data_rdy = false; send_lcl_prs_data = false; display_prs_data = false;
   lcl_hum_data_rdy = false; send_lcl_hum_data = false; display_hum_data = false;
   lcl_uvx_data_rdy = false; send_lcl_uvx_data = false; display_uvx_data = false;
+  lcl_als_data_rdy = false; send_lcl_als_data = false; display_als_data = false;
   lcl_voc_data_rdy = false; send_lcl_voc_data = false; display_voc_data = false;
   lcl_pms_data_rdy = false; send_lcl_pms_data = false; display_pms_data = false;
+  MidNight = false; MinMaxStored = false; Restart_Reverved = false;
   stby_timer = 0; service_timer3 = 0;
-  service_timer0_expired = false; WarmUpPeriod_expired = false;
-  timer5s_expired = false; update_1s = false; update_5s = false;
+  service_timer0_expired = false; timer5s_expired = false;
+  WarmUpPeriod_expired = false; ColdRestart = false; BakUpSRamWiped = false; BLE_DataReady = false;
+  update_1s = false; update_5s = false; update_1m = update_1h = false; false; update_1d = false;
   update_16Hz = 0; update_25Hz = 0; update_50Hz = 0; update_100Hz = 0;
-  t_flip = 0; NumberOfDevices = 0; SensorStatusReg = 0, PreviousPage = 1;
+  t_flip = 0; NumberOfDevices = 0; SensorStatusReg = 0; StatusReg = 0; PreviousPage = 1;
   internal_notifies_0 = 0; internal_notifies_1 = 0;
 
 #if (USE_BKUP_SRAM)
 //extern bool StartDataStrmng;
   uint32_t counter_time_crnt = RTC_GetCounter();
   uint32_t counter_time_prvs = 0;
+  uint8_t RestartCounter = 0;
   const uint8_t WrmgUp_Rstrt_Timeout = 60;	//Minimum power-off time in seconds to trigger the
   	  	  	  	  	  	  	  	  	  	  	//execution of a new analog sensors warm-up cycle
   enable_backup_rtc();
@@ -227,36 +236,36 @@ int main(void)
 	   * the analog sensors is not performed.
 	   */
 	  if((counter_time_crnt - counter_time_prvs) < WrmgUp_Rstrt_Timeout)
+	  {
 		  WarmUpPeriod_expired = true;
-	  else
-	  {	  //Reset the average values of the sensors written by the Store_MeanValues_BackupRTC() function every 5s
-		  memset(&BakUpRTC_Data[6], 0x00, 26);
+		  ColdRestart = true;
+		  //Restore and increment the restart counter modulo 16...
+		  RestartCounter = BakUpRTC_Data[70];
+		  RestartCounter++; RestartCounter &= 0x0F;
+		  //...and copies the value to the status register first nibble
+		  StatusReg &= 0xFFFFFFF0; StatusReg |= (uint32_t)(RestartCounter);
+		  HOST_TO_BKPR_LE_32(BakUpRTC_Data+70, StatusReg);
+	  } else
+	  {	  //Reset the average values of the sensors written by the Store_MeanValues_BackupRTC() function every hour
+		  //Warning!!! This function has been moved to a dedicated procedure in TestEnv.c and UsartXTestEnv.c !!!
+		  //But.....
+		  //Resetting the average and Min_Max values means conditioning the "ApproxMovingAverage()" function with
+		  //the "BakUpSRamWiped" flag. This has caused problems. To be investigated further!
+		  memset(&BakUpRTC_Data[6], 0x00, 68);
+	  }
+	  if (BakUpRTC_Data[36] == 0)	//If P_Max location is zero then it means that the backup SRam has been deleted
+	  {
+		  BakUpSRamWiped = true;
 	  }
 
 	  enable_backup_rtc();
 	  writeBkpRTC((uint8_t *)BakUpRTC_Data, sizeof(BakUpRTC_Data), 0);
 	  disable_backup_rtc();
-//	  StartDataStrmng = (bool)FlipFlop(false, 0xFF, 0x01);
   }
-#endif
-#if (BLE_SUPPORT==1)
-//  HAL_NVIC_DisableIRQ(EXTI0_IRQn);			//Made by BSP
-  	MX_BlueNRG_2_Init();
 #endif
 #if	(USB_SUPPORT==1) 							//this is set in the port.h file
     // enable the USB functionality
     usb_init();
-#endif
-#if (TLCD_SUPPORT==1)
-    TLCD_status = MX_TLCD_Init();
-    send_tlcdmessage(WELCOME_STRING1, 26);
-    send_tlcdmessage(MY_FW_VERSION, 26);
-    Sleep(3000);
-    LCD_Clear();
-#elif (GLCD_SUPPORT==1)
-    GLCD_status = MX_GLCD_Init();
-    SendWelcomeMessage();
-    Sleep(3000);
 #endif
 #if (CAN_SUPPORT==1)
     CAN_Config(&hcan1);
@@ -283,16 +292,26 @@ int main(void)
 	ReStore_MeanValues_BackupRTC();
 #endif
 #if (TLCD_SUPPORT==1)
+    TLCD_status = MX_TLCD_Init();
+    send_tlcdmessage(WELCOME_STRING1, 26);
+    send_tlcdmessage(MY_FW_VERSION, 26);
+    Sleep(3000);
+    LCD_Clear();
 	send_tlcdmessage(ReadyDevices, strlen(ReadyDevices));
 #elif (GLCD_SUPPORT==1)
+    GLCD_status = MX_GLCD_Init();
+    SendWelcomeMessage();
+    Sleep(3000);
 	SendReadyDevicesMessage();
 #endif
-#if ((BLE_SUPPORT) && (BEACON_APP))
-  	button_manage();
+#if (BLE_SUPPORT)
+//  HAL_NVIC_DisableIRQ(EXTI0_IRQn);			//Made by BSP
+  	MX_BlueNRG_2_Init();
+	#if (BEACON_APP)
+  		button_manage();
+	#endif
 #endif
 	leds_test = true;							//Blink LEDs if init Ok
-//  LPS25HB_status = LPS25HB_Get_Measurement(LPS25HB_BADDR, &PRS_Values);		//Sensor Test...
-//  LSM9DS1_status = LSM9DS1_Temperature_Get(&Temperatura_Raw, &Temperature);	//Sensor Test...
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -326,6 +345,14 @@ int main(void)
 		{
 			lcl_uvx_data_rdy = false;
 			UVx_Sensor_Handler(&UVx_Values, &dataseq1[0]);
+		}
+#endif
+#if (ALS_SENSOR_PRESENT==1)
+	//Acquire data from UVx sensor and fill Msg stream
+		if (lcl_als_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. Pressure/Temp and Time-Stamp data are acquired in timer3 irq
+		{
+			lcl_als_data_rdy = false;
+//			ALS_Sensor_Handler(&ALS_Values, &dataseq1[0]);
 		}
 #endif
 #if (VOC_SENSOR_PRESENT==1)
@@ -384,14 +411,6 @@ int main(void)
 		if (update_5s && Sensors_Enabled)	//Set in process_timer3_irq. IMU and Time Stamp data are acquired in timer3 irq
 		{
 			update_5s = false;
-	#if (USE_BKUP_SRAM)
-			/*
-			 * Every 5 seconds the average values of the sensors are stored in the processor's Static Ram Backup.
-			 * In this way, after a "short" reset (not a power-cycle) the previous average values will not be lost
-			 * and will be immediately available for transmission.
-			 */
-			Store_MeanValues_BackupRTC();
-	#endif
 	#if (GUI_SUPPORT==1)
 			AB_Handler();
 	#endif
@@ -427,8 +446,17 @@ int main(void)
 	#endif
 		}
 #endif
+#if ((ALS_SENSOR_PRESENT==1) && !(GUI_SUPPORT))			//Don't send data to VCP if GUI enabled
+		if ((send_lcl_als_data) && !(send_lcl_uvx_data) && !(send_lcl_prs_data) && !(send_lcl_hum_data))
+		{
+			send_lcl_als_data = false;
+	#if ((TLCD_SUPPORT==1) || (GLCD_SUPPORT==1))
+			FormatDisplayString(&n, &usbVCOMout[0], ALS_SENSOR);
+	#endif
+		}
+#endif
 #if ((VOC_SENSOR_PRESENT==1) && !(GUI_SUPPORT))			//Don't send data to VCP if GUI enabled
-		if ((send_lcl_voc_data) && !(send_lcl_prs_data) && !(send_lcl_hum_data) && \
+		if ((send_lcl_voc_data) && !(send_lcl_prs_data) && !(send_lcl_hum_data) && !(send_lcl_als_data) && \
 		   !(send_lcl_uvx_data))
 		{
 			send_lcl_voc_data = false;
@@ -438,7 +466,7 @@ int main(void)
 		}
 #endif
 #if ((PARTICULATE_SENSOR_PRESENT==1) && !(GUI_SUPPORT))	//Don't send data to VCP if GUI enabled
-		if ((send_lcl_pms_data) && !(send_lcl_prs_data) && !(send_lcl_hum_data) && \
+		if ((send_lcl_pms_data) && !(send_lcl_prs_data) && !(send_lcl_hum_data) && !(send_lcl_als_data) && \
 		   !(send_lcl_uvx_data) && !(send_lcl_voc_data))
 		{
 			send_lcl_pms_data = false;
@@ -450,20 +478,27 @@ int main(void)
 //  MX_X_CUBE_MEMS1_Process();
 #if (DATA_MODE==0)
 	#if ((BLE_SUPPORT) && (BEACON_APP))
-		MX_BlueNRG_2_Process();
+		if (BLE_DataReady)
+			MX_BlueNRG_2_Process();
+		#if (USE_IWDGT)
+		else
+			HAL_IWDG_Refresh(&hiwdg);
+		#endif
 	#endif
 		if(n > 0)
 		{
 	#if (GUI_SUPPORT==0)
-			if ((display_imu_data) || (display_prs_data) || (display_hum_data) || (display_uvx_data) || \
-				(display_voc_data) || (display_pms_data))
+			if ((display_imu_data) || (display_prs_data) || (display_hum_data) || (display_uvx_data) || (display_als_data) || \
+				(display_voc_data) || (display_pms_data) || (display_gas_data))
 			{
 				display_imu_data = false;
 				display_prs_data = false;
 				display_hum_data = false;
 				display_uvx_data = false;
+				display_als_data = false;
 				display_voc_data = false;
 				display_pms_data = false;
+				display_gas_data = false;
 		#if (TLCD_SUPPORT==1)
 				send_tlcdmessage((char*)&usbVCOMout[0], n);
 		#elif (GLCD_SUPPORT==1)
@@ -472,20 +507,19 @@ int main(void)
 					ReDrawPage_S1(t_flip);
 		#elif ((BLE_SUPPORT) && (BEACON_APP))
 				Refresh_AQI();
-		#endif
-		#if ((BLE_SUPPORT) && (SENSOR_APP))
+		#elif ((BLE_SUPPORT) && (SENSOR_APP))
 				MX_BlueNRG_2_Process();
 		#endif
 			}
 	#else	//GUI_SUPPORT==1
 		#if	(USB_SUPPORT==1)
 			send_usbmessage(&dataseq[0], Message_Length);	//Data to be displayed by STM UnicleoGUI
-		#elif (USART_SUPPORT==1)
-			send_usart3message(&dataseq[0], Message_Length);//Data to be displayed by STM UnicleoGUI
+//		#elif (USART_SUPPORT==1)	//At the moment UnicleoGUI support is foreseen only on the USB interface
+//			send_usart3message(&dataseq[0], Message_Length);//Data to be displayed by STM UnicleoGUI
 		#endif
 	#endif	//GUI_SUPPORT==0
 		}
-	#if ((GUI_SUPPORT==0) && (BLE_SUPPORT==0))	//Defined in main.h
+	#if ((GUI_SUPPORT==0) && (BLE_SUPPORT==0))
 		else			//When n = 0 Remote Control Mode can send/receive message from SENSUS191
 		{				//n = 0 when SENSUS191 displays the Welcome or the Devices Present screens
 		#if (GLCD_SUPPORT==1)
@@ -499,7 +533,8 @@ int main(void)
 	#endif	//(GUI_SUPPORT==0) && (BLE_SUPPORT==0)
 	#if	(USB_SUPPORT==1)
 		usb_run();
-	#elif (USART_SUPPORT==1)
+	#endif
+	#if (USART_SUPPORT==1)
 		usart3_run();
 	#endif
 #endif	//DATA_MODE==0

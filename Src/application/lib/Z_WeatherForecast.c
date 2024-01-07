@@ -19,7 +19,7 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 					 .ForecastEstimate=0, .PrevForecastEstimate=0, .Z_ForecastEstimate=0};
 	static int16_t WeatherF_DeltaP = 0;
 	static uint16_t CountTick = 0;
-	static uint8_t Z_Value = 1;
+	volatile static uint8_t Z_Value = 1;
 	static int8_t SeasonAdjust = 0;
 	static int8_t WindDirAdjust = 0;
 	const uint8_t Z_Symbols[32] = {SunnyDWN,SunnyDWN,CloudyDWN,CloudyDWN,CloudyDWN,RainyDWN,RainyDWN,RainyDWN,RainyDWN,
@@ -53,9 +53,9 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 		Wheather_Values.CurrentHumVal = HumVal;
 		Wheather_Values.DeltaHumVal = Wheather_Values.CurrentHumVal - Wheather_Values.PreviousHumVal;
 		CountTick = 1;
-		WeatherF_DeltaP = (int16_t)lrintf(Wheather_Values.WeatherF_DeltaPressVal);
+		WeatherF_DeltaP = (int16_t)lrintf(Wheather_Values.WeatherF_DeltaPressVal*10.0);
 		Month = (uint8_t)((FlashDataOrg.b_date) & 0x000000FF);
-		if (((Month >= 1) && (Month < 4)) || (Month = 12))	//If Winter season
+		if (((Month >= 1) && (Month < 4)) || (Month == 12))	//If Winter season
 		{
 			SeasonAdjust = 1;
 		} else
@@ -69,11 +69,11 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 
 		Wheather_Values.PrevForecastEstimate = Wheather_Values.ForecastEstimate;
 
-		if ((WeatherF_DeltaP > 0) && (WeatherF_DeltaP*10 >= DropFallingPressure))
+		if ((WeatherF_DeltaP > 0) && (WeatherF_DeltaP >= DropFallingPressure))
 		{	//Barometric Pressure decreasing
 			Z_Value = (uint8_t)(lrintf(Z_FALLING(Wheather_Values.CurrentPressVal)) + SeasonAdjust + WindDirAdjust);
 		} else	//Barometric Pressure increasing
-		if  ((WeatherF_DeltaP < 0) && ((abs(WeatherF_DeltaP))*10 >= DropRisingPressure))
+		if  ((WeatherF_DeltaP < 0) && ((abs(WeatherF_DeltaP)) >= DropRisingPressure))
 		{
 			Z_Value = (uint8_t)(lrintf(Z_RISING(Wheather_Values.CurrentPressVal)) + SeasonAdjust + WindDirAdjust);
 		} else	//Steady Barometric pressure

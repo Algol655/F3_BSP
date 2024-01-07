@@ -66,6 +66,10 @@ void MX_ADC1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 void ADC_Config(ADC_HandleTypeDef* AdcHandle);
+void ADC_ResetCalibration(ADC_TypeDef* ADCx);
+FlagStatus ADC_GetResetCalibrationStatus(ADC_TypeDef* ADCx);
+void ADC_StartCalibration(ADC_TypeDef* ADCx);
+FlagStatus ADC_GetCalibrationStatus(ADC_TypeDef* ADCx);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

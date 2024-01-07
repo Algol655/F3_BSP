@@ -63,17 +63,24 @@
 
 #define CCS811_WHO_AM_I_VAL		((uint8_t)0x81)
 
-//#define CCS811_BADDR 			((uint8_t)0x5A) 	//7-bit unshifted default I2C Address
-#define CCS811_BADDR 			((uint8_t)0xB4) 	//7-bit shifted default I2C Address
+//#define CCS811_BADDR 			((uint8_t)0x5A) 	//7-bit unshifted I2C Address
+#define CCS811_BADDR 			((uint8_t)0xB4) 	//7-bit shifted I2C Address
 
 //#define APPLICATION_RUN_CYCLE	  (5)	//Moved in port.h
 #define BURN_IN_TIME              ((48*60*60)/APPLICATION_RUN_CYCLE)//48 Hours
-#define RUN_IN_TIME               ((40*60)/APPLICATION_RUN_CYCLE)//40 Minutes
+#define RUN_IN_TIME               40								//40 Minutes
 #define NEW_MODE_RUN_IN_TIME      ((10*60)/APPLICATION_RUN_CYCLE)//10 Minutes
 #define BASELINE_EARLYLIFE_PERIOD ((500*60*60)/APPLICATION_RUN_CYCLE)//500 Hours
 #define BASELINE_EL_STORE_PERIOD  ((24*60*60)/APPLICATION_RUN_CYCLE)//24 Hours
 #define BASELINE_AEL_STORE_PERIOD ((7*BASELINE_EL_STORE_PERIOD)/APPLICATION_RUN_CYCLE)
 #define CALIB_TEMP_HUM            ((30*60)/APPLICATION_RUN_CYCLE)//30 Minutes
+/**
+* @}brief CCS811 eTVOC & eCO2 Min Max Init Values.
+*/
+#define CCS811_UPPER_TVOC_LIMIT	(5500*100)	//100 times the "eTVOC_Unhealty" threshold
+#define CCS811_LOWER_TVOC_LIMIT	(0)
+#define CCS811_UPPER_CO2_LIMIT	(5000*100)	//100 times the "eCO2_Harmful" threshold
+#define CCS811_LOWER_CO2_LIMIT	(0)
 
 typedef enum
 {
@@ -84,9 +91,11 @@ typedef enum
 typedef struct
 {
 	uint16_t	eCO2;
-	uint16_t	eCO2_mean;	//8h average
+	uint16_t	eCO2_mean;	//1h average
+	uint16_t	eCO2_mean_DailyMax;
 	uint16_t	eTVOC;
 	uint16_t	eTVOC_mean;	//1h average
+	uint16_t	eTVOC_mean_DailyMax;
 	uint8_t		Status;
 	uint8_t		ErrorID;
 	uint16_t	RawData;

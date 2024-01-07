@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -28,7 +28,6 @@
 //#include "stm32f4xx_nucleo.h"
 
 /* USER CODE BEGIN Includes */
-#include "platform/port.h"
 #include "application/MEMS_app.h"
 /* USER CODE END Includes */
 

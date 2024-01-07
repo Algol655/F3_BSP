@@ -62,7 +62,7 @@ void MotionAC_manager_init(MAC_enable_lib_t enable);	//Defined in MEMS_app.h Add
 void MotionAC_manager_update(MAC_input_t *data_in, uint8_t *is_calibrated);
 void MotionAC_manager_get_params(MAC_output_t *data_out);
 void MotionAC_manager_get_version(char *version, int *length);
-#if (IMU_PRESENT==1)									//Defined in main.h. Added By Me!!!
+#if (IMU_PRESENT==1)									//Added By Me!!!
 	void MotionAC_manager_compensate(SensorAxes_t *DataIn, SensorAxes_t *DataOut);	//Defined in LSM9DS1_Driver.h Added By Me!!!
 #endif
 

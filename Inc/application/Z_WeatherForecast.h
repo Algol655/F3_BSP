@@ -11,11 +11,12 @@
 #define WHEATHER_FORECAST_H_
 
 #include "platform/port.h"
-#define DELTA_T		(uint16_t)3*3600/5	//3 hours between reads. 5s tick timer
+//#define DELTA_T		(uint16_t)3*3600/5	//3 hours between reads. 5s tick timer
+#define DELTA_T		(uint16_t)6*3600/5	//6 hours between reads. 5s tick timer
 //#define DELTA_T	(uint16_t)1			//Only for debug purpose!
-#define Z_FALLING(p)	-0.12*(p) + 127	//P range: 985..1050 mBar
-#define Z_STEADY(p)		-0.13*(p) + 144	//P range: 960..1033 mBar
-#define Z_RISING(p)		-0.16*(p) + 185	//P range: 947..1030 mBar
+#define Z_FALLING(p)	-0.12F*(p) + 127.0F	//P range: 985..1050 mBar
+#define Z_STEADY(p)		-0.13F*(p) + 144.0F	//P range: 960..1033 mBar
+#define Z_RISING(p)		-0.16F*(p) + 185.0F	//P range: 947..1030 mBar
 
 typedef struct
 {

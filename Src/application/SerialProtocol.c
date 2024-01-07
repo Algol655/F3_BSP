@@ -7,6 +7,8 @@
  */
 
 #include "application/SerialProtocol.h"
+const uint8_t Message[] = "\r\n\n  Warning! A system restart has been booked.\r\n  The system will reboot at midnight..";
+const uint8_t Message1[] = "\r\n\n  The system restart reservation has been revoked";
 
 /**
  * @brief  Byte stuffing process for one byte
@@ -136,7 +138,7 @@ int HandleUSB_MSG(uint8_t* Buff)
  */
 {
 	int ret = 0;
-#if (GUI_SUPPORT==1)					//Defined in main.h
+#if (GUI_SUPPORT==1)
 	uint16_t Len;
 	extern uint8_t Sensors_Enabled;
 	extern uint8_t DataLoggerActive;
@@ -164,7 +166,7 @@ int HandleUSB_MSG(uint8_t* Buff)
 	memset(&dataseq[0], 0x00, sizeof(dataseq));
 	switch (Buff[2])   				//CMD
 	{
-#if (GUI_SUPPORT==1)					//Defined in main.h
+#if (GUI_SUPPORT==1)
 		case CMD_Ping:
 		{
 			Len = 3;
@@ -263,7 +265,7 @@ int HandleUSB_MSG(uint8_t* Buff)
 				(void)IKS01A2_MOTION_SENSOR_Enable(IKS01A2_LSM303AGR_MAG_0, MOTION_MAGNETO);
 			} */
 
-	#if (IMU_PRESENT==1)						//Defined in main.h
+	#if (IMU_PRESENT==1)
 			TIM_OC_Timers_Start(&htim1);		//ReStart Output Compare Timers
 			MotionFX_manager_start_9X();
 	#endif
@@ -284,7 +286,7 @@ int HandleUSB_MSG(uint8_t* Buff)
 			memcpy(&dataseq[0], Buff, 5);
 			DataLoggerActive = 0;
 			TIM_OC_Timers_Stop(&htim1);			//Stop Output Compare Timers
-	#if (IMU_PRESENT==1)						//Defined in main.h
+	#if (IMU_PRESENT==1)
 			MotionFX_manager_stop_9X();
 	#endif
 			//Disable all sensors
@@ -413,6 +415,19 @@ int HandleUSB_MSG(uint8_t* Buff)
 			NVIC_SystemReset();
 		}
 		break;
+		case CMD_Restart_Reservation:		//From Remote Controller
+		{
+			if (!Restart_Reverved)
+			{
+				Restart_Reverved = true;
+				CDC_Transmit_FS((uint8_t*)Message, strlen((const char*)Message));
+			} else
+			{
+				Restart_Reverved = false;
+				CDC_Transmit_FS((uint8_t*)Message1, strlen((const char*)Message1));
+			}
+		}
+		break;
 		default:
 			ret = 0;
 			break;
@@ -469,30 +484,105 @@ int HandleUSART3_MSG(uint8_t* Buff)
  *      1          1        1       N
  */
 {
-	int ret = 1;
+	int ret = 0;
+	static char dd[3] = {'\0'}; static char MM[3] = {'\0'};	static char yy[3] = {'\0'};
+	static char HH[3] = {'\0'}; static char MN[3] = {'\0'}; static char SS[3] = {'\0'};
+	static uint8_t y = 0; static uint8_t m = 0; static uint8_t d = 0; static uint8_t dw = 0;
+	static uint8_t hh = 0; static uint8_t mm = 0; static uint8_t ss = 0;
+	static DateTime_t Stamp; static uint8_t len = 0;
 
-	/*	switch(application_mode)
+//	if (Msg->Len != 3U)
+//	{
+//		return 0;
+//	}
+	if (Buff[0] != DEV_ADDR)
+	{
+		return 0;
+	}
+	memset(&dataseq[0], 0x00, sizeof(dataseq));
+	switch (Buff[2])   				//CMD
+	{
+		case CMD_Set_Date_Time:			//From Remote Controller
 		{
-			case STAND_ALONE:
+			memcpy(&HH[0], &Buff[3], 2);
+			hh = (uint8_t)xtoi(HH);
+			memcpy(&MN[0], &Buff[5], 2);
+			mm = (uint8_t)xtoi(MN);
+			memcpy(&SS[0], &Buff[7], 2);
+			ss = (uint8_t)xtoi(SS);
+			memcpy(&yy[0], &Buff[11], 2);
+			y = (uint8_t)xtoi(yy);
+			memcpy(&MM[0], &Buff[13], 2);
+			m = (uint8_t)xtoi(MM);
+			memcpy(&dd[0], &Buff[15], 2);
+			d = (uint8_t)xtoi(dd);
+			dw = (uint8_t)xtoi((char*)&Buff[17]);
+
+//			RTC_TimeRegulate(&hrtc, hh, mm, ss, FORMAT_BCD);
+//			RTC_DateRegulate(&hrtc, y, m, d, dw);
+			RTC_DateTimeRegulate(&hrtc, y, m, d, dw, hh, mm, ss, FORMAT_BCD);
+			//STM32F1xx loses the date after a reset or a power cycle;
+			//therefore we have to memorize the set date in the Flash
+//			Write_Flash(0, 0);	//Valid only for STM32F1xx Series
+
+			SendCntrlMsg = true;
+			dataseq[0] = 'O';
+			dataseq[1] = 'K';
+			Message_Length = 2;
+		}
+		break;
+
+		case CMD_Get_Date_Time:				//From Remote Controller
+		{
+			RTC_DateTimeStamp(&hrtc, &Stamp);
+
+			len = sprintf((char*)&dataseq[0], "%02u/", Stamp.date[1]);
+			len += sprintf((char*)&dataseq[len], "%02u/", Stamp.date[0]);
+			len += sprintf((char*)&dataseq[len], "%04u ", Stamp.date[2]);
+			dataseq[6] = '2'; dataseq[7] = '0';
+			len += sprintf((char*)&dataseq[len], "%02u:", Stamp.time[0]);
+			len += sprintf((char*)&dataseq[len], "%02u:", Stamp.time[1]);
+			len += sprintf((char*)&dataseq[len], "%02u", Stamp.time[2]);
+
+			SendCntrlMsg = true;
+			Message_Length = 19;
+		}
+		break;
+
+		case CMD_OpenTestEnv_Mode:			//From Remote Controller
+		{
+			top_menu();
+			memset(&Buff[0], 0x00, BUFFLEN);			//Clear VCP Rx Buffer
+			memset(&dataseq[0], 0x00, sizeof(dataseq));	//Clear VCP Tx Buffer
+			usart3_local_buff_offset = 0;
+			usart3_local_buff_length = 0;
+			usart3app.usartlen = 0;
+		}
+		break;
+
+		case CMD_Reset:
+		case CMD_Rst:						//From Remote Controller
+		{
+			NVIC_SystemReset();
+		}
+		break;
+		case CMD_Restart_Reservation:		//From Remote Controller
+		{
+			if (!Restart_Reverved)
 			{
-
-			}
-			break;
-
-			case USB_TO_SPI:
+				Restart_Reverved = true;
+				HAL_UART_Transmit_DMA(&huart3, (uint8_t*)Message, strlen((const char*)Message));
+			} else
 			{
-
+				Restart_Reverved = false;
+				HAL_UART_Transmit_DMA(&huart3, (uint8_t*)Message1, strlen((const char*)Message1));
 			}
+		}
+		break;
+		default:
+			ret = 0;
 			break;
+	}
 
-			case USB_PRINT_ONLY:
-			{
-
-			}
-			break;
-
-			default:
-				break;
-		} */
 	return ret;
 }

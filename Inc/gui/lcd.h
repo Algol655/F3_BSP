@@ -1,8 +1,10 @@
 /*
- * lcd.h
+ * lcd.c
  *
  *  Created on: 10/06/2018
- *      Author: Olivier Van den Eede
+ *      Author: Olivier Van den Eede (20x2 text LCD display driver only)
+ *      Modified by: Tommaso Sabatini 18/03/2020
+ *      Added Graphic LCD functions by: Tommaso Sabatini 03/08/2020
  */
 
 #ifndef LCD_H_
@@ -10,7 +12,6 @@
 
 #include "application/Z_WeatherForecast.h"
 #include "application/AirQuality.h"
-#include "platform/port.h"
 #include "gui/u8g2.h"
 
 #define LCD20xN 			// For 20xN LCDs
@@ -36,6 +37,7 @@ extern const uint8_t ROW_20[];
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	#if (FULL_MODE==1)
 		#define eTVOC_FRAME_W	7U
+		#define eCO2_FRAME_W	9U
 		#define CO_FRAME_W		8U
 		#define NO2_FRAME_W		8U
 		#define NH3_FRAME_W		8U
@@ -69,6 +71,10 @@ extern const uint8_t ROW_20[];
 
 #define DISPLAY_SIMMER_INDEX	(0)
 #define DISPLAY_HEAT_INDEX		(1)
+#define DISPLAY_C6H6			(0)
+
+#define GLCD_ROW_MAX_LENGTH		(uint8_t)0x1EU	//Maximum number of characters (30) in one graphic display line
+#define TLCD_ROW_MAX_LENGTH		(uint8_t)0x14U	//Maximum number of characters (20) in one text display line
 /************************************** Command register **************************************/
 #define CLEAR_DISPLAY 0x01
 
@@ -163,7 +169,7 @@ uint8_t HumVal[10], Len;
 char temp_v[10]; char tempd_v[8]; char tempp_v[8]; char hum_v[8]; char press_v[10]; char alt_v[10];
 char uva_v[10]; char uvb_v[10]; char uvi_v[10];
 char etvoc_v[10]; char eco2_v[10];
-char etvoc_v_1h_Mean[10]; char eco2_v_8h_Mean[10];
+char etvoc_v_1h_Mean[10]; char eco2_v_1h_Mean[10];
 char mc_1p0_v[10]; char mc_2p5_v[10]; char mc_4p0_v[10]; char mc_10p0_v[10];
 char nc_0p5_v[10]; char nc_1p0_v[10]; char nc_2p5_v[10]; char nc_4p0_v[10]; char nc_10p0_v[10]; char tps_v[10];
 char mc_1p0_v_24h_Mean[10]; char mc_2p5_v_24h_Mean[10]; char mc_4p0_v_24h_Mean[10]; char mc_10p0_v_24h_Mean[10];

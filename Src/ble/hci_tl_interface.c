@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -26,7 +26,7 @@
 
 #define HEADER_SIZE       5U
 #define MAX_BUFFER_SIZE   255U
-#define TIMEOUT_DURATION  15U
+#define TIMEOUT_DURATION  100U
 #define TIMEOUT_IRQ_HIGH  1000U
 
 /* Private variables ---------------------------------------------------------*/
@@ -168,9 +168,7 @@ int32_t HCI_TL_SPI_Receive(uint8_t* buffer, uint16_t size)
 
     for(len = 0; len < byte_count; len++)
     {
-//    BSP_SPI1_SendRecv(&char_00, (uint8_t*)&read_char, 1);
-      if (BSP_SPI1_SendRecv(&char_00, (uint8_t*)&read_char, 1) != HAL_OK)
-      	  NVIC_SystemReset();
+      BSP_SPI1_SendRecv(&char_00, (uint8_t*)&read_char, 1);
       buffer[len] = read_char;
     }
   }

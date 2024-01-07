@@ -49,7 +49,7 @@ static VEML6075_Error_et VEML6075_ReadRegister(I2C_HandleTypeDef *hi2c,	uint8_t 
 	uint8_t val[2];
 	VEML6075_Error_et status;
 	
-	status = HAL_I2C_Mem_Read(hi2c, adr<<1, reg , I2C_MEMADD_SIZE_8BIT, val, 2, 100);
+	status = HAL_I2C_Mem_Read(hi2c, adr, reg, I2C_MEMADD_SIZE_8BIT, val, 2, 100);
 
 	if (status == VEML6075_OK)
 	{
@@ -71,7 +71,7 @@ static VEML6075_Error_et VEML6075_WriteRegister(I2C_HandleTypeDef *hi2c, uint8_t
 	uint8_t val[2];
 	val[1] = (regval >> 8) & 0xff;
 	val[0] = regval & 0xff;
-	VEML6075_Error_et status = HAL_I2C_Mem_Write(hi2c, adr<<1, reg,	I2C_MEMADD_SIZE_8BIT, val, 2, 100);
+	VEML6075_Error_et status = HAL_I2C_Mem_Write(hi2c, adr, reg, I2C_MEMADD_SIZE_8BIT, val, 2, 100);
 	return status;
 }
 
@@ -280,7 +280,7 @@ VEML6075_Error_et VEML6075_Get_Measurement(I2C_HandleTypeDef *hi2c, VEML6075_Mea
 
 	reading->uva = comp_uva;
 	reading->uvb = comp_uvb;
-	reading->uvindex = (uva_weighted + uvb_weighted) / 2.0;
+	reading->UVI = (uva_weighted + uvb_weighted) / 2.0;
   
 	return status;
 }

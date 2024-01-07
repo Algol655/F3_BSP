@@ -255,6 +255,14 @@ void RTC_Handler(RTC_HandleTypeDef* rtcHandle, uint8_t* Buff)
 		Buff[4] = (uint8_t)stimestructure.Minutes;
 		Buff[5] = (uint8_t)stimestructure.Seconds;
 		Buff[6] = sub_sec;
+
+		if (!(Buff[3] | Buff[4]))
+		{
+			MidNight = true;
+		} else
+		{
+			MidNight = false;
+		}
 	}
 }
 

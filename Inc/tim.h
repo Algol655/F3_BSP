@@ -58,16 +58,18 @@ extern TIM_HandleTypeDef htim7;
 #define DEFAULT_uhCCR2_Val  200 /* 10kHz/50 value */
 #define DEFAULT_uhCCR3_Val  625 /* 10kHz/16 value */
 #define DEFAULT_uhCCR4_Val  400 /* 10kHz/25 value */
-
-#define ServiceTimer1_Timeout 	3		//Used for push button debounce timer (30mS)
-#define ServiceTimer2_Timeout	3000	//Used for HTS221 heather timeout (30s)
-#define ServiceTimer3_Timeout	36000	//Used for the HTS221 time interval between two heater starts (1h)
+//Value in seconds: ServiceTimerX_Timeout * 0.1
+#define ServiceTimer1_Timeout 	3		//Used for push button debounce timer (300mS)
+#define ServiceTimer2_Timeout	300		//Used for HTS221 heather timeout (30s)
+#define ServiceTimer3_Timeout	36000	//Used for the HTS221 waiting time between two heater starts (1h)
+#define ServiceTimer4_Timeout	6000	//used for the HTS221 waiting time to measures restart after the heater activation (10min)
 
 typedef enum	service_timers
 {
 	STim_1,
 	STim_2,
-	STim_3
+	STim_3,
+	STim_4
 } Service_Timer;
 
 typedef struct
@@ -78,7 +80,7 @@ typedef struct
   bool				Expired;
 } ServiceTimer_st;
 
-ServiceTimer_st ServiceTimer1, ServiceTimer2, ServiceTimer3;
+ServiceTimer_st ServiceTimer1, ServiceTimer2, ServiceTimer3, ServiceTimer4;
 /* USER CODE END Private defines */
 
 void MX_TIM1_Init(void);

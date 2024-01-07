@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -74,8 +74,10 @@ extern "C" {
 	#define ADV_DATA_TYPE	ADV_NONCONN_IND
 /*---------- Minimum Advertising Interval (for a number N, Time = N x 0.625 msec) -----------*/
 	#define ADV_INTERV_MIN      1600	//1 sec
+//	#define ADV_INTERV_MIN      16384	//10,24 sec (It is the Max Value, 16384, 0x4000)
 /*---------- Maximum Advertising Interval (for a number N, Time = N x 0.625 msec) -----------*/
 	#define ADV_INTERV_MAX      1600	//1 sec
+//	#define ADV_INTERV_MAX      16384	//10,24 sec (It is the Max Value, 16384, 0x4000)
 #else
 	#define ADV_DATA_TYPE	ADV_IND
 /*---------- Minimum Advertising Interval (for a number N, Time = N x 0.625 msec) -----------*/

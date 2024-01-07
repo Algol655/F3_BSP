@@ -53,16 +53,16 @@ uint8_t ENS160_2[8] = 	{
 void eCO2_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length)
 {
 	uint32_t sum = 0;
-	static uint32_t mem1[10] = {0};	//array dimension MUST be = length
-	static uint32_t mem2[1] = {0};
+	static uint32_t eCO2_mem1[10] = {0};	//array dimension MUST be = length
+	static uint32_t eCO2_mem2[1] = {0};
 
-	mem2[0] = (mem2[0] + 1) % length;
+	eCO2_mem2[0] = (eCO2_mem2[0] + 1) % length;
 
-	mem1[mem2[0]] = *in;
+	eCO2_mem1[eCO2_mem2[0]] = *in;
 
 	for (int32_t i = 0; i < length; i++)
 	{
-		sum += mem1[i];
+		sum += eCO2_mem1[i];
 	}
 
 	*out = sum / length;
@@ -74,16 +74,37 @@ void eCO2_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length)
 void eTVOC_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length)
 {
 	uint32_t sum = 0;
-	static uint32_t mem1[10] = {0};	//array dimension MUST be = length
-	static uint32_t mem2[1] = {0};
+	static uint32_t eTVOC_mem1[10] = {0};	//array dimension MUST be = length
+	static uint32_t eTVOC_mem2[1] = {0};
 
-	mem2[0] = (mem2[0] + 1) % length;
+	eTVOC_mem2[0] = (eTVOC_mem2[0] + 1) % length;
 
-	mem1[mem2[0]] = *in;
+	eTVOC_mem1[eTVOC_mem2[0]] = *in;
 
 	for (int32_t i = 0; i < length; i++)
 	{
-		sum += mem1[i];
+		sum += eTVOC_mem1[i];
+	}
+
+	*out = sum / length;
+}
+
+/**
+ * @brief  Calculates AQI moving average
+ */
+void AQI_MovingAverage(uint8_t *in, uint8_t *out, uint16_t length)
+{
+	uint32_t sum = 0;
+	static uint32_t AQI_mem1[10] = {0};	//array dimension MUST be = length
+	static uint32_t AQI_mem2[1] = {0};
+
+	AQI_mem2[0] = (AQI_mem2[0] + 1) % length;
+
+	AQI_mem1[AQI_mem2[0]] = *in;
+
+	for (int32_t i = 0; i < length; i++)
+	{
+		sum += AQI_mem1[i];
 	}
 
 	*out = sum / length;
@@ -300,6 +321,7 @@ ENS160_Error_et	ENS160_Get_Measurement(ENS160_MeasureTypeDef_st *Measurement_Val
 	ENS160_Error_et ret = 0;
 	uint8_t data_rq[12];
 	static uint16_t ECO2, ETVOC;
+	static uint8_t AQI;
 
 	if(ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 12, &data_rq[0]))
 		return ENS160_ERROR;
@@ -307,9 +329,11 @@ ENS160_Error_et	ENS160_Get_Measurement(ENS160_MeasureTypeDef_st *Measurement_Val
 	Measurement_Value->Status = (uint8_t)data_rq[0];
 	if(data_rq[0] & ENS160_DATA_STATUS_NEWDAT)		//Check for new environmental data availability
 	{
-		Measurement_Value->AQI_UBA = (uint8_t)data_rq[1];
+	//	Measurement_Value->AQI_UBA = (uint8_t)data_rq[1];
 	//	Measurement_Value->eTVOC = (uint16_t)((data_rq[3] << 8) | data_rq[2]);
 	//	Measurement_Value->eCO2 = (uint16_t)(data_rq[5] << 8) | data_rq[4]);
+		AQI = (uint8_t)data_rq[1];
+		AQI_MovingAverage(&AQI, &(Measurement_Value->AQI_UBA), 10);
 		ETVOC = (uint16_t)((data_rq[3] << 8) | data_rq[2]);
 		eTVOC_MovingAverage(&ETVOC, &(Measurement_Value->eTVOC), 10);
 		ECO2 = (uint16_t)((data_rq[5] << 8) | data_rq[4]);
@@ -407,8 +431,8 @@ ENS160_Error_et MX_ENS160_Init()
 		return ENS160_ERROR;
 
 	// Initialize idle mode and confirms
-	if (ENS160_Idle_Mode(ENS160_BADDR))
-		return ENS160_ERROR;
+//	if (ENS160_Idle_Mode(ENS160_BADDR))
+//		return ENS160_ERROR;
 
 	// Read firmware revisions
 	if (ENS160_Get_FW_Ver(ENS160_BADDR, (uint8_t*)FW_Ver, false))
@@ -419,8 +443,8 @@ ENS160_Error_et MX_ENS160_Init()
 		return ENS160_ERROR;
 
 	// Initialize Standard mode and confirms
-/*	if (ENS160_Std_Mode(ENS160_BADDR))
-		return ENS160_ERROR; */
+//	if (ENS160_Std_Mode(ENS160_BADDR))
+//		return ENS160_ERROR;
 
 	return ENS160_OK;
 }

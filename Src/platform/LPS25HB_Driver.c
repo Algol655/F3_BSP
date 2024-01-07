@@ -278,6 +278,7 @@ LPS25HB_Error_et MX_LPS25HB_Init()
 
 	if (LPS25HB_Init_New(LPS25HB_BADDR))
 		return LPS25HB_ERROR;
+
 	return LPS25HB_OK;
 }
 
@@ -1158,7 +1159,7 @@ LPS25HB_Error_et LPS25HB_Get_Pressure(uint8_t B_Addr, int32_t* Pout)
 /**
 * @brief    Get the Raw Temperature tmp.
 * @detail   Temperature data are expressed as TEMP_OUT_H&TEMP_OUT_L as 2°s complement number.
-Tout(degC)=42.5+ (TEMP_OUT/480)
+*			Tout(degC)=42.5+ (TEMP_OUT/480)
 * @param  *B_Addr Device B_Addr.
 * @param  Buffer to empty with the temperature raw tmp.
 * @retval   Status [LPS25HB_ERROR, LPS25HB_OK]
@@ -1182,7 +1183,7 @@ LPS25HB_Error_et LPS25HB_Get_RawTemperature(uint8_t B_Addr, int16_t* raw_data)
 /**
 * @brief    Get the Temperature value in °C.
 * @detail   Temperature data are expressed as TEMP_OUT_H&TEMP_OUT_L as 2°s complement number.
-* Tout(degC)=42.5+ (TEMP_OUT/480)
+* 			Tout(degC)=42.5+ (TEMP_OUT/480)
 * @param  *B_Addr Device B_Addr.
 * @param  Buffer to fill with the temperature value that must be divided by 10 to get the value in °C
 * @retval   Status [LPS25HB_ERROR, LPS25HB_OK]
@@ -1202,7 +1203,7 @@ LPS25HB_Error_et LPS25HB_Get_Temperature(uint8_t B_Addr, int16_t* Tout)
 /**
 * @brief    Get the threshold tmp used for pressure interrupt generation (hPA).
 * @detail   THS_P=THS_P_H&THS_P_L and is expressed as unsigned number.
-P_ths(hPA)=(THS_P)/16.
+*			P_ths(hPA)=(THS_P)/16.
 * @param    Buffer to empty with the pressure threshold in hPA
 * @retval   Status [LPS25HB_ERROR, LPS25HB_OK]
 */
@@ -1221,7 +1222,7 @@ LPS25HB_Error_et LPS25HB_Get_PressureThreshold(uint8_t B_Addr, int16_t* P_ths)
 /**
 * @brief    Set the threshold tmp used for pressure interrupt generation (hPA).
 * @detail   THS_P=THS_P_H&THS_P_L and is expressed as unsigned number.
-* P_ths(hPA)=(THS_P)/16.
+* 			P_ths(hPA)=(THS_P)/16.
 * @param  *B_Addr Device B_Addr.
 * @param  Pressure threshold in hPA
 * @retval   Status [LPS25HB_ERROR, LPS25HB_OK]

@@ -29,7 +29,7 @@
 //ENS160 Register Addresses							bit  7 -----> bit  0    | bit functions | R = Reserved
 //													byte 7 -----> byte 0 if reg address is a multi-byte register (Mailbox)
 #define ENS160_PART_ID			((uint8_t)0x00)		// [7..0]: Lower Byte of Part ID. [15..8]: Upper Byte of Part ID
-#define ENS160_OPMODE			((uint8_t)0x10)		// Operating mode: 0x00: DEEP SLEEP mode. 0x01: IDLE mode: 0x02: STANDARD Gas Sensing Mode. 0xF0: RESET
+#define ENS160_OPMODE			((uint8_t)0x10)		// Operating mode: 0x00: DEEP SLEEP mode. 0x01: IDLE mode. 0x02: STANDARD Gas Sensing Mode. 0xF0: RESET
 #define ENS160_CONFIG			((uint8_t)0x11)		// R - INTPOL - INT_CFG - R - INTGPR - R - INTDAT - INTEN
 #define ENS160_COMMAND			((uint8_t)0x12)		// [7..0]: Command
 #define ENS160_TEMP_IN			((uint8_t)0x13)		// [7..0]: Lower Byte of TEMP_IN. [15..8]: Upper Byte of TEMP_IN
@@ -59,7 +59,7 @@
 
 //ENS160 Register Default Values					bit 7 -----> bit 0    | bit functions |
 //													byte 7 -----> byte 0 if reg address is a multi-byte register (Mailbox)
-#define ENS160_OPMODE_VAL		((uint8_t)0x02)		// Operating mode: 0x00: DEEP SLEEP mode. 0x01: IDLE mode: 0x02: STANDARD Gas Sensing Mode. 0xF0: RESET
+#define ENS160_OPMODE_VAL		((uint8_t)0x02)		// Operating mode: 0x00: DEEP SLEEP mode. 0x01: IDLE mode. 0x02: STANDARD Gas Sensing Mode. 0xF0: RESET
 #define ENS160_CONFIG_VAL		((uint8_t)0x00)		// R - INTPOL - INT_CFG - R - INTGPR - R - INTDAT - INTEN
 #define ENS160_COMMAND_VAL		((uint8_t)0x00)		// [7..0]: Command
 #define ENS160_TEMP_IN_VAL_0	((uint8_t)0x4A)		// Lower Byte of TEMP_IN	((20°C + 273.15) * 64)
@@ -76,8 +76,10 @@
 #define ENS160_GPR_WRITE_7_VAL	((uint8_t)0x00)		// General Purpose WRITE Register bit 7
 
 #define ENS160_WHO_AM_I_VAL		((uint16_t)0x0160)
-//#define ENS160_BADDR 			((uint8_t)0x53) 	//7-bit unshifted default I2C Address
-#define ENS160_BADDR 			((uint8_t)0xA6) 	//7-bit shifted default I2C Address
+//#define ENS160_BADDR 			((uint8_t)0x52) 	//7-bit unshifted I2C Address (SDO Pin Grounded)
+#define ENS160_BADDR 			((uint8_t)0xA4) 	//7-bit shifted I2C Address (SDO Pin Grounded)
+//#define ENS160_BADDR 			((uint8_t)0x53) 	//7-bit unshifted I2C Address (SDO Pin Floating. Board Default)
+//#define ENS160_BADDR 			((uint8_t)0xA6) 	//7-bit shifted I2C Address (SDO Pin Floating. Board Default)
 
 //ENS160 data register fields
 #define ENS160_COMMAND_NOP			((uint8_t)0x00)
@@ -118,6 +120,13 @@
 #define BASELINE_EL_STORE_PERIOD  ((24*60*60)/APPLICATION_RUN_CYCLE)//24 Hours
 #define BASELINE_AEL_STORE_PERIOD ((7*BASELINE_EL_STORE_PERIOD)/APPLICATION_RUN_CYCLE)
 #define CALIB_TEMP_HUM            ((30*60)/APPLICATION_RUN_CYCLE)//30 Minutes
+/**
+* @}brief ENS160 eTVOC & eCO2 Min Max Init Values.
+*/
+#define ENS160_UPPER_TVOC_LIMIT	(5500*100)	//100 times the "eTVOC_Unhealty" threshold
+#define ENS160_LOWER_TVOC_LIMIT	(0)
+#define ENS160_UPPER_CO2_LIMIT	(5000*100)	//100 times the "eCO2_Harmful" threshold
+#define ENS160_LOWER_CO2_LIMIT	(0)
 
 typedef enum
 {
@@ -128,9 +137,11 @@ typedef enum
 typedef struct
 {
 	uint16_t	eCO2;
-	uint16_t	eCO2_mean;	//8h average
+	uint16_t	eCO2_mean;	//1h average
+	uint16_t	eCO2_mean_DailyMax;
 	uint16_t	eTVOC;
 	uint16_t	eTVOC_mean;	//1h average
+	uint16_t	eTVOC_mean_DailyMax;
 	uint8_t		AQI_UBA;
 	uint8_t		Status;
 	uint8_t		ErrorID;
@@ -156,6 +167,7 @@ extern void Sleep(uint32_t Delay);
 //extern void Write_Flash(uint32_t data, uint8_t);
 void eCO2_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length);
 void eTVOC_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length);
+void AQI_MovingAverage(uint8_t *in, uint8_t *out, uint16_t length);
 ENS160_Error_et ENS160_ReadReg(uint8_t B_Addr, uint8_t RegAddr, uint16_t NumByteToRead, uint8_t *Data);
 ENS160_Error_et ENS160_WriteReg(uint8_t B_Addr, uint8_t RegAddr, uint16_t NumByteToWrite, uint8_t *Data);
 ENS160_Error_et ENS160_WriteReg_DMA(uint8_t B_Addr, uint8_t RegAddr, uint16_t NumByteToWrite, uint8_t *Data);

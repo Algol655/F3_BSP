@@ -90,6 +90,8 @@ void Error_Handler(void);
 #define D3_LCD_BLE_INT_EXTI_IRQn EXTI4_IRQn
 #define D2_LCD_BLE_CS_Pin GPIO_PIN_5
 #define D2_LCD_BLE_CS_GPIO_Port GPIOC
+#define RESTART_Pin GPIO_PIN_0
+#define RESTART_GPIO_Port GPIOB
 #define SEL_3_Pin GPIO_PIN_1
 #define SEL_3_GPIO_Port GPIOB
 #define I2C2_SCL_Pin GPIO_PIN_10
@@ -126,6 +128,7 @@ void Error_Handler(void);
 #define CAN1_RX_GPIO_Port GPIOB
 #define CAN1_TX_Pin GPIO_PIN_9
 #define CAN1_TX_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 /**************************/
 /*   Board FW Settings    */
@@ -137,10 +140,11 @@ void Error_Handler(void);
 #define IMU_PRESENT (0)					//When IMU_PRESENT = 0 UnicleoGUI graphics only the environmental sensor data.
 #define PRESSURE_SENSOR_PRESENT (1)
 #define HUMIDITY_SENSOR_PRESENT (1)
-#define UVx_SENSOR_PRESENT		(1)
+#define UVx_SENSOR_PRESENT		(0)
+#define ALS_SENSOR_PRESENT		(0)
 #define VOC_SENSOR_PRESENT		(1)
 #define PARTICULATE_SENSOR_PRESENT (1)
-#define GAS_SENSOR_MODULE_PRESENT  (1)
+#define GAS_SENSOR_MODULE_PRESENT  (1)	//Must be understood as "USE_ADC"
 #define FULL_MODE		(1)
 //Board defines section
 #define USE_STM32F4XX_NUCLEO	(0)
@@ -150,7 +154,7 @@ void Error_Handler(void);
 #define DATA_EEPROM_BASE (0x0803F800)	//Last flash sector (127) is used as EEPROM to store/load data. See processor reference manual
 #define USE_BKUP_SRAM	(1)				//1 = Internal Back-Up SRAM is used
 #define RTC_BKUP_SIZE	(84)			//Internal Back-Up SRAM size: 42 x 16bit (84 bytes). See processor reference manual
-#define USE_IWDGT 		(1)				//1 = IWDGT activated
+#define USE_IWDGT 		(1)				//1 = IWDGT activated (=1 only in BLE BEACON MODE!!!)
 /**************************/
 /*    Project Settings    */
 /**************************/
@@ -167,7 +171,6 @@ void Error_Handler(void);
 										//Warning!! When UnicleoGUI == 1 the possibility of displaying the data on a local display is excluded
 #define WELCOME_STRING1 "****** SENSUS-191 ******\r\n"
 #define WELCOME_STRING2 "     Personal Environmental\n\r       Monitoring Station"
-#define MY_FW_VERSION  "         V2.3.0         \r\n"
 
 /* a=target variable, b=bit number to act upon 0-n */
 #define BIT_MASK(b)				(1ULL << (b))

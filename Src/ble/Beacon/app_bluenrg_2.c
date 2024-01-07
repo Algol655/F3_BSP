@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -94,12 +94,12 @@ uint8_t manuf_data[] =
 	0xFF, 0xFF,										//CID: Test Company identifier code (My CID to be assigned)
 	0x55,											//Device ID (manuf_data[7])
 	0x00,											//Custom Data (manuf_data[8])
-	0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,	//Custom Data (manuf_data[9..16])
-	0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,	//Custom Data (manuf_data[17..24])
-	0x11, 0x12,										//Custom Data (manuf_data[25..26])
-	0x13, 0x14,										//Custom Data (manuf_data[27..28])
-	0x15,        									//Custom Data (manuf_data[29])
-	0x01        									//Packet Identifier (AdvCodes - manuf_data[30])
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	//Custom Data (manuf_data[9..16])
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	//Custom Data (manuf_data[17..24])
+	0x00, 0x00,										//Custom Data (manuf_data[25..26])
+	0x00, 0x00,										//Custom Data (manuf_data[27..28])
+	0x00,        									//Custom Data (manuf_data[29])
+	0x80        									//Packet Identifier (AdvCodes - manuf_data[30])
 };
 
 /*uint8_t manuf_data[] =
@@ -120,19 +120,91 @@ uint8_t manuf_data[] =
 //	0xC8        									//2's complement of the Tx power (-56dBm at 1meter);
 };*/
 
-uint8_t AdvCodes[] =	//manuf_data[30]
+const uint8_t AdvCodes[] =	//manuf_data[30]
 {
 	0x01,		//Environmental code: Adv ID 0x01
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+//
 	0x02,		//Air quality absolute values: Adv ID = 0x02
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+//
 	0x03,		//Air quality averaged values: Adv ID = 0x03
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+//
 	0x04,		//Air pollution absolute and averaged: Adv ID = 0x04
-	0x80		//Status Report: Adv ID = 0x04
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+//
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80,		//Status Report: Adv ID = 0x80
+	0x80		//Status Report: Adv ID = 0x80
 };
 
+/*
+ * N_ADV_CODES specifies how often (in seconds) a Beacon with a given Adv_Code is sent.
+ * For example, when N_ADV_CODES is equal to 60, Beacons with Adv_Code 0xXX created by
+ * the "MX_BlueNRG_2_Process" function, will be sent every minute.
+ * Since each Adv_Code specified in the Adv_Codes[] array is sent every second,
+ * then the Status Report Beacon, with Adv_Code = 0x80, will be sent every second.
+ */
+#define N_ADV_CODES 60
+//#define N_ADV_CODES 5
+/*
+ * SecondaryBeaconSwitchTime specifies how often a set of Secondary Beacons,
+ * created by the "MX_BlueNRG_2_Process" function, will be sent.
+ * In this case a set of Secondary Beacons will be sent every hour.
+ */
+uint16_t SecondaryBeaconSwitchTime = (uint16_t)((3600 / N_ADV_CODES) / (ADV_INTERV_MAX / 1600));
+//uint16_t SecondaryBeaconSwitchTime = 10;
 const uint8_t man_data_offset = 2;	//Advertising data: manufacturer specific data offset
-const uint8_t N_AdvCodes = 5;
-//const char AQ_Class[6][10]={{"EXCELLENT"},{"FINE     "},{"MODERATE "},{"POOR     "},
-//					 	 	{"VERY POOR"},{"SEVERE   "}};
 uint8_t Adv_Code = 0;
 uint8_t beacon_number = 0;
 bool adv_data_sent = false;
@@ -236,29 +308,37 @@ void MX_BlueNRG_2_Process(void)
 #if (USE_SENSUS191==1)
 //	uint16_t Lux_Out = 0x55AA;
 	static uint8_t ret = 0;
+	uint8_t mycmd = 0;
+	bool ConfCmd = false;
 
-	beacon_number = 0;
+//	beacon_number = 0;
 /*
  * The data types that the beacon packet can contain (Environmental, Air Quality, Air Pollution)
  * are distinguished by the value of Adv_Code, entered in the Minor_Number field
  */
 	do
 	{
+		mycmd = app.usbbuf[0];
+//		mycmd = usart3app.usartbuf[0];
+		ConfCmd = (bool)(((mycmd == 0x10) || (mycmd == 0x7F) || (mycmd == 0x12)));
+
 		memset(&manuf_data[8], 0xFF, 22);
 
 		manuf_data[man_data_offset+28] = Adv_Code;
-		if(Adv_Code == 0x01)
+		if(Adv_Code == 0x01)	//Main Beacon Adv_Code 0x01
 		{
 			//Send Environmental Data
 			HOST_TO_LE_16(manuf_data+man_data_offset+6, T_Out);
 			HOST_TO_LE_32(manuf_data+man_data_offset+8, P0_Out);	//Sea-level pressure
+	#if (HUMIDITY_SENSOR_PRESENT)
 			HOST_TO_LE_16(manuf_data+man_data_offset+12, Hum_Out);
 			HOST_TO_LE_16(manuf_data+man_data_offset+14, T2_Out);	//Dew Point
 			HOST_TO_LE_16(manuf_data+man_data_offset+16, T3_Out);	//Heat Index
+	#endif
 			HOST_TO_LE_32(manuf_data+man_data_offset+18, P_Out);	//Absolute Pressure
 			manuf_data[man_data_offset+22] = Z_forecast;
 		} else
-		if(Adv_Code == 0x02)
+		if(Adv_Code == 0x02)	//Main Beacon Adv_Code 0x02
 		{
 			//Send Air Quality Data. Absolute values
 	#if (VOC_SENSOR_PRESENT)
@@ -278,7 +358,7 @@ void MX_BlueNRG_2_Process(void)
 	#endif	//GAS_SENSOR_MODULE_PRESENT
 			manuf_data[man_data_offset+27] = Gas_AQI;
 		} else
-		if(Adv_Code == 0x03)
+		if(Adv_Code == 0x03)	//Main Beacon Adv_Code 0x03
 		{
 			//Send Air Quality Data. Averaged values
 	#if (VOC_SENSOR_PRESENT)
@@ -296,9 +376,10 @@ void MX_BlueNRG_2_Process(void)
 			HOST_TO_LE_16(manuf_data+man_data_offset+22, C6H6_24h_Mean);
 		#endif
 	#endif	//GAS_SENSOR_MODULE_PRESENT
+			manuf_data[man_data_offset+26] = T_AVG_Gas_AQI;
 			manuf_data[man_data_offset+27] = AVG_Gas_AQI;
 		} else
-		if(Adv_Code == 0x04)
+		if(Adv_Code == 0x04)	//Main Beacon Adv_Code 0x04
 		{
 			//Send Air pollution Data
 	#if (PARTICULATE_SENSOR_PRESENT)
@@ -311,15 +392,56 @@ void MX_BlueNRG_2_Process(void)
 			HOST_TO_LE_16(manuf_data+man_data_offset+18, MC_2p5_24h_Mean);
 			HOST_TO_LE_16(manuf_data+man_data_offset+20, MC_4p0_24h_Mean);
 			HOST_TO_LE_16(manuf_data+man_data_offset+22, MC_10p0_24h_Mean);
-			manuf_data[man_data_offset+26] = AVG_PMx_AQI;	//Not averaged PMx_AQI is not calculated
+			manuf_data[man_data_offset+25] = T_AVG_PMx_AQI;
+			manuf_data[man_data_offset+26] = PMx_AQI;
 			manuf_data[man_data_offset+27] = AVG_PMx_AQI;
 	#endif	//PARTICULATE_SENSOR_PRESENT
 		} else
-		if(Adv_Code == 0x80)
+		if(Adv_Code == 0x80)	//Main Status Report Beacon; sent every seconds
 		{
 			//Send Device Status
 			HOST_TO_BE_32(manuf_data+man_data_offset+6, SensorStatusReg);
-			HOST_TO_BE_32(manuf_data+man_data_offset+10, AnlgOvflStatusReg);
+			HOST_TO_LE_32(manuf_data+man_data_offset+10, BLE_TimeStamp);
+			HOST_TO_BE_32(manuf_data+man_data_offset+14, StatusReg);
+		} else
+		if(Adv_Code == 0x81)	//Secondary Beacon Adv_Code 0x81
+		{
+			//Send Environmental Daily Min-Max Data
+			HOST_TO_LE_16(manuf_data+man_data_offset+6, T_Min);		//Daily minimum temperature
+			HOST_TO_LE_32(manuf_data+man_data_offset+8, P_Min);		//Daily minimum Sea-level pressure
+	#if (HUMIDITY_SENSOR_PRESENT)
+			HOST_TO_LE_16(manuf_data+man_data_offset+12, H_Min);	//Daily minimum relative humidity
+			HOST_TO_LE_16(manuf_data+man_data_offset+14, H_Max);	//Daily maximum relative humidity
+	#endif
+			HOST_TO_LE_16(manuf_data+man_data_offset+16, T_Max);	//Daily maximum temperature
+			HOST_TO_LE_32(manuf_data+man_data_offset+18, P_Max);	//Daily maximum Sea-level pressure
+		} else
+		if(Adv_Code == 0x83)	//Secondary Beacon Adv_Code 0x83
+		{
+			//Send Air Quality maximum values of the averages in the day, starting from midnight
+	#if (VOC_SENSOR_PRESENT)
+			HOST_TO_LE_16(manuf_data+man_data_offset+6, eq_TVOC_1h_Mean_Max);	//1h average maximum value
+			HOST_TO_LE_16(manuf_data+man_data_offset+8, eq_CO2_1h_Mean_Max);	//1h average maximum value
+	#endif
+	#if (GAS_SENSOR_MODULE_PRESENT)
+			HOST_TO_LE_16(manuf_data+man_data_offset+10, CO_8h_Mean_Max);		//8h average maximum value
+			HOST_TO_LE_16(manuf_data+man_data_offset+16, CH2O_8h_Mean_Max);		//8h average maximum value
+		#if (FULL_MODE)
+			HOST_TO_LE_16(manuf_data+man_data_offset+12, NO2_1h_Mean_Max);		//1h average maximum value
+			HOST_TO_LE_16(manuf_data+man_data_offset+14, NH3_8h_Mean_Max);		//8h average maximum value
+			HOST_TO_LE_16(manuf_data+man_data_offset+18, O3_1h_Mean_Max);		//1h average maximum value
+			HOST_TO_LE_16(manuf_data+man_data_offset+20, SO2_1h_Mean_Max);		//1h average maximum value
+			HOST_TO_LE_16(manuf_data+man_data_offset+22, C6H6_24h_Mean_Max);	//Daily average maximum value
+		#endif
+	#endif	//GAS_SENSOR_MODULE_PRESENT
+		} else
+		if(Adv_Code == 0x84)	//Secondary Beacon Adv_Code 0x84
+		{
+			//Send Air pollution Data maximum values of the averages in the day, starting from midnight
+	#if (PARTICULATE_SENSOR_PRESENT)
+			HOST_TO_LE_16(manuf_data+man_data_offset+18, MC_2p5_24h_Mean_Max);
+			HOST_TO_LE_16(manuf_data+man_data_offset+22, MC_10p0_24h_Mean_Max);
+	#endif	//PARTICULATE_SENSOR_PRESENT
 		}
 
 		if (adv_data_sent)
@@ -338,7 +460,7 @@ void MX_BlueNRG_2_Process(void)
 		hci_user_evt_proc();
 		User_Process();
 	}
-	while (Adv_Code != 0x80);
+	while ((Adv_Code != 0x80) && (!ConfCmd));
 #endif	//USE_SENSUS191==0
 	/* USER CODE END BlueNRG_2_Process_PostTreatment */
 }
@@ -409,8 +531,32 @@ static void Device_Init(void)
   uint16_t service_handle;
   uint16_t dev_name_char_handle;
   uint16_t appearance_char_handle;
-  uint8_t bdaddr[] = {0xf5, 0x00, 0x00, 0xE1, 0x80, 0x02};
+  uint8_t bdaddr[] = {0xf5, 0x00, 0x00, 0xE1, 0x80, 0x02};	//Big Endian!!
+//uint8_t bdaddr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};	//Big Endian!!
+  extern FLASH_DATA_ORG FlashDataOrg;
+/*	 5    4    3    2    1   0  Byte order
+  +----+----+----+----+----+----+
+  | F5 | 00 | 00 | E1 | 80 | 02 |	MAC displayed: 02:80:E1:00:00:F5
+  +----+----+----+----+----+----+	OUI: 02:80:E1 - NIC Specific: 00:00:F5
+  (from https://www.shiksha.com/online-courses/articles/mac-address-format-and-types) */
 
+  /* Set the custom MAC Address */
+  if (((FlashDataOrg.b_status.s12 == 0xFFFFFFFF) || (FlashDataOrg.b_status.s12 == 0x00)) ||
+	  ((FlashDataOrg.b_status.s13 == 0xFFFFFFFF) || (FlashDataOrg.b_status.s13 == 0x00)))
+  {
+	FlashDataOrg.b_status.s12 =  ((uint32_t)(bdaddr[0] & 0xFF) << 16) |
+								   ((uint32_t)(bdaddr[1] & 0xFF) << 8) | (uint32_t)(bdaddr[2] & 0xFF);
+	FlashDataOrg.b_status.s13 =  ((uint32_t)(bdaddr[3] & 0xFF) << 16) |
+								   ((uint32_t)(bdaddr[4] & 0xFF) << 8) | (uint32_t)(bdaddr[5] & 0xFF);
+  } else
+  {
+	(((bdaddr)[2] =  (uint8_t) (FlashDataOrg.b_status.s12)    ) , \
+	 ((bdaddr)[1] =  (uint8_t) (FlashDataOrg.b_status.s12>>8) ) , \
+	 ((bdaddr)[0] =  (uint8_t) (FlashDataOrg.b_status.s12>>16)));
+	(((bdaddr)[5] =  (uint8_t) (FlashDataOrg.b_status.s13)    ) , \
+	 ((bdaddr)[4] =  (uint8_t) (FlashDataOrg.b_status.s13>>8) ) , \
+	 ((bdaddr)[3] =  (uint8_t) (FlashDataOrg.b_status.s13>>16)));
+  }
   /* Sw reset of the device */
   hci_reset();
   /**
@@ -535,6 +681,20 @@ void EnterStopMode(void)
 }
 
 /**
+ * @brief  Restart the BLE module
+ * @param  None
+ * @retval None
+ */
+void BLE_Restart(void)
+{
+	HAL_NVIC_DisableIRQ(HCI_TL_SPI_EXTI_IRQn);
+	HCI_TL_SPI_Reset();
+	HCI_TL_SPI_DeInit();
+
+	MX_BlueNRG_2_Init();
+}
+
+/**
  * @brief	This event is generated when the device completes a radio activity and provide
  * 			information when a new radio activity will be performed.
  * 			The provided information includes type of radio activity and absolute time in system
@@ -547,6 +707,8 @@ void EnterStopMode(void)
  */
 void aci_hal_end_of_radio_activity_event(uint8_t Last_State, uint8_t Next_State, uint32_t Next_State_SysTime)
 {
+	static uint16_t SecondaryBeaconCicleNumber = 0;
+	static uint8_t Adv_Code_Modifier = 0x00;	//When = 0x80 secondary beacons will be transmitted
 #if (USE_IWDGT)
 	extern IWDG_HandleTypeDef hiwdg;
 #endif
@@ -554,12 +716,27 @@ void aci_hal_end_of_radio_activity_event(uint8_t Last_State, uint8_t Next_State,
 	uint32_t counter_time;
 #endif
 
-	if (Next_State == 0x01) /* 0x01: Advertising */
+	if (Next_State == 0x01)	/* 0x01: Advertising */
 	{
 		/* Update the code to be transmitted in the next Beacon Advertising packet */
 		Adv_Code = AdvCodes[beacon_number];
-		if (++beacon_number == N_AdvCodes)
+		Adv_Code |= Adv_Code_Modifier;
+		/*
+		 * CycleNumber counts after how many transmissions of the primary "beacon set" (Adv_Code = 0b0xxx xxxx)
+		 * a secondary "beacon set" (here identified with Adc_Cobe = 0b1xxx xxxx) is transmitted
+		 */
+		if (++beacon_number == (uint8_t)N_ADV_CODES)
+		{
 			beacon_number = 0;
+			if ((++SecondaryBeaconCicleNumber > SecondaryBeaconSwitchTime) || (MinMaxStored))
+			{	//The secondary "beacon set" 0b1xxx xxxx contains the daily min-max values. It is still transmitted at midnight.
+				Adv_Code_Modifier = 0x80;
+				SecondaryBeaconCicleNumber = 0;
+			} else
+			{
+				Adv_Code_Modifier = 0x00;
+			}
+		}
 		adv_data_sent = true;
 
 		/**
@@ -576,6 +753,8 @@ void aci_hal_end_of_radio_activity_event(uint8_t Last_State, uint8_t Next_State,
 		/**
 		 * The current timestamp will be used in the main() function to recognize
 		 * if the reset was generated by the WatchDog Timer or by a power-cycle
+		 * It will be stored by the "Store_MeanValues_BackupRTC" function,
+		 * called every second in the "HAL_RTCEx_RTCEventCallback" function, in port.c
 		 */
 		BakUpRTC_Data[1] = (uint8_t)(counter_time & 0xFF);
 		BakUpRTC_Data[2] = (uint8_t)((counter_time >> 8) & 0xFF);

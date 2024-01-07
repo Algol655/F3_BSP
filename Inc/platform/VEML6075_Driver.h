@@ -51,7 +51,8 @@ typedef enum {VEML6075_OK = (uint8_t)0, VEML6075_ERROR = !VEML6075_OK} VEML6075_
 /**!
 	* VEML6075 I2C Slave address
 	*/
-#define VEML6075_BADDR				0x10
+//#define VEML6075_BADDR				0x10	//7-bit unshifted I2C Address
+#define VEML6075_BADDR				0x20	//7-bit shifted I2C Address
 
 /**!
 	* VEML6075 data registers
@@ -105,9 +106,9 @@ typedef enum
 
 typedef struct 
 {
-	float uva;
-	float uvb;
-	float uvindex;
+	float32_t uva;
+	float32_t uvb;
+	float32_t UVI;
 } VEML6075_MeasureTypeDef_st;
 
 VEML6075_Error_et VEML6075_WhoAmI( I2C_HandleTypeDef *hi2c, uint16_t *idval );

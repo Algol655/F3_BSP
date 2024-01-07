@@ -41,6 +41,9 @@ extern RTC_HandleTypeDef hrtc;
 #define RTC_ASYNCH_PREDIV_LSE  0x7F
 #define RTC_SYNCH_PREDIV_LSE   0x00FF
 #define RTC_SET_VALUES	(0)
+#define RTC_SMOOTHCALIB_PERIOD_32SEC		0x00000000U	//smooth calibration period 2^20 RTCCLK pulses */
+#define RTC_SMOOTHCALIB_PLUSPULSES_SET		0x00000000U
+#define RTC_SMOOTHCALIB_PLUSPULSES_RESET	0x00000000U
 //static int RtcSynchPrediv;
 int RtcSynchPrediv;
 typedef struct
@@ -84,6 +87,7 @@ void enable_backup_rtc(void);
 void disable_backup_rtc(void);
 int8_t writeBkpRTC(uint8_t *data, uint16_t bytes, uint16_t offset);
 uint8_t readBkpRTC(uint8_t *data, uint16_t bytes, uint16_t offset);
+bool MidNight, MinMaxStored;
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

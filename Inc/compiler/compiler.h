@@ -22,6 +22,7 @@ extern "C" {
 #include <assert.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <sys/types.h>
 #include "arm_math.h"
 
 #ifndef CLOCKS_PER_SEC

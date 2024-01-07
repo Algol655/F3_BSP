@@ -118,7 +118,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     hdma_adc1.Init.MemInc = DMA_MINC_ENABLE;
     hdma_adc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
     hdma_adc1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-    hdma_adc1.Init.Mode = DMA_NORMAL;
+    hdma_adc1.Init.Mode = DMA_CIRCULAR;
     hdma_adc1.Init.Priority = DMA_PRIORITY_LOW;
     if (HAL_DMA_Init(&hdma_adc1) != HAL_OK)
     {
@@ -171,6 +171,9 @@ void ADC_Config(ADC_HandleTypeDef* AdcHandle)
 	/*       with sufficient duration to not create an overhead situation in    */
 	/*        IRQHandler. */
 
+//	ADC_StartCalibration(ADC1);
+	HAL_ADCEx_Calibration_Start(AdcHandle);
+
 	// Wake up temp sensor from power down mode
 	ADC1->CR2 |= ADC_CR2_TSVREFE;
 //	ADC->CCR &= ~ADC_CCR_VBATE ;
@@ -180,5 +183,81 @@ void ADC_Config(ADC_HandleTypeDef* AdcHandle)
 		/* Start Conversion Error */
 		Error_Handler();
 	}
+}
+
+/**
+  * @brief  Resets the selected ADC calibration registers.
+  * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
+  * @retval None
+  */
+void ADC_ResetCalibration(ADC_TypeDef* ADCx)
+{
+  /* Check the parameters */
+  assert_param(IS_ADC_ALL_PERIPH(ADCx));
+  /* Resets the selected ADC calibration registers */
+  ADCx->CR2 |= ADC_CR2_RSTCAL;
+}
+
+/**
+  * @brief  Gets the selected ADC reset calibration registers status.
+  * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
+  * @retval The new state of ADC reset calibration registers (SET or RESET).
+  */
+FlagStatus ADC_GetResetCalibrationStatus(ADC_TypeDef* ADCx)
+{
+  FlagStatus bitstatus = RESET;
+  /* Check the parameters */
+  assert_param(IS_ADC_ALL_PERIPH(ADCx));
+  /* Check the status of RSTCAL bit */
+  if ((ADCx->CR2 & ADC_CR2_RSTCAL) != (uint32_t)RESET)
+  {
+    /* RSTCAL bit is set */
+    bitstatus = SET;
+  }
+  else
+  {
+    /* RSTCAL bit is reset */
+    bitstatus = RESET;
+  }
+  /* Return the RSTCAL bit status */
+  return  bitstatus;
+}
+
+/**
+  * @brief  Starts the selected ADC calibration process.
+  * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
+  * @retval None
+  */
+void ADC_StartCalibration(ADC_TypeDef* ADCx)
+{
+  /* Check the parameters */
+  assert_param(IS_ADC_ALL_PERIPH(ADCx));
+  /* Enable the selected ADC calibration process */
+  ADCx->CR2 |= ADC_CR2_CAL;
+}
+
+/**
+  * @brief  Gets the selected ADC calibration status.
+  * @param  ADCx: where x can be 1, 2 or 3 to select the ADC peripheral.
+  * @retval The new state of ADC calibration (SET or RESET).
+  */
+FlagStatus ADC_GetCalibrationStatus(ADC_TypeDef* ADCx)
+{
+  FlagStatus bitstatus = RESET;
+  /* Check the parameters */
+  assert_param(IS_ADC_ALL_PERIPH(ADCx));
+  /* Check the status of CAL bit */
+  if ((ADCx->CR2 & ADC_CR2_CAL) != (uint32_t)RESET)
+  {
+    /* CAL bit is set: calibration on going */
+    bitstatus = SET;
+  }
+  else
+  {
+    /* CAL bit is reset: end of calibration */
+    bitstatus = RESET;
+  }
+  /* Return the CAL bit status */
+  return  bitstatus;
 }
 /* USER CODE END 1 */

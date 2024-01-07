@@ -49,8 +49,8 @@ typedef enum
 	eTVOC_Unhealty = 5500,	//ppb
 	//
 	eCO2_FreshAir = 600,	//ppm Excellent
-	eCO2_Normal = 800,		//ppm Good
-	eCO2_Acceptable = 1000,	//ppm Moderate
+	eCO2_Normal = 1000,		//ppm Good
+	eCO2_Acceptable = 1500,	//ppm Moderate
 	eCO2_Drowsiness = 2500, //ppm Poor
 	eCO2_Harmful = 5000,	//ppm VeryPoor
 	//
@@ -58,7 +58,7 @@ typedef enum
 	CH2O_Fine = 40,			//ug/m3
 	CH2O_Moderate = 50,		//ug/m3
 	CH2O_Poor = 120,		//ug/m3
-	CH2O_VeryPoor = 124,	//ug/m3
+	CH2O_VeryPoor = 140,	//ug/m3
 	//
 	CO_Exellent = 2,		//mg/m3
 	CO_Fine = 4,			//mg/m3
@@ -114,7 +114,7 @@ AQ_LimitsParameters_st AQ_Limits;
 //Exported Functions
 AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t eq_TVOC_1h_Mean, uint16_t eq_CO2_1h_Mean,
 								   uint16_t CH2O, uint16_t CO, uint16_t NO2, uint16_t NH3,
-								   uint16_t O3, uint16_t SO2, uint16_t C6H6,
+								   uint16_t O3, uint16_t SO2, uint16_t C6H6, uint16_t MC_10p0, uint16_t MC_2p5,
 								   uint16_t CH2O_8h_Mean, uint16_t CO_8h_Mean, uint16_t NO2_1h_Mean, uint16_t NH3_8h_Mean,
 								   uint16_t O3_1h_Mean, uint16_t SO2_1h_Mean, uint16_t C6H6_24h_Mean,
 								   uint16_t MC_10p0_24h_Mean, uint16_t MC_2p5_24h_Mean);

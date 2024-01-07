@@ -176,7 +176,11 @@ typedef enum
 typedef struct
 {
   int16_t Tout;
+  int16_t Tout_DailyMin;
+  int16_t Tout_DailyMax;
   uint16_t Hout;
+  uint16_t Hout_DailyMin;
+  uint16_t Hout_DailyMax;
 } HTS221_MeasureTypeDef_st;
 
 /**
@@ -453,12 +457,12 @@ typedef struct
 /**
 * @brief Registers Init Values.						//Added By Me!!!
 * \code
-* Values write in the registers in the lps25hb_setup() function
+* Values write in the registers in the HTS221_Init() function
 * \endcode
 */
 //HTS221 Register Addresses Values					bit 7 -----> bit 0    | bit functions |
 #define HTS221_WHO_AM_I_VAL			(uint8_t)0xBC	// 1 - 0 - 1 - 1 - 1 - 1 - 0 - 0 (Read Only)
-#define HTS221_AV_CONF_VAL			(uint8_t)0x2C	// Res - Res - AVGT2 - AVGT1 - AVGT0 - AVGH2 - AVGH1 - AVGH0
+#define HTS221_AV_CONF_VAL			(uint8_t)0x35	// Res - Res - AVGT2 - AVGT1 - AVGT0 - AVGH2 - AVGH1 - AVGH0
 #define HTS221_CTRL_VAL1			(uint8_t)0x82	// PD - Res - Res - Res - Res - BDU - ODR1 - ODR0
 #define HTS221_CTRL_VAL2			(uint8_t)0x00	// BOOT - Res - Res - Res - Res - Res - HEATER - ONE_SHOT
 #define HTS221_CTRL_VAL3			(uint8_t)0x00	// DRDY_H_L - PP_OD - Res - Res - Res - DRDY - Res
@@ -482,8 +486,12 @@ typedef struct
 #define HTS221_T1_OUT_H_VAL			(uint8_t)0x00	// Read Only
 
 /**
-* @}
+* @}brief HTS221 Humidity & Temperature Min Max Init Values.	//Added By Me!!!
 */
+#define HTS221_UPPER_H_LIMIT	(100*10)
+#define HTS221_LOWER_H_LIMIT	(10*10)
+#define HTS221_UPPER_T_LIMIT	(80*10)
+#define HTS221_LOWER_T_LIMIT	(-40*10)
 
 /** @defgroup HTS221_My_Function_Prototypes
 * @{

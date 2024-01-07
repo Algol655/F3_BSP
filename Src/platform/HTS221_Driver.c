@@ -208,6 +208,7 @@ HTS221_Error_et MX_HTS221_Init()
 
 	if (HTS221_Init(HTS221_BADDR))
 		return HTS221_ERROR;
+
 	return HTS221_OK;
 }
 

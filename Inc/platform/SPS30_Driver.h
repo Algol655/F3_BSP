@@ -128,6 +128,14 @@ const char *SPS_DRV_VERSION_STR;
 
 #define SENSIRION_AUTOCLEAN_INTERVAL ((168*60*60)/APPLICATION_RUN_CYCLE)	//168 Hours
 
+/**
+* @}brief SPS30 PM2.5 & PM10 Min Max Init Values.
+*/
+#define SPS30_UPPER_PM2P5_LIMIT	(110*100)	//100 times the "PM2p5_VeryPoor" threshold
+#define SPS30_LOWER_PM2P5_LIMIT	(0)
+#define SPS30_UPPER_PM10_LIMIT	(150*100)	//100 times the "PM10_VeryPoor" threshold
+#define SPS30_LOWER_PM10_LIMIT	(0)
+
 typedef enum
 {
 	SPS30_OK	= 0x00,
@@ -305,9 +313,13 @@ typedef struct
 	float32_t nc_10p0;
 	float32_t typical_particle_size;
 	float32_t mc_1p0_mean;	//24h average
+	uint16_t  mc_1p0_mean_DailyMax;
 	float32_t mc_2p5_mean;	//24h average
+	uint16_t  mc_2p5_mean_DailyMax;
 	float32_t mc_4p0_mean;	//24h average
+	uint16_t  mc_4p0_mean_DailyMax;
 	float32_t mc_10p0_mean;	//24h average
+	uint16_t  mc_10p0_mean_DailyMax;
 } SPS30_MeasureTypeDef_st;
 
 /**

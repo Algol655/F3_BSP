@@ -37,6 +37,7 @@ extern void send_usbmessage(uint8_t *string, int len);
     #define END			}}
 #endif
 
+void DisplayAnalogValues(void);
 void top_menu(void);
 void L10_menu(void);
 void L11_menu(void);
@@ -48,5 +49,6 @@ void L50_menu(void);
 void L50_menu(void);
 void L60_menu(void);
 void L70_menu(void);
+void L80_menu(void);
 
 #endif /* APPLICATION_TESTENV_H_ */

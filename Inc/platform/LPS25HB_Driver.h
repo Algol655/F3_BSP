@@ -7,9 +7,6 @@
  * @brief   This file contains definitions for the LPS25HB_Driver.c firmware driver
  ******************************************************************************
  * @attention
- *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
- *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *   1. Redistributions of source code must retain the above copyright notice,
@@ -327,7 +324,11 @@ typedef struct
 typedef struct
 {
   int16_t Tout;
+  int16_t Tout_DailyMin;
+  int16_t Tout_DailyMax;
   int32_t Pout;
+  int32_t Pout_DailyMin;
+  int32_t Pout_DailyMax;
 } LPS25HB_MeasureTypeDef_st;
 
 /**
@@ -838,8 +839,12 @@ typedef struct
 #define LPS25HB_RPDS_H_VAL 		((uint8_t)0x00)		// RPDS15 - RPDS14 - RPDS13 - RPDS12 - RPDS11 - RPDS10 - RPDS09 - RPDS08
 
 /**
-* @}
+* @}brief LPS25HB Pressure & Temperature Min Max Init Values.	//Added By Me!!!
 */
+#define LPS25HB_UPPER_P_LIMIT	(1100*100)
+#define LPS25HB_LOWER_P_LIMIT	(500*100)
+#define LPS25HB_UPPER_T_LIMIT	(80*10)
+#define LPS25HB_LOWER_T_LIMIT	(-40*10)
 
 /** @defgroup LPS25HB_My_Function_Prototypes
 * @{

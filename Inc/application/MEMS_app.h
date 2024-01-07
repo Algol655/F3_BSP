@@ -14,8 +14,8 @@
 #include "main.h"
 #include <stdint.h>
 
-#define STREAMING_MSG_LENGTH		115
-#define DataStreamingDest			0x01
+#define STREAMING_MSG_LENGTH	115
+#define DataStreamingDest		(uint8_t)0x01U
 
 #define FW_ID "4"
 #define FW_VERSION "8.0.0"
@@ -164,35 +164,50 @@ typedef enum RmtCntrlCmd
 	CMD_Set_Date_Time		= 0x54,	//'T'
 	CMD_Get_Date_Time		= 0x47,	//'G'
 	CMD_OpenTestEnv			= 0x10,	//'^P'
-	CMD_Restart				= 0x12	//'^R'
+	CMD_Restart				= 0x12,	//'^R'
+	CMD_Restart_Reservation = 0x13	//'^S'
 } RMT_CNTRL_CMD;
 
 MEMS_APP_MODE mems_applicazion_mode;
 RMT_CNTRL_CMD rmt_cntrl_cmd;
 bool SendCntrlMsg;
 
-#if (PRESSURE_SENSOR_PRESENT==1)			//Defined in main.h
-	#include "platform/LPS25HB_Driver.h"
+#if (PRESSURE_SENSOR_PRESENT==1)
+	#if (LPS25HB)
+		#include "platform/LPS25HB_Driver.h"
+		LPS25HB_MeasureTypeDef_st PRS_Values;
+	#elif (LPS22HB)
+		#include "platform/LPS22HB_Driver.h"
+		LPS22HB_MeasureTypeDef_st PRS_Values;
+	#endif
 	//Conversion formula from absolute pressure to sea-level pressure
-	#define P0(p,h,t)	((p) * (pow((1.0F - (0.0065F * (h))/((t) + 273.15F + 0.0065F * (h))), -5.257)))
-	LPS25HB_MeasureTypeDef_st PRS_Values;
-	int16_t T_Out;
+	#define P0(p,h,t)	((p) * (pow((1.0F - (0.0065F * (h))/(((t) + 273.15F) + 0.0065F * (h))), -5.257)))
+#if (HUMIDITY_SENSOR_PRESENT==0)
+	int16_t T_Out, TMin, TMax, T_Min, T_Max;
+	float32_t temp_value;
+#endif
 	int32_t P_Out;							//Absolute Pressure
-	int32_t P0_Out;							//Sea-level pressure
+	int32_t P0_Out, PMin, PMax, P_Min, P_Max;	//Sea-level pressure
 	double_t P_OutDbl;						//Absolute Pressure
 	double_t P0_OutDbl;						//Sea-level pressure
 	double_t Altitude;
 	double_t Pressure;
 	double_t Delta_h;						//Tag - Anchor Delta-Altitude
-	float press_value, temp_value;
-	#if (GUI_SUPPORT==1)			//Defined in main.h
+	float32_t press_value;
+	#if (GUI_SUPPORT==1)
 		float Temperature_C_1_data[1], Temperature_C_2_data[1], Pressure_hPa_1_data[1], Altitude_C_1_data[1];
 		float Mux_Float_1_out[8];	//Used in UnicleoGUI. It output also eTVOC, eCO2 values
 	#endif
 #endif
 	double_t Temperature;
-#if (HUMIDITY_SENSOR_PRESENT==1)			//Defined in main.h
-	#include "platform/HTS221_Driver.h"
+#if (HUMIDITY_SENSOR_PRESENT==1)
+	#if (HTS221)
+		#include "platform/HTS221_Driver.h"
+		HTS221_MeasureTypeDef_st HUM_Values;
+	#elif (SHT4x)
+		#include "platform/SHT4x_Driver.h"
+		SHT4x_MeasureTypeDef_st HUM_Values;
+	#endif
 	// Celsius(°C) to Fahrenheit(°F) Conversion
 	#define C2F(x)	((1.8F * (x)) + 32.0F)
 	// Fahrenheit(°F) to Celsius(°C) Conversion
@@ -212,24 +227,38 @@ bool SendCntrlMsg;
 						 C8*(((y)*(y))*(x)) + C9*(((x)*(x))*((y)*(y))))
 	// Sinner Index Formula
 	#define SSI(x,y)	(1.98F * ((x) - (0.5555F - 0.0055F * (y)) * ((x) - 58.0F)) - 56.83F)
-	HTS221_MeasureTypeDef_st HUM_Values;
-	uint16_t Hum_Out;
+	uint16_t Hum_Out, HMin, HMax, H_Min, H_Max;
+	int16_t T_Out, TMin, TMax, T_Min, T_Max;
 	uint16_t T2_Out, T3_Out;	//Used by BLE in app_bluenrg_2.c User_Process() function
 	uint8_t	Humidity;
-	float TemperatureD, hum_value, temp_value, SI, HI;
-	#if (GUI_SUPPORT==1)			//Defined in main.h
+	float32_t TemperatureD, hum_value, temp_value, SI, HI;
+	#if (GUI_SUPPORT==1)
 		float Humidity_percent_1_data[1];	//Used in UnicleoGUI
 	#endif
 #endif
-#if (UVx_SENSOR_PRESENT==1)					//Defined in main.h
-	#include "platform/VEML6075_Driver.h"
-	VEML6075_MeasureTypeDef_st UVx_Values;
-	float UVa, UVb, UV_Index;
-	#if (GUI_SUPPORT==1)					//Defined in main.h
+#if (UVx_SENSOR_PRESENT==1)
+	#if (VEML6075)
+		#include "platform/VEML6075_Driver.h"
+		VEML6075_MeasureTypeDef_st UVx_Values;
+		float32_t UVa, UVb, UV_Index;
+	#elif (LTR390UV)
+		#include "platform/LTR390UV_Driver.h"
+		LTR390UV_MeasureTypeDef_st UVx_Values;
+		float32_t Lux, UV_Index;
+	#endif
+	#if (GUI_SUPPORT==1)
 		float UVA_1_data[1], UVB_1_data[1];	//Used in UnicleoGUI
 	#endif
 #endif
-#if (VOC_SENSOR_PRESENT==1)					//Defined in main.h
+#if (ALS_SENSOR_PRESENT==1)
+	#include "platform/VEML7700_Driver.h"
+	VEML7700_MeasureTypeDef_st ALS_Values;
+	float32_t ALS_Corrected, White_Channel;
+	#if (GUI_SUPPORT==1)
+		float UVA_1_data[1], UVB_1_data[1];	//Used in UnicleoGUI
+	#endif
+#endif
+#if (VOC_SENSOR_PRESENT==1)
 	#if (CCS811)
 		#include "platform/CCS811_Driver.h"
 		CCS811_MeasureTypeDef_st VOC_Values;
@@ -239,12 +268,13 @@ bool SendCntrlMsg;
 	#endif
 	uint16_t eq_TVOC, eq_CO2;
 	uint16_t eq_TVOC_1h_Mean, eq_CO2_1h_Mean;
+	uint16_t eq_TVOC_1h_MeanMax, eq_CO2_1h_MeanMax, eq_TVOC_1h_Mean_Max, eq_CO2_1h_Mean_Max;
 	uint32_t CO_Out;	//Used by BLE in app_bluenrg_2.c User_Process() function
-	#if (GUI_SUPPORT==1)					//Defined in main.h
+	#if (GUI_SUPPORT==1)
 		int32_t eTVOC_1_data[1], eCO2_1_data[1];
 	#endif
 #endif
-#if (PARTICULATE_SENSOR_PRESENT==1)			//Defined in main.h
+#if (PARTICULATE_SENSOR_PRESENT==1)
 	#define PM1p0_CORRECTION(x)		0.7301*(x) + 0.9695
 	#define PM2p5_CORRECTION(x)		0.7166*(x) + 2.5472
 	#define PM4p0_CORRECTION(x)		0.7166*(x) + 6.4032
@@ -253,21 +283,25 @@ bool SendCntrlMsg;
 	SPS30_MeasureTypeDef_st PMS_Values;
 	uint16_t MC_1p0, MC_2p5, MC_4p0, MC_10p0, NC_0p5, NC_1p0, NC_2p5, NC_4p0, NC_10p0;
 	uint16_t MC_1p0_24h_Mean, MC_2p5_24h_Mean, MC_4p0_24h_Mean, MC_10p0_24h_Mean;
+	uint16_t MC_2p5_24h_MeanMax, MC_10p0_24h_MeanMax, MC_2p5_24h_Mean_Max, MC_10p0_24h_Mean_Max;
 	float TypicalParticleSize;
-	#if (GUI_SUPPORT==1)			//Defined in main.h
+	#if (GUI_SUPPORT==1)
 		int32_t PM1p0_1_data[1], PM1p0_2_data[1], PM2p5_1_data[1], PM2p5_2_data[1];	//Used in UnicleoGUI
 		int32_t PM4p0_1_data[1], PM4p0_2_data[1], PM10_1_data[1], PM10_2_data[1];	//Used in UnicleoGUI
 	#endif
 #endif
-#if (GAS_SENSOR_MODULE_PRESENT==1)			//Defined in main.h
+#if (GAS_SENSOR_MODULE_PRESENT==1)
 	#include "platform/ANLG_Driver.h"
 	ANLG_MeasureTypeDef_st GAS_Values;
 	uint16_t CH2O, CH2O_8h_Mean, CO, CO_8h_Mean;
+	uint16_t CH2O_8h_MeanMax, CO_8h_MeanMax, CH2O_8h_Mean_Max, CO_8h_Mean_Max;
 	#if (FULL_MODE==1)
 		uint16_t NO2, NH3, O3, SO2, C6H6;
 		uint16_t NO2_1h_Mean, NH3_8h_Mean, O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
+		uint16_t NO2_1h_MeanMax, NH3_8h_MeanMax, O3_1h_MeanMax, SO2_1h_MeanMax, C6H6_24h_MeanMax;
+		uint16_t NO2_1h_Mean_Max, NH3_8h_Mean_Max, O3_1h_Mean_Max, SO2_1h_Mean_Max, C6H6_24h_Mean_Max;
 	#endif
-	#if (GUI_SUPPORT==1)			//Defined in main.h
+	#if (GUI_SUPPORT==1)
 		int32_t CO_data[1]; int32_t CH2O_data[1];	//For UnicleoGUI
 		#if (FULL_MODE==1)
 			int32_t NO2_data[1]; int32_t NH3_data[1]; int32_t O3_data[1];	//For UnicleoGUI
@@ -278,7 +312,7 @@ bool SendCntrlMsg;
 		uint32_t CO_Out;	//Used by BLE in app_bluenrg_2.c User_Process() function
 	#endif
 #endif
-#if (IMU_PRESENT==1)						//Defined in main.h
+#if (IMU_PRESENT==1)
 	#include "platform/LSM9DS1_Driver.h"
 	#include "application/MotionGC_Manager.h"
 	#include "application/motion_gc.h"
@@ -306,7 +340,7 @@ bool SendCntrlMsg;
 	extern const double_t mGauss_to_uT;		//mGauss to uTesla conversion factor = 0.1
 	extern const double_t mGauss_to_uT50;	//mGauss to uTesla/50 conversion factor = 0.002
 	extern const double_t uT50_to_mGauss;	//uTesla/50 to mGauss conversion factor = 500.0
-	#if ((PRESSURE_SENSOR_PRESENT==0) && (IMU_PRESENT==1))			//Defined in main.h
+	#if ((PRESSURE_SENSOR_PRESENT==0) && (IMU_PRESENT==1))
 		double_t Pressure;
 		double_t Altitude;
 		int16_t T_OutRaw, T_Out;
@@ -328,7 +362,7 @@ bool SendCntrlMsg;
 void Display_Update(void *source, sDISPLAY_INFO *header);
 void AB_Init(void);
 void AB_Handler(void);
-#if (IMU_PRESENT==1)						//Defined in main.h
+#if (IMU_PRESENT==1)
 	void AC_Handler(int* Len, LSM9DS1_MeasureTypeDef_st *IMU_Axes, uint8_t* Buff);
 #endif
 int SC_Get_Custom_Config(uint8_t* Buff);
@@ -346,7 +380,7 @@ int Handle_Sensor_command(uint8_t* Buff);
  */
 void Input_Value_Init(void *source, sDISPLAY_INFO *header);
 
-#if (PRESSURE_SENSOR_PRESENT==1)			//Defined in main.h
+#if (PRESSURE_SENSOR_PRESENT==1)
 /**
  * @brief  Handles the LPS25HB PRESS, TEMP sensor data getting/sending.
  * @brief  Build the Buff array from the float (LSB first)
@@ -355,22 +389,30 @@ void Input_Value_Init(void *source, sDISPLAY_INFO *header);
  * @param  Buff: Stream pointer
  * @retval None
  */
-void Pressure_Sensor_Handler(LPS25HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff);
+	#if (LPS25HB)
+	void Pressure_Sensor_Handler(LPS25HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff);
+	#elif (LPS22HB)
+	void Pressure_Sensor_Handler(LPS22HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff);
+	#endif
 #endif
 
-#if (HUMIDITY_SENSOR_PRESENT==1)			//Defined in main.h
+#if (HUMIDITY_SENSOR_PRESENT==1)
 /**
- * @brief  Handles the HTS221 HUM, TEMP sensor data getting/sending.
+ * @brief  Handles the HTS221/SHT4x HUM, TEMP sensor data getting/sending.
  * @brief  Build the Buff array from the float (LSB first)
  * @brief  Fill the HUM parts of the Buff stream
  * @param  HumTemp: Pointer to HumTemp data structure
  * @param  Buff: Stream pointer
  * @retval None
  */
-void Humidity_Sensor_Handler(HTS221_MeasureTypeDef_st *HumTemp, uint8_t* Buff);
+	#if (HTS221)
+	void Humidity_Sensor_Handler(HTS221_MeasureTypeDef_st *HumTemp, uint8_t* Buff);
+	#elif (SHT4x)
+	void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff);
+	#endif
 #endif
 
-#if (UVx_SENSOR_PRESENT==1)					//Defined in main.h
+#if (UVx_SENSOR_PRESENT==1)
 /**
  * @brief  Handles the VEML6075 UVA UVB, UV Index sensor data getting/sending.
  * @brief  Build the Buff array from the float (LSB first)
@@ -379,10 +421,14 @@ void Humidity_Sensor_Handler(HTS221_MeasureTypeDef_st *HumTemp, uint8_t* Buff);
  * @param  Buff: Stream pointer
  * @retval None
  */
-void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff);
+	#if (VEML6075)
+	void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff);
+	#elif (LTR390UV)
+	void UVx_Sensor_Handler(LTR390UV_MeasureTypeDef_st *UVx, uint8_t* Buff);
+	#endif
 #endif
 
-#if (VOC_SENSOR_PRESENT==1)					//Defined in main.h
+#if (VOC_SENSOR_PRESENT==1)
 /**
  * @brief  Handles the CCS811/ENS160 sensor data getting/sending.
  * @brief  Build the Buff array from the float (LSB first)
@@ -399,7 +445,7 @@ void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff);
 	#endif
 #endif
 
-#if (PARTICULATE_SENSOR_PRESENT==1)			//Defined in main.h
+#if (PARTICULATE_SENSOR_PRESENT==1)
 /**
  * @brief  Handles the SPS30 Particulate Matter sensor data getting/sending.
  * @brief  Build the Buff array from the float (LSB first)
@@ -412,7 +458,7 @@ void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff);
 void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* Buff);
 #endif
 
-#if (GAS_SENSOR_MODULE_PRESENT==1)			//Defined in main.h
+#if (GAS_SENSOR_MODULE_PRESENT==1)
 /**
  * @brief  Handles the analog gas sensor board data getting.
  * @brief  Build the Buff array from the float (LSB first)
@@ -432,7 +478,17 @@ void Store_MeanValues_BackupRTC(void);
 void ReStore_MeanValues_BackupRTC(void);
 #endif
 
-#if (IMU_PRESENT==1)						//Defined in main.h
+#if ((BLE_SUPPORT) && (BEACON_APP))
+	#if (CCS811)
+	void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
+					 CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate);
+	#elif(ENS160)
+	void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
+					 ENS160_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate);
+	#endif
+#endif
+
+#if (IMU_PRESENT==1)
 /**
 * @brief  Handles the LSM9DS1 ACC, GYR, MAG axes data getting/sending
 * @brief  Build the Buff array from the uint32_t (LSB first)

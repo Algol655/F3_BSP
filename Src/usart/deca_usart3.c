@@ -12,7 +12,7 @@
 #include "application/SerialProtocol.h"
 
 //USART rx data buffers
-int16_t usart3_local_buff_length = 0;
+uint16_t usart3_local_buff_length = 0;
 uint8_t	usart3_local_buff[USARTBUFFLEN];	/**< non circular local buffer, data received from USART. */
 static 	uint8_t usart3_lbuf[USARTBUFFLEN];	/**< circular local buffer, data to be transmitted in usart3_flush_report_buff() Thread. */
 
@@ -344,10 +344,47 @@ USARTD_StatusTypeDef DW_USART3_DataRx (uint8_t* Buf, uint16_t Len)
   	  return USARTD_FAIL;
   }
 
-  usart3_local_buff_offset = 0;	//In USARTopen mode We receive 32bytes length packets over USART,
-  usart3_local_buff_length = 0;	//sizeof(usart3_local_buff) = 32, so we usart zeroes the buffer data pointers
-  usart3_local_have_data = 1;
+  if (usart3app.usartlen == 1)		//Check if the command to enable the test environment is present (Cntrl-P)
+  {
+//	  usart3app.usartlen = 0;
+	  if (usart3_local_buff[usart3_local_buff_offset] == 0x10)
+	  {
+		  usart3_local_buff[0] = (uint8_t)DEV_ADDR;	//Put in Buff[0] DEV_ADDR = 50U
+		  usart3_local_buff[2] = 0x10;				//Put ^P in the command field Buff[2]
 
+		  usart3_local_buff_offset = 0;
+		  usart3_local_buff_length = 0;
+		  usart3_local_have_data = 1;
+	  } else	//Check if the restart command is present (Cntrl-R)
+	  if (usart3_local_buff[usart3_local_buff_offset] == 0x12)
+	  {
+		  usart3_local_buff[0] = (uint8_t)DEV_ADDR;	//Put in Buff[0] DEV_ADDR = 50U
+		  usart3_local_buff[2] = 0x12;				//Put ^R in the command field Buff[2]
+
+		  usart3_local_buff_offset = 0;
+		  usart3_local_buff_length = 0;
+		  usart3_local_have_data = 1;
+	  } else	//Check if the reboot reservation command is present (Cntrl-S)
+	  if (usart3_local_buff[usart3_local_buff_offset] == 0x13)
+	  {
+		  usart3_local_buff[0] = (uint8_t)DEV_ADDR;	//Put in Buff[0] DEV_ADDR = 50U
+		  usart3_local_buff[2] = 0x13;				//Put ^S in the command field Buff[2]
+
+		  usart3_local_buff_offset = 0;
+		  usart3_local_buff_length = 0;
+		  usart3_local_have_data = 1;
+	  }
+  } else if (!Test_Mode) 		//If no useful message has been received, it moves the pointer to the first free location
+  {								//of the receive buffer, that is to the first byte of the next message.
+	  usart3_local_have_data = 0;
+	  usart3_local_buff_length = Len + usart3_local_buff_offset;
+	  usart3_local_buff_offset += Len;
+  } else
+  {
+	  usart3_local_buff_offset = 0;
+	  usart3_local_buff_length = 0;
+	  usart3_local_have_data = 1;
+  }
 
   return USARTD_OK;
 #endif
@@ -402,6 +439,9 @@ void send_usart3message(uint8_t *string, int16_t len)
 			usleep(5);
 	#endif
 			DW_USART3_DataTx(usart3_tx_buff, usart3_tx_buff_length);
+#if (GUI_SUPPORT==1)
+			Message_Length = 0;
+#endif
 			flush_usart3_report_buff();
 	#if (RS485_MODE)	//Return to RX mode
 			usleep(5);

@@ -124,7 +124,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_NVIC_SetPriority(USART3_IRQn, 4, 0);
     HAL_NVIC_EnableIRQ(USART3_IRQn);
   /* USER CODE BEGIN USART3_MspInit 1 */
-
+//	USART3->CR2 |= 0x0A000000; // \n 0x0A	//Set \n char match interrupt. Char match int is not present in STM32F4x5!!!
+//	__HAL_UART_ENABLE_IT(&huart3, UART_IT_CM);		//Enable UART CharMatch interrupt
+   	__HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);	//Enable UART idle interrupt
   /* USER CODE END USART3_MspInit 1 */
   }
 }

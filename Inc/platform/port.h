@@ -31,6 +31,9 @@ extern "C" {
 #include "usart/deca_usart3.h"
 #include "adc.h"
 #include "gui/lcd.h"
+#if (BLE_SUPPORT==1)
+	#include "OpModes.h"
+#endif
 
 #define BUFFLEN 			(2048)	//It must be >= the maximum size of the message to be transmitted
 #define DATA_FRAME_LEN_MAX 	(1006)	//32*31+9+2+1+2
@@ -45,7 +48,7 @@ extern "C" {
 #define USB_SUPPORT			(1) 	//In Data mode set VCP as EndPoint_1
 #define CAN_SUPPORT			(0)		//In Data mode set CAN1 as EndPoint_1
 #define CAN_REPEATER_MODE	(1)		//When set to "1" (in CAN Data mode) the device works as a wireless transparent CAN-BUS EndPoint
-#define USART_SUPPORT		(0)		//In Data mode set USART2 as EndPoint_1
+#define USART_SUPPORT		(1)		//In Data mode set USART2 as EndPoint_1
 #define APPLICATION_RUN_CYCLE	(5)	//Moved from CCS811_Driver.h
 #define BLE_MAGIC_NUMBER	(0x55)	//This is the value written in location 0 of the Back-Up RTC used to notify main()
 									//that an BLE event must be managed at the next reset or power-on
@@ -56,6 +59,7 @@ uint8_t dataseq[TX_BUFF_LEN];		//STCmdP serial protocol command protocol Tx Buff
 uint8_t dataseq1[TX_BUFF_LEN];		//STCmdP serial protocol command protocol Tx Buffer - Used by Report message stream.
 
 uint8_t msg_payload[MSG_PAYLOAD_LEN_MAX];	//Max payload = FRAME_LEN_MAX - msg_hdr (9 bytes)  - CRC (2 bytes) = 500 bytes
+int16_t usart3RxLength;			//Rx UART Buffer length used in DMA mode
 bool Link_Ok;
 uint8_t d_zero;
 
@@ -89,6 +93,18 @@ usart_t	usart2app, usart3app;
 #if (IMU_PRESENT==1)
 	extern uint8_t MagCalRequest, AccCalRequest, ActRecRequest, GyroCalRequest;
 #endif
+#if (PRESSURE_SENSOR_PRESENT==1)
+	#define LPS25HB	(1)				//When 1 "LPS22HB_Driver.c" must be excluded from build
+	#define LPS22HB	(0)				//When 1 "LPS25HB_Driver.c" must be excluded from build
+#endif
+#if (HUMIDITY_SENSOR_PRESENT==1)
+	#define HTS221	(1)				//When 1 "SHT4x_Driver.c" must be excluded from build
+	#define SHT4x	(0)				//When 1 "HTS221_Driver.c" must be excluded from build
+#endif
+#if (UVx_SENSOR_PRESENT==1)
+	#define VEML6075	(1)			//When 1 "LTR390UV_Driver.c" must be excluded from build
+	#define LTR390UV	(0)			//When 1 "VEML6075_Driver.c" must be excluded from build
+#endif
 #if (VOC_SENSOR_PRESENT==1)
 	extern bool load_baseline, baseline_loaded, CCS811_Save_Baseline_Reserved;
 	#define CCS811	(1)				//When 1 "ENS160_Driver.c" must be excluded from build
@@ -96,7 +112,6 @@ usart_t	usart2app, usart3app;
 #endif
 uint8_t Message_Length;
 
-#define DEVICE_ID   (0xDECA0130)        			//!< DW1000 MP device ID
 
 /****************************************************************************//**
  * 								Types definitions
@@ -131,9 +146,38 @@ typedef enum sensor_type
 	HUMIDITY_SENSOR = 0x03,		//HUMIDITY_SENSOR device number
 	UVx_SENSOR = 0x04,			//UVx_SENSOR device number
 	VOC_SENSOR = 0x05,			//VOC_SENSOR device number
-	PARTICULATE_SENSOR = 0x06	//PARTICULATE_SENSOR device number
+	PARTICULATE_SENSOR = 0x06,	//PARTICULATE_SENSOR device number
+	ALS_SENSOR = 0x07			//ALS_SENSOR device number
 } SENSOR_TYPE;
 
+/*
+ * SensorStatusReg[0] : 1 = Pressure sensor status Ok
+ * SensorStatusReg[16]: 1 = Pressure sensor presence detected
+ *
+ * SensorStatusReg[1] : 1 = Humidity/Temperature sensor status Ok
+ * SensorStatusReg[17]: 1 = Humidity/Temperature sensor presence detected
+ *
+ * SensorStatusReg[2] : 1 = UVx sensor status Ok
+ * SensorStatusReg[18]: 1 = UVx sensor presence detected
+ *
+ * SensorStatusReg[3] : 1 = VOC sensor status Ok
+ * SensorStatusReg[19]: 1 = VOC sensor presence detected
+ *
+ * SensorStatusReg[4] : 1 = PMx sensor status Ok
+ * SensorStatusReg[20]: 1 = PMx sensor presence detected
+ *
+ * SensorStatusReg[5] : 1 = GAS Sensor Module status Ok
+ * SensorStatusReg[21]: 1 = GAS Sensor Module presence detected
+ *
+ * SensorStatusReg[6] : 1 = GAS Sensor Module Full Equipped status Ok
+ * SensorStatusReg[22]: 1 = GAS Sensor Module Full Equipped presence detected
+ *
+ * SensorStatusReg[7] : 1 = ALS sensor status Ok
+ * SensorStatusReg[23]: 1 = ALS sensor presence detected
+
+ * SensorStatusReg[8] : 1 = IMU status Ok
+ * SensorStatusReg[24]: 1 = IMU presence detected
+ */
 typedef enum sensor_status
 {
 	PRESSURE_SENSOR_OK = 0x00000001,	//PRESSURE_SENSOR check passed
@@ -144,15 +188,17 @@ typedef enum sensor_status
 	PM_SENSOR_OK =  0x00000010,			//PARTICULATE_SENSOR check passed
 	GAS_SENSORS_OK = 0x00000020,		//Gas Sensors board check passed
 	GAS_SENSORS_FULL_OK = 0x00000040,	//Full Equipped Gas Sensors board check passed
-	IMU_OK = 0x00000080,				//IMU check passed
+	ALS_SENSOR_OK = 0x00000080,			//ALS check passed
+	IMU_OK = 0x00000100,				//IMU check passed
 	PRESSURE_SENSOR_INST = 0x00010000,	//PRESSURE_SENSOR Installed
 	HUMIDITY_SENSOR_INST = 0x00020000,	//HUMIDITY_SENSOR Installed
 	UVx_SENSOR_INST = 0x00040000,		//UVx_SENSOR Installed
 	VOC_SENSOR_INST = 0x00080000,		//VOC_SENSOR Installed
 	PM_SENSOR_INST =  0x00100000,		//PARTICULATE_SENSOR Installed
-	GAS_SENSORS_INST =0x00200000,		//Gas Sensors Board Installed
-	GAS_SENSORS_FULL_INST =0x00400000,	//Full Equipped Gas Sensors Board Installed
-	IMU_INST = 0x00800000				//IMU Installed
+	GAS_SENSORS_INST = 0x00200000,		//Gas Sensors Board Installed
+	GAS_SENSORS_FULL_INST = 0x00400000,	//Full Equipped Gas Sensors Board Installed
+	ALS_SENSOR_INST = 0x00800000,		//ALS Installed
+	IMU_INST = 0x01000000				//IMU Installed
 } SENSOR_STATUS;
 
 typedef struct board_master_data
@@ -203,10 +249,26 @@ typedef struct board_status
 	uint8_t sc_offset;	//offset from 0x0803F800: 0x54
 	uint32_t sd;		//Bit 0..32: MiCS_6814_NO2_Ro
 	uint8_t sd_offset;	//offset from 0x0803F800: 0x58
-	uint32_t se;		//Bit 0..16: MSL: Altitude in meters of the city where the device is located
+	uint32_t se;		//Bit 0..16: Altitude in meters of the city where the device is located
 	uint8_t se_offset;	//offset from 0x0803F800: 0x5C
-	uint32_t sf;
+	uint32_t sf;		//Bit 0..32: MiCS_6814_CO_Rf
 	uint8_t sf_offset;	//offset from 0x0803F800: 0x60
+	uint32_t s10;		//Bit 0..32: MiCS_6814_NH3_Rf
+	uint8_t s10_offset;	//offset from 0x0803F800: 0x64
+	uint32_t s11;		//Bit 0..32: MiCS_6814_NO2_Rf
+	uint8_t s11_offset;	//offset from 0x0803F800: 0x68
+	uint32_t s12;		//BLE MAC Address 4..6 (NIC Specific)
+	uint8_t s12_offset;	//offset from 0x0803F800: 0x6C
+	uint32_t s13;		//BLE MAC Address 1..3 (OUI)
+	uint8_t s13_offset;	//offset from 0x0803F800: 0x70
+	uint32_t s14;
+	uint8_t s14_offset;	//offset from 0x0803F800: 0x74
+	uint32_t s15;
+	uint8_t s15_offset;	//offset from 0x0803F800: 0x78
+	uint32_t s16;
+	uint8_t s16_offset;	//offset from 0x0803F800: 0x7C
+	uint32_t s17;
+	uint8_t s17_offset;	//offset from 0x0803F800: 0x80
 } BOARD_STATUS;
 
 typedef struct flash_data_org
@@ -224,25 +286,27 @@ typedef struct flash_data_org
 SENSOR_TYPE Sensor_Type;
 SENSOR_STATUS Sensor_Status;
 
-HAL_StatusTypeDef MCP23017_status, LSM9DS1_status, LPS25HB_status, HTS221_status, VEML6075_status;
-HAL_StatusTypeDef CCS811_status, ENS160_status, SPS30_status, ANLG_status, TLCD_status, GLCD_status;
-bool Test_Mode, leds_test, timer5s_expired, update_5s, conversion_ended, RiskReport;
-bool input_changed, I2C_done, can_tx_done, refresh, WarmUpPeriod_expired;
+HAL_StatusTypeDef MCP23017_status, LSM9DS1_status, LPS25HB_status, HTS221_status, CCS811_status, VEML6075_status;
+HAL_StatusTypeDef LPS22HB_status, SHT4x_status, ENS160_status, SPS30_status, VEML7700_status, LTR390UV_status;
+HAL_StatusTypeDef TLCD_status, GLCD_status, ANLG_status;
+bool Test_Mode, leds_test, timer5s_expired, conversion_ended, RiskReport;
+bool input_changed, I2C_done, can_tx_done, refresh, WarmUpPeriod_expired, ColdRestart, BakUpSRamWiped, BLE_DataReady;
 bool display_imu_data, send_lcl_imu_data, send_lcl_imu_data_to_ble, lcl_imu_data_rdy;
 bool display_prs_data, send_lcl_prs_data, lcl_prs_data_rdy;
 bool display_uvx_data, send_lcl_uvx_data, lcl_uvx_data_rdy;
+bool display_als_data, send_lcl_als_data, lcl_als_data_rdy;
 bool display_hum_data, send_lcl_hum_data, lcl_hum_data_rdy;
 bool display_voc_data, send_lcl_voc_data, lcl_voc_data_rdy;
 bool display_pms_data, send_lcl_pms_data, lcl_pms_data_rdy;
 bool display_gas_data, send_lcl_gas_data, lcl_gas_data_rdy;
 bool service_timer0_expired;
-bool update_1s, update1h, update1d;
+bool update_1s, update_1m, update_5s, update_1h, update_1d, Restart_Reverved;
 uint8_t t_flip, NumberOfDevices, PreviousPage;
-uint8_t Z_forecast, forecast, Gas_AQI, AVG_Gas_AQI, AVG_PMx_AQI;
+uint8_t Z_forecast, forecast, Gas_AQI, AVG_Gas_AQI, T_AVG_Gas_AQI, PMx_AQI, AVG_PMx_AQI, T_AVG_PMx_AQI;
 uint16_t stby_timer, stby_timer_timeout;
 uint16_t led_pc6_timer, led_pc7_timer, led_pc8_timer, led_pc9_timer;
-uint16_t service_timer0, service_timer3;	//Service_timer3 uses 5s timer3 tick
-uint32_t SensorStatusReg, AnlgOvflStatusReg;
+uint32_t service_timer0, service_timer3;	//Service_timer3 uses 5s timer3 tick
+uint32_t SensorStatusReg, AnlgOvflStatusReg, StatusReg, BLE_TimeStamp;
 uint8_t internal_notifies_0, internal_notifies_1;
 volatile uint32_t update_16Hz;
 volatile uint32_t update_25Hz;
@@ -265,7 +329,7 @@ int size(uint8_t *ptr);
 uint8_t InRange(uint16_t min, uint16_t max, uint16_t value);
 int xtoi(char *hexstring);
 uint8_t FlipFlop(bool ResetFF, uint8_t mask, uint8_t period);
-float32_t approxMovingAverage(float32_t avg, float32_t new_sample, uint32_t N, float32_t CorrectionFactor);
+float32_t approxMovingAverage(float32_t avg, float32_t new_sample, uint32_t N);
 uint8_t ByteToBcd(uint8_t Value);
 int32_t max(int32_t args, ...);
 int32_t min(int32_t args, ...);
@@ -292,6 +356,7 @@ void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef *hcan);
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle);
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle);
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle);
+void HAL_UART_IdleCpltCallback(UART_HandleTypeDef *UartHandle, DMA_HandleTypeDef *DMAHandle);
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle);
 
 /****************************************************************************//**
@@ -325,6 +390,7 @@ typedef struct
 } circBuf_t;
 
 extern uint16_t local_buff_length;
+extern uint16_t usart3_local_buff_length;
 uint16_t local_buff_offset;
 uint8_t circBufPush(circBuf_t* c, uint8_t* data, uint16_t Len);
 uint8_t circBufPop(circBuf_t* c, uint8_t* data, uint16_t Len);

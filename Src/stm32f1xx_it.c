@@ -426,7 +426,15 @@ void I2C1_EV_IRQHandler(void)
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
+  uint32_t isrflags = USART3->SR;
+  uint32_t cr1its = USART3->CR1;
+  extern void HAL_UART_IdleCpltCallback(UART_HandleTypeDef *UartHandle, DMA_HandleTypeDef *DMAHandle);
 
+  /* Check for IDLE character found (Rearmed by buffer received) */
+  if ((isrflags & USART_SR_IDLE) && (cr1its & USART_CR1_IDLEIE))
+  {
+	  HAL_UART_IdleCpltCallback(&huart3, &hdma_usart3_rx);
+  }
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */

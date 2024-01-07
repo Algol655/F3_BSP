@@ -45,16 +45,16 @@ uint8_t CCS811_2[1] = 	{							//Added By Me!!!
 void eCO2_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length)
 {
 	uint32_t sum = 0;
-	static uint32_t mem1[10] = {0};	//array dimension MUST be = length
-	static uint32_t mem2[1] = {0};
+	static uint32_t eCO2_mem1[10] = {0};	//array dimension MUST be = length
+	static uint32_t eCO2_mem2[1] = {0};
 
-	mem2[0] = (mem2[0] + 1) % length;
+	eCO2_mem2[0] = (eCO2_mem2[0] + 1) % length;
 
-	mem1[mem2[0]] = *in;
+	eCO2_mem1[eCO2_mem2[0]] = *in;
 
 	for (int32_t i = 0; i < length; i++)
 	{
-		sum += mem1[i];
+		sum += eCO2_mem1[i];
 	}
 
 	*out = sum / length;
@@ -66,16 +66,16 @@ void eCO2_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length)
 void eTVOC_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length)
 {
 	uint32_t sum = 0;
-	static uint32_t mem1[10] = {0};	//array dimension MUST be = length
-	static uint32_t mem2[1] = {0};
+	static uint32_t eTVOC_mem1[10] = {0};	//array dimension MUST be = length
+	static uint32_t eTVOC_mem2[1] = {0};
 
-	mem2[0] = (mem2[0] + 1) % length;
+	eTVOC_mem2[0] = (eTVOC_mem2[0] + 1) % length;
 
-	mem1[mem2[0]] = *in;
+	eTVOC_mem1[eTVOC_mem2[0]] = *in;
 
 	for (int32_t i = 0; i < length; i++)
 	{
-		sum += mem1[i];
+		sum += eTVOC_mem1[i];
 	}
 
 	*out = sum / length;
