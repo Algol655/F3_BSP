@@ -10,7 +10,7 @@
 
 const uint8_t DeviceName[4] ="S191";
 const uint8_t HW_Version[4] ="1000";
-const uint8_t SW_Version[4] ="2407";
+const uint8_t SW_Version[4] ="2500";
 const uint32_t Vendor_ID  = 0x2316F;
 const uint32_t Prdct_Code = 10000324;
 const uint32_t Rev_Number = 0;
@@ -44,12 +44,15 @@ const uint32_t Ser_Number = 1;
 	int8_t CO_Corr = 0;					//In mVolts/10: 1 = 10mV Correction
 	int8_t SO2_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
 	int8_t C6H6_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
+	uint32_t SMD1001_CH2O_Vo = 0;		//In mVolts
 	uint32_t MiCS_6814_CO_Ro = 0;		//In ohm
 	uint32_t MiCS_6814_NH3_Ro = 0;		//In ohm
 	uint32_t MiCS_6814_NO2_Ro = 0;		//In ohm
+	uint32_t SMD1001_CH2O_Rf = 0;		//In ohm
 	uint32_t MiCS_6814_CO_Rf = 0;		//In ohm
 	uint32_t MiCS_6814_NH3_Rf = 0;		//In ohm
 	uint32_t MiCS_6814_NO2_Rf = 0;		//In ohm
+	float32_t SMD1001_CH2O_Vs;			//In Volt
 	float32_t MiCS_6814_CO_Rs;			//In ohm
 	float32_t MiCS_6814_NO2_Rs;			//In ohm
 	float32_t MiCS_6814_NH3_Rs;			//In ohm
@@ -148,9 +151,24 @@ void AB_Init(void)
 	Read_Flash(NULL, 0);					//Update board data from flash
 	if ((FlashDataOrg.b_status.sf == 0xFFFFFFFF) || (FlashDataOrg.b_status.sf == 0x00))
 	{
-		FlashDataOrg.b_status.sf = 806000;	//Rf CO default value
-		FlashDataOrg.b_status.s10 = 80600;	//Rf NH3 default value
-		FlashDataOrg.b_status.s11 = 6340;	//Rf NO2 default value
+/*
+ * The default MiCS6814 Ro values were calculated by averaging the minimum/maximum
+ * values reported on page. 2 of the data sheet
+ */
+		FlashDataOrg.b_status.sb = 800000;	//MiCS6814 Ro CO default value
+		FlashDataOrg.b_status.sc = 755000;	//MiCS6814 Ro NH3 default value
+		FlashDataOrg.b_status.sd = 10400;	//MiCS6814 Ro NO2 default value
+#if (GSB_HW_VER == 10)
+		FlashDataOrg.b_status.sf = 806000;	//MiCS6814 Rf CO default value
+		FlashDataOrg.b_status.s10 = 80600;	//MiCS6814 Rf NH3 default value
+		FlashDataOrg.b_status.s11 = 6340;	//MiCS6814 Rf NO2 default value
+#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+		FlashDataOrg.b_status.sf = 27000;	//MiCS6814 Rf CO default value
+		FlashDataOrg.b_status.s10 = 27000;	//MiCS6814 Rf NH3 default value
+		FlashDataOrg.b_status.s11 = 2700;	//MiCS6814 Rf NO2 default value
+		FlashDataOrg.b_status.s14 = 2500;	//SMD1001 Vo CH2O default value (2.5V)
+		FlashDataOrg.b_status.s15 = 10000;	//SMD1001 Rf CH2O default value
+#endif
 	}
 	Version[14] = HW_Version[0];
 	Version[16] = HW_Version[1];
@@ -351,9 +369,9 @@ void AB_Init(void)
 	//Initialize Gases sensors Max values variables
 	CO_8h_MeanMax = ANLG_LOWER_CO_LIMIT;
 	CH2O_8h_MeanMax = ANLG_LOWER_CH2O_LIMIT;
-	#if (FULL_MODE)
-		NO2_1h_MeanMax = ANLG_LOWER_NO2_LIMIT;
-		NH3_8h_MeanMax = ANLG_LOWER_NH3_LIMIT;
+	NO2_1h_MeanMax = ANLG_LOWER_NO2_LIMIT;
+	NH3_8h_MeanMax = ANLG_LOWER_NH3_LIMIT;
+	#if (OUTDOOR_MODE)
 		O3_1h_MeanMax = ANLG_LOWER_O3_LIMIT;
 		SO2_1h_MeanMax = ANLG_LOWER_SO2_LIMIT;
 		C6H6_24h_MeanMax = ANLG_LOWER_C6H6_LIMIT;
@@ -365,7 +383,7 @@ void AB_Init(void)
 		FirstRowFull = true;
 	}
 	BIT_SET(SensorStatusReg,5);		//Set Gas Sensor Module status in SensorStatusRegister
-	#if (FULL_MODE)
+	#if (OUTDOOR_MODE)
 		BIT_SET(SensorStatusReg,22);	//Set Gas Sensor Full Equipped Module presence in SensorStatusRegister
 		BIT_SET(SensorStatusReg,6);		//Set Gas Sensor Full Equipped Module status in SensorStatusRegister
 	#endif
@@ -373,19 +391,23 @@ void AB_Init(void)
     //Set the calibration values
     CO_Corr = (int8_t)(FlashDataOrg.b_status.sa & 0x000000FF);
     CH2O_Corr = (int8_t)(FlashDataOrg.b_status.s9 & 0x000000FF);
-    MiCS_6814_CO_Ro = FlashDataOrg.b_status.sb;
-    MiCS_6814_CO_Rf = FlashDataOrg.b_status.sf;
-	#if (FULL_MODE)
-    	O3_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 8) & 0x000000FF);
-    	NO2_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 16) & 0x000000FF);
-    	NH3_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 24) & 0x000000FF);
-    	SO2_Corr = (int8_t)((FlashDataOrg.b_status.sa >> 8) & 0x000000FF);
-    	C6H6_Corr = (int8_t)((FlashDataOrg.b_status.sa >> 16) & 0x000000FF);
-    	MiCS_6814_NH3_Ro = FlashDataOrg.b_status.sc;
-    	MiCS_6814_NO2_Ro = FlashDataOrg.b_status.sd;
-    	MiCS_6814_NH3_Rf = FlashDataOrg.b_status.s10;
-    	MiCS_6814_NO2_Rf = FlashDataOrg.b_status.s11;
-	#endif //FULL_MODE
+	NO2_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 16) & 0x000000FF);
+	NH3_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 24) & 0x000000FF);
+	#if (OUTDOOR_MODE)
+		O3_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 8) & 0x000000FF);
+		SO2_Corr = (int8_t)((FlashDataOrg.b_status.sa >> 8) & 0x000000FF);
+		C6H6_Corr = (int8_t)((FlashDataOrg.b_status.sa >> 16) & 0x000000FF);
+	#endif //OUTDOOR_MODE
+	MiCS_6814_CO_Ro = FlashDataOrg.b_status.sb;
+	MiCS_6814_NH3_Ro = FlashDataOrg.b_status.sc;
+	MiCS_6814_NO2_Ro = FlashDataOrg.b_status.sd;
+	MiCS_6814_CO_Rf = FlashDataOrg.b_status.sf;
+	MiCS_6814_NH3_Rf = FlashDataOrg.b_status.s10;
+	MiCS_6814_NO2_Rf = FlashDataOrg.b_status.s11;
+	#if ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+		SMD1001_CH2O_Vo = FlashDataOrg.b_status.s14;
+		SMD1001_CH2O_Rf = FlashDataOrg.b_status.s15;
+	#endif
 #endif	//GAS_SENSOR_MODULE_PRESENT
 //Define the number of pages to be displayed
 //Page1: Enviromental Page values.
@@ -1242,15 +1264,15 @@ void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* B
 void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 {
 	static const uint32_t AverageWindow_8h = 5760;	//3600*8/5: Number of readings in 8 hour
-#if (FULL_MODE==1)
-	static const uint32_t AverageWindow_24h = 17280;	//3600*24/5: Number of readings in 24 hour
 	static const uint32_t AverageWindow_1h = 720;	//3600*1/5: Number of readings in 1 hour
+#if (OUTDOOR_MODE)
+	static const uint32_t AverageWindow_24h = 17280;	//3600*24/5: Number of readings in 24 hour
 #endif
 	static float32_t co_8h_avg = 0;
 	static float32_t ch2o_8h_avg = 0;
-#if (FULL_MODE==1)
 	static float32_t no2_1h_avg = 0;
 	static float32_t nh3_8h_avg = 0;
+#if (OUTDOOR_MODE)
 	static float32_t o3_1h_avg = 0;
 	static float32_t so2_1h_avg = 0;
 	static float32_t c6h6_24h_avg = 0;
@@ -1265,9 +1287,9 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	CO = (uint16_t)lrintf(anlg->CO);
 	CH2O = (uint16_t)lrintf(anlg->CH2O);
 //	CH2O = (uint16_t)(lrintf(anlg->CH2O) + CH2O_Corr);
-#if (FULL_MODE==1)
 	NO2 = (uint16_t)lrintf(anlg->NO2);
 	NH3 = (uint16_t)lrintf(anlg->NH3);
+#if (OUTDOOR_MODE)
 	O3 = (uint16_t)lrintf(anlg->O3);
 	SO2 = (uint16_t)lrintf(anlg->SO2);
 	C6H6 = (uint16_t)lrintf(anlg->C6H6);
@@ -1287,7 +1309,7 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	{
 		co_8h_avg = (float32_t)CO_8h_Mean;
 		ch2o_8h_avg = (float32_t)CH2O_8h_Mean;
-	#if (FULL_MODE)
+	#if (OUTDOOR_MODE)
 		no2_1h_avg = (float32_t)NO2_1h_Mean;
 		nh3_8h_avg = (float32_t)NH3_8h_Mean;
 		o3_1h_avg = (float32_t)O3_1h_Mean;
@@ -1301,11 +1323,11 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	anlg->co_8h_mean = co_8h_avg;
 	ch2o_8h_avg = approxMovingAverage(ch2o_8h_avg, anlg->CH2O, AverageWindow_8h);
 	anlg->ch2o_8h_mean = ch2o_8h_avg;
-#if (FULL_MODE)
 	no2_1h_avg = approxMovingAverage(no2_1h_avg, anlg->NO2, AverageWindow_1h);
 	anlg->no2_1h_mean = no2_1h_avg;
 	nh3_8h_avg = approxMovingAverage(nh3_8h_avg, anlg->NH3, AverageWindow_8h);
 	anlg->nh3_8h_mean = nh3_8h_avg;
+#if (OUTDOOR_MODE)
 	o3_1h_avg = approxMovingAverage(o3_1h_avg, anlg->O3, AverageWindow_1h);
 	anlg->o3_1h_mean = o3_1h_avg;
 	so2_1h_avg = approxMovingAverage(so2_1h_avg, anlg->SO2, AverageWindow_1h);
@@ -1318,11 +1340,11 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	CO_8h_MeanMax = (CO_8h_Mean > CO_8h_MeanMax) ? CO_8h_Mean : CO_8h_MeanMax;
 	CH2O_8h_Mean = (uint16_t)lrintf(anlg->ch2o_8h_mean);
 	CH2O_8h_MeanMax = (CH2O_8h_Mean > CH2O_8h_MeanMax) ? CH2O_8h_Mean : CH2O_8h_MeanMax;
-#if (FULL_MODE)
 	NO2_1h_Mean = (uint16_t)lrintf(anlg->no2_1h_mean);
 	NO2_1h_MeanMax = (NO2_1h_Mean > NO2_1h_MeanMax) ? NO2_1h_Mean : NO2_1h_MeanMax;
 	NH3_8h_Mean = (uint16_t)lrintf(anlg->nh3_8h_mean);
 	NH3_8h_MeanMax = (NH3_8h_Mean > NH3_8h_MeanMax) ? NH3_8h_Mean : NH3_8h_MeanMax;
+#if (OUTDOOR_MODE)
 	O3_1h_Mean = (uint16_t)lrintf(anlg->o3_1h_mean);
 	O3_1h_MeanMax = (O3_1h_Mean > O3_1h_MeanMax) ? O3_1h_Mean : O3_1h_MeanMax;
 	SO2_1h_Mean = (uint16_t)lrintf(anlg->so2_1h_mean);
@@ -1334,9 +1356,9 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 #if (GUI_SUPPORT==1)
 	CO_data[0] = (int32_t)CO;			//For UnicleoGUI
 	CH2O_data[0] = (int32_t)CH2O;		//For UnicleoGUI
-	#if (FULL_MODE==1)
-		NO2_data[0] = (int32_t)NO2;		//For UnicleoGUI
-		NH3_data[0] = (int32_t)NH3;		//For UnicleoGUI
+	NO2_data[0] = (int32_t)NO2;			//For UnicleoGUI
+	NH3_data[0] = (int32_t)NH3;			//For UnicleoGUI
+	#if (OUTDOOR_MODE)
 		O3_data[0] = (int32_t)O3;		//For UnicleoGUI
 		SO2_data[0] = (int32_t)SO2;		//For UnicleoGUI
 		C6H6_data[0] = (int32_t)C6H6;	//For UnicleoGUI
@@ -1355,18 +1377,18 @@ void Refresh_AQI(void)
 #pragma GCC diagnostic pop
 
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-#if (FULL_MODE)
+#if (OUTDOOR_MODE)
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 						  CH2O, CO, NO2, NH3, O3, SO2, C6H6, MC_10p0, MC_2p5,
 						  CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean,
 						  O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean,
 						  MC_10p0_24h_Mean, MC_2p5_24h_Mean);
-#else	//FULL_MODE==0
+#else	//OUTDOOR_MODE==0
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
-						  CH2O, CO, 0, 0, 0, 0, 0, MC_10p0, MC_2p5,
-						  CH2O_8h_Mean, CO_8h_Mean, 0, 0, 0, 0, 0,
+						  CH2O, CO, NO2, NH3, 0, 0, 0, MC_10p0, MC_2p5,
+						  CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean, 0, 0, 0,
 						  MC_10p0_24h_Mean, MC_2p5_24h_Mean);
-#endif	//FULL_MODE
+#endif	//OUTDOOR_MODE
 #else	//GAS_SENSOR_MODULE_PRESENT==0
 	#if (PARTICULATE_SENSOR_PRESENT)
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
@@ -1405,19 +1427,19 @@ void Store_MeanValues_BackupRTC(void)
 	//Store Air Quality Data. Averaged values
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+10, CO_8h_Mean);
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+16, CH2O_8h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+12, NO2_1h_Mean);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+14, NH3_8h_Mean);
 	//Store Air Quality Data. Daily Max values
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+52, CO_8h_Mean_Max);
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+54, CH2O_8h_Mean_Max);
-	#if (FULL_MODE)
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+56, NO2_1h_Mean_Max);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+58, NH3_8h_Mean_Max);
+	#if (OUTDOOR_MODE)
 		//Store Air Quality Data. Averaged values
-		HOST_TO_BKPR_LE_16(BakUpRTC_Data+12, NO2_1h_Mean);
-		HOST_TO_BKPR_LE_16(BakUpRTC_Data+14, NH3_8h_Mean);
 		HOST_TO_BKPR_LE_16(BakUpRTC_Data+18, O3_1h_Mean);
 		HOST_TO_BKPR_LE_16(BakUpRTC_Data+20, SO2_1h_Mean);
 		HOST_TO_BKPR_LE_16(BakUpRTC_Data+22, C6H6_24h_Mean);
 		//Store Air Quality Data. Daily Max values
-		HOST_TO_BKPR_LE_16(BakUpRTC_Data+56, NO2_1h_Mean_Max);
-		HOST_TO_BKPR_LE_16(BakUpRTC_Data+58, NH3_8h_Mean_Max);
 		HOST_TO_BKPR_LE_16(BakUpRTC_Data+60, O3_1h_Mean_Max);
 		HOST_TO_BKPR_LE_16(BakUpRTC_Data+62, SO2_1h_Mean_Max);
 		HOST_TO_BKPR_LE_16(BakUpRTC_Data+64, C6H6_24h_Mean_Max);
@@ -1474,19 +1496,19 @@ void ReStore_MeanValues_BackupRTC(void)
 	//Restore Air Quality Data. Averaged values
 	memcpy(&CO_8h_Mean, &BakUpRTC_Data[10], 2);
 	memcpy(&CH2O_8h_Mean, &BakUpRTC_Data[16], 2);
+	memcpy(&NO2_1h_Mean, &BakUpRTC_Data[12], 2);
+	memcpy(&NH3_8h_Mean, &BakUpRTC_Data[14], 2);
 	//Restore Air Quality Data. Max values
 	memcpy(&CO_8h_Mean_Max, &BakUpRTC_Data[52], 2);
 	memcpy(&CH2O_8h_Mean_Max, &BakUpRTC_Data[54], 2);
-	#if (FULL_MODE)
+	memcpy(&NO2_1h_Mean_Max, &BakUpRTC_Data[56], 2);
+	memcpy(&NH3_8h_Mean_Max, &BakUpRTC_Data[58], 2);
+	#if (OUTDOOR_MODE)
 		//Restore Air Quality Data. Averaged values
-		memcpy(&NO2_1h_Mean, &BakUpRTC_Data[12], 2);
-		memcpy(&NH3_8h_Mean, &BakUpRTC_Data[14], 2);
 		memcpy(&O3_1h_Mean, &BakUpRTC_Data[18], 2);
 		memcpy(&SO2_1h_Mean, &BakUpRTC_Data[20], 2);
 		memcpy(&C6H6_24h_Mean, &BakUpRTC_Data[22], 2);
 		//Restore Air Quality Data. Daily Max values
-		memcpy(&NO2_1h_Mean_Max, &BakUpRTC_Data[56], 2);
-		memcpy(&NH3_8h_Mean_Max, &BakUpRTC_Data[58], 2);
 		memcpy(&O3_1h_Mean_Max, &BakUpRTC_Data[60], 2);
 		memcpy(&SO2_1h_Mean_Max, &BakUpRTC_Data[62], 2);
 		memcpy(&C6H6_24h_Mean_Max, &BakUpRTC_Data[64], 2);
@@ -1583,18 +1605,18 @@ void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st 
 #if (GAS_SENSOR_MODULE_PRESENT)
 	Measurement_Value->co_8h_mean_DailyMax = CO_8h_Mean_Max = CO_8h_MeanMax;
 	Measurement_Value->ch2o_8h_mean_DailyMax = CH2O_8h_Mean_Max = CH2O_8h_MeanMax;
+	Measurement_Value->no2_1h_mean_DailyMax = NO2_1h_Mean_Max = NO2_1h_MeanMax;
+	Measurement_Value->nh3_8h_mean_DailyMax = NH3_8h_Mean_Max = NH3_8h_MeanMax;
 	//Re-Initialize Gases Sensors Max values variables
 	CO_8h_MeanMax = ANLG_LOWER_CO_LIMIT;
 	CH2O_8h_MeanMax = ANLG_LOWER_CH2O_LIMIT;
-	#if (FULL_MODE)
-		Measurement_Value->no2_1h_mean_DailyMax = NO2_1h_Mean_Max = NO2_1h_MeanMax;
-		Measurement_Value->nh3_8h_mean_DailyMax = NH3_8h_Mean_Max = NH3_8h_MeanMax;
+	NO2_1h_MeanMax = ANLG_LOWER_NO2_LIMIT;
+	NH3_8h_MeanMax = ANLG_LOWER_NH3_LIMIT;
+	#if (OUTDOOR_MODE)
 		Measurement_Value->o3_1h_mean_DailyMax = O3_1h_Mean_Max = O3_1h_MeanMax;
 		Measurement_Value->so2_1h_mean_DailyMax = SO2_1h_Mean_Max = SO2_1h_MeanMax;
 		Measurement_Value->c6h6_24h_mean_DailyMax = C6H6_24h_Mean_Max = C6H6_24h_MeanMax;
 		//Re-Initialize Gases Sensors Max values variables
-		NO2_1h_MeanMax = ANLG_LOWER_NO2_LIMIT;
-		NH3_8h_MeanMax = ANLG_LOWER_NH3_LIMIT;
 		O3_1h_MeanMax = ANLG_LOWER_O3_LIMIT;
 		SO2_1h_MeanMax = ANLG_LOWER_SO2_LIMIT;
 		C6H6_24h_MeanMax = ANLG_LOWER_C6H6_LIMIT;

@@ -66,22 +66,29 @@ const uint8_t mystring8c[] = "\r\n\n  ** Restart the board to make the changes e
 	const uint8_t mystring12f[] = "  If you are in clean air use this value as reference value.";
 	const uint8_t mystring12g[] = "\r\n\n  The read value of Rf_CO is:";
 	const uint8_t mystring12h[] = "  Enter the new Rf in ohm: ";
-	const uint8_t mystring13a[] = "  The current CH2O read by the ZE8-CH2O sensor is:";
+	const uint8_t mystring14a[] = "  The current NO2 read by the MiCS-6814 sensor is:";
+	//const uint8_t mystring14b[] = "  Enter the reference NO2 in ug/m3: ";
+	const uint8_t mystring14b[] = "  Enter the reference NO2 in mV/10: ";
+	const uint8_t mystring14c[] = "\r\n\n  The current MiCS-6814 Ro_NO2 is:";
+	const uint8_t mystring14d[] = "  Enter the reference Ro_NO2 in ohm: ";
+	const uint8_t mystring14e[] = "\r\n\n  The read value of Rf_NO2 is:";
+	const uint8_t mystring15a[] = "  The current NH3 read by the MiCS-6814 sensor is:";
+	//const uint8_t mystring15b[] = "  Enter the reference NH3 in ug/m3: ";
+	const uint8_t mystring15b[] = "  Enter the reference NH3 in mV/10: ";
+	const uint8_t mystring15c[] = "\r\n\n  The current MiCS-6814 Ro_NH3 is:";
+	const uint8_t mystring15d[] = "  Enter the reference Ro_NH3 in ohm: ";
+	const uint8_t mystring15e[] = "\r\n\n  The read value of Rf_NH3 is:";
 	//const uint8_t mystring13b[] = "  Enter the reference CH2O in ug/m3: ";
 	const uint8_t mystring13b[] = "  Enter the reference CH2O in mV: ";
-	#if (FULL_MODE==1)
-		const uint8_t mystring14a[] = "  The current NO2 read by the MiCS-6814 sensor is:";
-		//const uint8_t mystring14b[] = "  Enter the reference NO2 in ug/m3: ";
-		const uint8_t mystring14b[] = "  Enter the reference NO2 in mV/10: ";
-		const uint8_t mystring14c[] = "\r\n\n  The current MiCS-6814 Ro_NO2 is:";
-		const uint8_t mystring14d[] = "  Enter the reference Ro_NO2 in ohm: ";
-		const uint8_t mystring14e[] = "\r\n\n  The read value of Rf_NO2 is:";
-		const uint8_t mystring15a[] = "  The current NH3 read by the MiCS-6814 sensor is:";
-		//const uint8_t mystring15b[] = "  Enter the reference NH3 in ug/m3: ";
-		const uint8_t mystring15b[] = "  Enter the reference NH3 in mV/10: ";
-		const uint8_t mystring15c[] = "\r\n\n  The current MiCS-6814 Ro_NH3 is:";
-		const uint8_t mystring15d[] = "  Enter the reference Ro_NH3 in ohm: ";
-		const uint8_t mystring15e[] = "\r\n\n  The read value of Rf_NH3 is:";
+	#if !(CH2O_FROM_EC)
+		const uint8_t mystring13c[] = "\r\n\n  The current SMD1001 Vo_CH2O is:";
+		const uint8_t mystring13d[] = "  Enter the reference Vo_CH2O in mVolts: ";
+		const uint8_t mystring13a[] = "  The current CH2O read by the SMD1001-CH2O sensor is:";
+		const uint8_t mystring13f[] = "\r\n\n  The read value of Vs is:";
+	#else
+		const uint8_t mystring13a[] = "  The current CH2O read by the ZE8-CH2O sensor is:";
+	#endif
+	#if (OUTDOOR_MODE)
 		const uint8_t mystring16a[] = "  The current O3 read by the ZE25-O3 sensor is:";
 		//const uint8_t mystring16b[] = "  Enter the reference O3 in ug/m3: ";
 		const uint8_t mystring16b[] = "  Enter the reference O3 in mV: ";
@@ -91,7 +98,7 @@ const uint8_t mystring8c[] = "\r\n\n  ** Restart the board to make the changes e
 		const uint8_t mystring18a[] = "  The current C6H6 read by the ME4-C6H6 sensor is:";
 		//const uint8_t mystring18b[] = "  Enter the reference C6H6 in ug/m3: ";
 		const uint8_t mystring18b[] = "  Enter the reference C6H6 in mV: ";
-	#endif	//FULL_MODE
+	#endif	//OUTDOOR_MODE
 	const uint8_t mystring18c[] = "\r\n\n  The current reference is:";
 #endif	//GAS_SENSOR_MODULE_PRESENT
 const uint8_t top_menu_items_row1[]="\r\n\n+-------------------+\r\n";
@@ -171,14 +178,14 @@ const uint8_t top_menu_items_row10[]="| FW UPDATE...: [6] |\r\n";
 	#endif
 	#if (GAS_SENSOR_MODULE_PRESENT==1)
 		const uint8_t L80_menu_items_row9[]= "| CO SENSOR CALIB.: 6 |\r\n";
-		const uint8_t L80_menu_items_row10[]= "| CH2O SENSOR CAL.: 7 |\r\n";
-		#if (FULL_MODE==1)
-			const uint8_t L80_menu_items_row11[]="| NO2 SENSOR CALIB: 8 |\r\n";
-			const uint8_t L80_menu_items_row12[]="| NH3 SENSOR CALIB: 9 |\r\n";
+		const uint8_t L80_menu_items_row10[]="| CH2O SENSOR CAL.: 7 |\r\n";
+		const uint8_t L80_menu_items_row11[]="| NO2 SENSOR CALIB: 8 |\r\n";
+		const uint8_t L80_menu_items_row12[]="| NH3 SENSOR CALIB: 9 |\r\n";
+		#if (OUTDOOR_MODE)
 			const uint8_t L80_menu_items_row13[]="| O3 SENSOR CALIB.: A |\r\n";
 			const uint8_t L80_menu_items_row14[]="| SO2 SENSOR CALIB: B |\r\n";
 			const uint8_t L80_menu_items_row15[]="| C6H6 SENSOR CAL.: C |\r\n";
-		#endif	//FULL_MODE
+		#endif	//OUTDOOR_MODE
 	#endif	//GAS_SENSOR_MODULE_PRESENT
 #endif	//UTILITIES==1
 const uint8_t L50_menu_items_row1a[]="\r\n\n+------------------------------------------------";
@@ -1008,13 +1015,13 @@ void L80_menu_Strings()
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row9,strlen((const char*)L80_menu_items_row9));
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row10,strlen((const char*)L80_menu_items_row10));
-#if (FULL_MODE==1)
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row11,strlen((const char*)L80_menu_items_row11));
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row12,strlen((const char*)L80_menu_items_row12));
+#if (OUTDOOR_MODE)
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row13,strlen((const char*)L80_menu_items_row13));
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row14,strlen((const char*)L80_menu_items_row14));
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row15,strlen((const char*)L80_menu_items_row15));
-#endif	//FULL_MODE
+#endif	//OUTDOOR_MODE
 #endif	//GAS_SENSOR_MODULE_PRESENT
 #if (RTC_CALIB==1)
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row20,strlen((const char*)L80_menu_items_row20));
@@ -1071,22 +1078,23 @@ void L80_menu()
 	extern uint32_t CCS811_VOC_Ro_Stored;
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-	extern uint16_t CH2O, CO;
-	uint16_t COref = 0; uint16_t CH2Oref = 0;
+	extern uint16_t CH2O, CO, NO2, NH3;
+	uint16_t COref = 0; uint16_t CH2Oref = 0; int16_t NO2ref = 0; int16_t NH3ref = 0;
 	extern int8_t CO_Corr; extern int8_t CH2O_Corr;
-	extern uint32_t MiCS_6814_CO_Ro;
-	extern uint32_t MiCS_6814_CO_Rf;
-	extern float32_t MiCS_6814_CO_Rs;
-#if (FULL_MODE==1)
-	extern uint16_t NO2, NH3, O3, SO2, C6H6;
-	int16_t NO2ref = 0; int16_t NH3ref = 0; int16_t O3ref = 0;
-	int16_t SO2ref = 0; int16_t C6H6ref = 0;
-	extern int8_t NO2_Corr; extern int8_t NH3_Corr; extern int8_t O3_Corr;
-	extern int8_t SO2_Corr; extern int8_t C6H6_Corr; int8_t Spare_Corr = 0;
-	extern uint32_t MiCS_6814_NO2_Ro; extern uint32_t MiCS_6814_NH3_Ro;
-	extern uint32_t MiCS_6814_NO2_Rf; extern uint32_t MiCS_6814_NH3_Rf;
-	extern float32_t MiCS_6814_NO2_Rs; extern float32_t MiCS_6814_NH3_Rs;
-#endif	//FULL_MODE
+	extern int8_t NO2_Corr; extern int8_t NH3_Corr;
+	extern uint32_t MiCS_6814_CO_Ro; extern uint32_t MiCS_6814_NO2_Ro; extern uint32_t MiCS_6814_NH3_Ro;
+	extern uint32_t MiCS_6814_CO_Rf; extern uint32_t MiCS_6814_NO2_Rf; extern uint32_t MiCS_6814_NH3_Rf;
+	extern float32_t MiCS_6814_CO_Rs; extern float32_t MiCS_6814_NO2_Rs; extern float32_t MiCS_6814_NH3_Rs;
+#if !(CH2O_FROM_EC)
+	extern uint32_t SMD1001_CH2O_Vo;
+//	extern uint32_t SMD1001_CH2O_Rf;
+	extern float32_t SMD1001_CH2O_Vs;
+#endif
+#if (OUTDOOR_MODE)
+	extern uint16_t O3, SO2, C6H6;
+	int16_t O3ref = 0; int16_t SO2ref = 0; int16_t C6H6ref = 0;
+	extern int8_t O3_Corr; extern int8_t SO2_Corr; extern int8_t C6H6_Corr; int8_t Spare_Corr = 0;
+#endif	//OUTDOOR_MODE
 //	extern ANLG_MeasureTypeDef_st GAS_Values;
 #endif	//GAS_SENSOR_MODULE_PRESENT
 #if (SET_DATE_TIME==1)
@@ -1268,6 +1276,18 @@ void L80_menu()
 				break;
 			case 0x37:
 				app.usbbuf[len-1] = 0;
+	#if !(CH2O_FROM_EC)
+				PrintNumHeader((uint8_t*)mystring13f, (uint8_t*)mystring12f, (uint32_t)lrintf(SMD1001_CH2O_Vs), false, " Volts");
+				PrintNumHeader((uint8_t*)mystring13c, (uint8_t*)mystring13d, SMD1001_CH2O_Vo, false, " mVolts");
+				GetNumericString(false, false);
+				//Enter the new MiCS_6814_CO_Ro
+				if (strlen((const char*)(mystring3)))
+				{
+					FlashDataOrg.b_status.s14 = SMD1001_CH2O_Vo = (uint32_t)(atoi((const char*)mystring3));
+					updated = true;
+				}
+				app.usbbuf[app.usblen-1] = 0;
+	#endif
 				PrintNumHeader((uint8_t*)mystring18c, NULL, CH2O_Corr, false, "mV");
 				PrintNumHeader((uint8_t*)mystring13a, (uint8_t*)mystring13b, CH2O, false, "ug/m3");
 				GetNumericString(false, true);
@@ -1282,7 +1302,6 @@ void L80_menu()
 					updated = true;
 				}
 				break;
-	#if (FULL_MODE==1)
 			case 0x38:
 				app.usbbuf[len-1] = 0;
 				PrintNumHeader((uint8_t*)mystring14e, (uint8_t*)mystring12h, MiCS_6814_NO2_Rf, false, " ohm");
@@ -1361,6 +1380,7 @@ void L80_menu()
 					}
 				}
 				break;
+	#if (OUTDOOR_MODE)
 			case 0x41:	//"A"
 			case 0x61:	//"a"
 				app.usbbuf[len-1] = 0;
@@ -1412,7 +1432,7 @@ void L80_menu()
 					updated = true;
 				}
 				break;
-	#endif	//FULL_MODE
+	#endif	//OUTDOOR_MODE
 #endif	//GAS_SENSOR_MODULE_PRESENT
 #if (USE_BKUP_SRAM==1)
 			case 0x47:	//"G"
@@ -1612,7 +1632,7 @@ void L80_menu()
 				{
 					updated = false;
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-	#if (FULL_MODE==1)
+	#if (OUTDOOR_MODE)
 					//Pack-> Bit 0..7: CH2O_Corr; Bit 7..15: O3_Corr; Bit 16..23: NO2_Corr; Bit 24..32: NH3_Corr
 					FlashDataOrg.b_status.s9 = ((uint32_t)(NH3_Corr & 0xFF) << 24) | ((uint32_t)(NO2_Corr & 0xFF) << 16) |
 											   ((uint32_t)(O3_Corr & 0xFF) << 8) | (uint32_t)(CH2O_Corr & 0xFF);
@@ -1620,13 +1640,14 @@ void L80_menu()
 					FlashDataOrg.b_status.sa = ((uint32_t)(Spare_Corr & 0xFF) << 24) | ((uint32_t)(C6H6_Corr & 0xFF) << 16) |
 											   ((uint32_t)(SO2_Corr & 0xFF) << 8) | (uint32_t)(CO_Corr & 0xFF);
 	#else
-					//Pack-> Bit 0..7: CH2O_Corr
-					FlashDataOrg.b_status.s9 &= 0xFFFFFF00;
-					FlashDataOrg.b_status.s9 |= (uint32_t)(CH2O_Corr & 0x000000FF);
+					//Pack-> Bit 0..7: CH2O_Corr; Bit 16..23: NO2_Corr; Bit 24..32: NH3_Corr
+					FlashDataOrg.b_status.s9 &= 0x0000FF00;
+					FlashDataOrg.b_status.s9 = ((uint32_t)(NH3_Corr & 0xFF) << 24) | ((uint32_t)(NO2_Corr & 0xFF) << 16) |
+											   (uint32_t)(CH2O_Corr & 0xFF);
 					//Pack-> Bit 0..7: CO_Corr
 					FlashDataOrg.b_status.sa &= 0xFFFFFF00;
 					FlashDataOrg.b_status.sa |= (uint32_t)(CO_Corr & 0x000000FF);
-	#endif	//FULL_MODE
+	#endif	//OUTDOOR_MODE
 #endif	//GAS_SENSOR_MODULE_PRESENT
 #if ((UWB_MODE==1) || (PWR_NODE_MODE==1))
 					//Pack-> Bit 0..7: Node Role; Bit 7..15: Op Mode; Bit 16..23: Res1; Bit 24..32: Res2

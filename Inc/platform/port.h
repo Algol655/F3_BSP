@@ -261,9 +261,9 @@ typedef struct board_status
 	uint8_t s12_offset;	//offset from 0x0803F800: 0x6C
 	uint32_t s13;		//BLE MAC Address 1..3 (OUI)
 	uint8_t s13_offset;	//offset from 0x0803F800: 0x70
-	uint32_t s14;
+	uint32_t s14;		//Bit 0..32: SMD1001_CH2O_Vo
 	uint8_t s14_offset;	//offset from 0x0803F800: 0x74
-	uint32_t s15;
+	uint32_t s15;		//Bit 0..32: SMD1001_CH2O_Rf
 	uint8_t s15_offset;	//offset from 0x0803F800: 0x78
 	uint32_t s16;
 	uint8_t s16_offset;	//offset from 0x0803F800: 0x7C

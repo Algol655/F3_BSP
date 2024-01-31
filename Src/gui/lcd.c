@@ -14,10 +14,10 @@
 
 uint8_t SLen;
 const uint8_t NumENV_Pages = 2;
-#if (FULL_MODE==1)
+#if (OUTDOOR_MODE)
 	const uint8_t NumGAS_Pages = 2;
 #else
-	const uint8_t NumGAS_Pages = 1;
+	const uint8_t NumGAS_Pages = 2;
 #endif
 #if (SHOW_PM_NUMBER==1)
 	const uint8_t NumPM_Pages = 3;
@@ -448,7 +448,7 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 		case 0x02:	//Air Quality page
 		{
 	#if (GAS_SENSOR_MODULE_PRESENT==1)
-		#if (FULL_MODE==1)
+//		#if (OUTDOOR_MODE)
 			if (PM_toggle == 2)		//+1 because PM_toggle is incremented at the end of the
 			{						//VOC_SENSOR section of the FormatDisplayString function
 				u8g2_ClearBuffer(&u8g2);
@@ -488,7 +488,7 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 				u8g2_DrawRFrame(&u8g2, 96, 0, 47, 31, 3);
 				u8g2_DrawRFrame(&u8g2, 144, 0, 48, 31, 3);
 			}
-		#else		//FULL_MODE==0
+/*		#else		//OUTDOOR_MODE==0
 			u8g2_ClearBuffer(&u8g2);
 			//Resends string, so it will be displayed immediately
 			u8g2_DrawStr(&u8g2, TextXPos, TextYPos, (char*)&usbVCOMout[0]);
@@ -502,7 +502,7 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 			u8g2_DrawRFrame(&u8g2, 48, 0, 47, 31, 3);
 			u8g2_DrawRFrame(&u8g2, 96, 0, 47, 31, 3);
 			u8g2_DrawRFrame(&u8g2, 144, 0, 48, 31, 3);
-		#endif		//FULL_MODE
+		#endif		//OUTDOOR_MODE */
 	#else			//GAS_SENSOR_MODULE_PRESENT==0
 			//Resends string, so it will be displayed immediately
 			u8g2_DrawStr(&u8g2, TextXPos, TextYPos, (char*)&usbVCOMout[0]);
@@ -605,26 +605,27 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 	extern uint16_t MC_1p0_24h_Mean, MC_2p5_24h_Mean, MC_4p0_24h_Mean, MC_10p0_24h_Mean;
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-	extern uint16_t CH2O, CO, CH2O_8h_Mean, CO_8h_Mean;
-	#if (FULL_MODE==1)
-		extern uint16_t NO2, NH3, O3, SO2, C6H6;
-		extern uint16_t NO2_1h_Mean, NH3_8h_Mean, O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
+	extern uint16_t CH2O, CO, NO2, NH3;
+	extern uint16_t CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean;
+	#if (OUTDOOR_MODE)
+		extern uint16_t O3, SO2, C6H6;
+		extern uint16_t O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
 	#endif
 #endif
 	//Calculate the air quality index
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-	#if (FULL_MODE==1)
+	#if (OUTDOOR_MODE)
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 										   CH2O, CO, NO2, NH3, O3, SO2, C6H6, MC_10p0, MC_2p5,
 										   CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean,
 										   O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
-	#else	//FULL_MODE==0
+	#else	//OUTDOOR_MODE==0
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
-										   CH2O, CO, 0, 0, 0, 0, 0, MC_10p0, MC_2p5,
-										   CH2O_8h_Mean, CO_8h_Mean, 0, 0, 0, 0, 0,
+										   CH2O, CO, NO2, NH3, 0, 0, 0, MC_10p0, MC_2p5,
+										   CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean, 0, 0, 0,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
-	#endif	//FULL_MODE
+	#endif	//OUTDOOR_MODE
 #else	//GAS_SENSOR_MODULE_PRESENT==0
 	#if (PARTICULATE_SENSOR_PRESENT)
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
@@ -698,7 +699,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 		case 0x02:	//Air Quality page
 		{
 	#if (GAS_SENSOR_MODULE_PRESENT==1)
-		#if (FULL_MODE==1)
+//		#if (OUTDOOR_MODE)
 			if (PM_toggle == 2)		//+1 because PM_toggle is incremented at the end of the
 			{						//VOC_SENSOR section of the FormatDisplayString function
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
@@ -746,10 +747,12 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_mf);
 				sprintf((char*)&ch2o_v_8h_Mean[0],  "%u", CH2O_8h_Mean);
 				u8g2_DrawStr(&u8g2, 2, 30, (char*)&ch2o_v_8h_Mean[0]);
+			#if (OUTDOOR_MODE)
 				sprintf((char*)&o3v_8h_Mean[0],  "%u", O3_1h_Mean);
 				u8g2_DrawStr(&u8g2, 50, 30, (char*)&o3v_8h_Mean[0]);
 				sprintf((char*)&so2_v_24h_Mean[0],  "%u", SO2_1h_Mean);
 				u8g2_DrawStr(&u8g2, 98, 30, (char*)&so2_v_24h_Mean[0]);
+			#endif
 			#if (DISPLAY_C6H6)
 				sprintf((char*)&c6h6_v_24h_Mean[0],  "%u", C6H6_24h_Mean);
 				u8g2_DrawStr(&u8g2, 146, 30, (char*)&c6h6_v_24h_Mean[0]);
@@ -789,7 +792,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 				u8g2_DrawRFrame(&u8g2, 96, 11, 47, 21, 3);
 				u8g2_DrawRFrame(&u8g2, 144, 11, 48, 21, 3);
 			}
-		#else		//FULL_MODE==0
+/*		#else		//OUTDOOR_MODE==0
 //			if (PM_toggle == 2)		//+1 because PM_toggle is incremented at the end of the
 //			{						//VOC_SENSOR section of the FormatDisplayString function
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
@@ -811,24 +814,24 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 				u8g2_DrawStr(&u8g2, 180, 30, "10");
 
 				u8g2_DrawRFrame(&u8g2, 0, 0, 192, 12, 3);
-/*				u8g2_DrawRFrame(&u8g2, 0, 0, 47, 12, 3);
-				u8g2_DrawRFrame(&u8g2, 48, 0, 47, 12, 3);
-				u8g2_DrawRFrame(&u8g2, 96, 0, 47, 12, 3);
-				u8g2_DrawRFrame(&u8g2, 144, 0, 48, 12, 3); */
+//				u8g2_DrawRFrame(&u8g2, 0, 0, 47, 12, 3);
+//				u8g2_DrawRFrame(&u8g2, 48, 0, 47, 12, 3);
+//				u8g2_DrawRFrame(&u8g2, 96, 0, 47, 12, 3);
+//				u8g2_DrawRFrame(&u8g2, 144, 0, 48, 12, 3);
 
 				u8g2_SetFont(&u8g2, u8g2_font_6x10_mf);
 				u8g2_DrawStr(&u8g2, 31, 10, "Mean values in 8 hours\r\n");
-/*				u8g2_DrawStr(&u8g2, 6, 10, "8h AVG\r\n");
-				u8g2_DrawStr(&u8g2, 54, 10, "8h AVG\r\n");
-				u8g2_DrawStr(&u8g2, 102, 10, "8h AVG\r\n");
-				u8g2_DrawStr(&u8g2, 148, 10, "8h AVG\r\n"); */
+//				u8g2_DrawStr(&u8g2, 6, 10, "8h AVG\r\n");
+//				u8g2_DrawStr(&u8g2, 54, 10, "8h AVG\r\n");
+//				u8g2_DrawStr(&u8g2, 102, 10, "8h AVG\r\n");
+//				u8g2_DrawStr(&u8g2, 148, 10, "8h AVG\r\n");
 
 				u8g2_DrawRFrame(&u8g2, 0, 11, 47, 21, 3);
 				u8g2_DrawRFrame(&u8g2, 48, 11, 47, 21, 3);
 				u8g2_DrawRFrame(&u8g2, 96, 11, 47, 21, 3);
 				u8g2_DrawRFrame(&u8g2, 144, 11, 48, 21, 3);
-//			}
-		#endif		//FULL_MODE
+			}	*/
+//		#endif		//OUTDOOR_MODE
 	#else			//GAS_SENSOR_MODULE_PRESENT==0
 			u8g2_SetFont(&u8g2, u8g2_font_5x8_tf);
 			if (AQ_Level.AvgGasAirQualityIndex <= AQ_Level.GasAirQualityIndex)	//The AQI shown is always the lower between..
@@ -1120,9 +1123,9 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 		extern float TypicalParticleSize;
 	#endif
 	#if (GAS_SENSOR_MODULE_PRESENT==1)
-		extern uint16_t CH2O, CO;
-		#if (FULL_MODE==1)
-			extern uint16_t NO2, NH3, C6H6, O3, SO2;
+		extern uint16_t CH2O, CO, NO2, NH3;
+		#if (OUTDOOR_MODE)
+			extern uint16_t C6H6, O3, SO2;
 		#endif
 	#endif
 
@@ -1459,7 +1462,7 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 				if (((SensorStatusReg) & (VOC_SENSOR_OK)) || ((SensorStatusReg) & (GAS_SENSORS_OK)))
 				{
 			#if (GAS_SENSOR_MODULE_PRESENT==1)
-				#if (FULL_MODE==1)
+//				#if (OUTDOOR_MODE)
 					if (PM_toggle == 1)
 					{
 						TextXPos = 4; TextYPos = 29;
@@ -1504,7 +1507,7 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 						FillAirQualityField(ch2o_v, CH2O, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,0));
 						ptr = str_center(ch2o_v, CH2O_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[0], ptr, CH2O_FRAME_W);
-
+					#if (OUTDOOR_MODE)
 						FillAirQualityField(o3_v, O3, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,1));
 						ptr = str_center(o3_v, O3_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[CH2O_FRAME_W], ptr, O3_FRAME_W);
@@ -1512,6 +1515,15 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 						FillAirQualityField(so2_v, SO2, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,5));
 						ptr = str_center(so2_v, SO2_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[CH2O_FRAME_W+O3_FRAME_W], ptr, SO2_FRAME_W);
+					#else
+						FillAirQualityField(o3_v, 0, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,1));
+						ptr = str_center(o3_v, 8, AIRQ_FRAME_FILL_CHAR);
+						memcpy((void *)&Buff[CH2O_FRAME_W], ptr, 8);
+
+						FillAirQualityField(so2_v, 0, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,5));
+						ptr = str_center(so2_v, 8, AIRQ_FRAME_FILL_CHAR);
+						memcpy((void *)&Buff[CH2O_FRAME_W+8], ptr, 8);
+					#endif	//OUTDOOR_MODE
 					#if (DISPLAY_C6H6)
 						FillAirQualityField(c6h6_v, C6H6, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,6));
 						ptr = str_center(c6h6_v, C6H6_FRAME_W, AIRQ_FRAME_FILL_CHAR);
@@ -1521,15 +1533,21 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 					#else
 						FillAirQualityField(eco2_v, eq_CO2, 0);
 						ptr = str_center(eco2_v, eCO2_FRAME_W, AIRQ_FRAME_FILL_CHAR);
+					#if (OUTDOOR_MODE)
 						memcpy((void *)&Buff[CH2O_FRAME_W+O3_FRAME_W+SO2_FRAME_W], ptr, eCO2_FRAME_W);
 
 						*len = CH2O_FRAME_W + O3_FRAME_W + SO2_FRAME_W + eCO2_FRAME_W;
-					#endif
+					#else
+						memcpy((void *)&Buff[CH2O_FRAME_W+7+8], ptr, eCO2_FRAME_W);
+
+						*len = CH2O_FRAME_W + 8 + 8 + eCO2_FRAME_W;
+					#endif	//OUTDOOR_MODE
+					#endif	//DISPLAY_C6H6
 						Buff[*len+1] = '\r';
 						Buff[*len+2] = '\n';
 					}
 //					*len = sprintf((char*)&Buff[0], "ABCDEFGHILMNOPQRSTUVZ0123456789");
-				#else	//FULL_MODE==0
+/*				#else	//OUTDOOR_MODE==0
 					if (PM_toggle == 1)
 					{
 						TextXPos = 4; TextYPos = 29;
@@ -1566,7 +1584,7 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 						Buff[*len+2] = '\n';
 					}
 //					*len = sprintf((char*)&Buff[0], "ABCDEFGHILMNOPQRSTUVZ0123456789");
-				#endif		//FULL_MODE
+				#endif		//OUTDOOR_MODE */
 			#else			//GAS_SENSOR_MODULE_PRESENT==0
 					TextXPos = 46; TextYPos = 29;
 

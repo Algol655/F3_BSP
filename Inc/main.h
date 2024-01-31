@@ -145,7 +145,7 @@ void Error_Handler(void);
 #define VOC_SENSOR_PRESENT		(1)
 #define PARTICULATE_SENSOR_PRESENT (1)
 #define GAS_SENSOR_MODULE_PRESENT  (1)	//Must be understood as "USE_ADC"
-#define FULL_MODE		(1)
+#define OUTDOOR_MODE		(1)
 //Board defines section
 #define USE_STM32F4XX_NUCLEO	(0)
 #define USE_SENSUS191	(1)
@@ -154,7 +154,7 @@ void Error_Handler(void);
 #define DATA_EEPROM_BASE (0x0803F800)	//Last flash sector (127) is used as EEPROM to store/load data. See processor reference manual
 #define USE_BKUP_SRAM	(1)				//1 = Internal Back-Up SRAM is used
 #define RTC_BKUP_SIZE	(84)			//Internal Back-Up SRAM size: 42 x 16bit (84 bytes). See processor reference manual
-#define USE_IWDGT 		(1)				//1 = IWDGT activated (=1 only in BLE BEACON MODE!!!)
+#define USE_IWDGT 		(0)				//1 = IWDGT activated (=1 only in BLE BEACON MODE!!!)
 /**************************/
 /*    Project Settings    */
 /**************************/
@@ -163,9 +163,9 @@ void Error_Handler(void);
 										//to the atmospheric pressure will be displayed. CALC_DEWPOINT must be 0
 //GUI defines section
 #define TLCD_SUPPORT	(0)				//1 to support a Text LCD 24xN. GLCD_SUPPORT and TFT_SUPPORT must both be zero!
-#define GLCD_SUPPORT	(0)				//1 to support a Graphic LCD 192x64. TLCD_SUPPORT and TFT_SUPPORT must both be zero!
+#define GLCD_SUPPORT	(1)				//1 to support a Graphic LCD 192x64. TLCD_SUPPORT and TFT_SUPPORT must both be zero!
 #define TFT_SUPPORT		(0)				//1 to support a TouchScreen TFT Graphic LCD. TLCD_SUPPORT and GLCD_SUPPORT must both be zero!
-#define BLE_SUPPORT		(1)				//1: Sensor data are sent to the BLE for the "ST BLE Sensor" app. GUI_SUPPORT must be zero
+#define BLE_SUPPORT		(0)				//1: Sensor data are sent to the BLE for the "ST BLE Sensor" app. GUI_SUPPORT must be zero
 #define GUI_SUPPORT		(0)				//Set to 1 when STM UNICLEO Graphical User Interface is used to Display/Control sensors data
 										//Warning!! You have to enable all sensors when Unicleo mode is enabled and BLE_SUPPORT must be zero
 										//Warning!! When UnicleoGUI == 1 the possibility of displaying the data on a local display is excluded

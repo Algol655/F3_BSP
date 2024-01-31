@@ -295,17 +295,19 @@ bool SendCntrlMsg;
 	ANLG_MeasureTypeDef_st GAS_Values;
 	uint16_t CH2O, CH2O_8h_Mean, CO, CO_8h_Mean;
 	uint16_t CH2O_8h_MeanMax, CO_8h_MeanMax, CH2O_8h_Mean_Max, CO_8h_Mean_Max;
-	#if (FULL_MODE==1)
-		uint16_t NO2, NH3, O3, SO2, C6H6;
-		uint16_t NO2_1h_Mean, NH3_8h_Mean, O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
-		uint16_t NO2_1h_MeanMax, NH3_8h_MeanMax, O3_1h_MeanMax, SO2_1h_MeanMax, C6H6_24h_MeanMax;
-		uint16_t NO2_1h_Mean_Max, NH3_8h_Mean_Max, O3_1h_Mean_Max, SO2_1h_Mean_Max, C6H6_24h_Mean_Max;
+	uint16_t NO2, NH3, NO2_1h_Mean, NH3_8h_Mean;
+	uint16_t NO2_1h_MeanMax, NH3_8h_MeanMax;
+	uint16_t NO2_1h_Mean_Max, NH3_8h_Mean_Max;
+	#if (OUTDOOR_MODE)
+		uint16_t O3, SO2, C6H6;
+		uint16_t O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
+		uint16_t O3_1h_MeanMax, SO2_1h_MeanMax, C6H6_24h_MeanMax;
+		uint16_t O3_1h_Mean_Max, SO2_1h_Mean_Max, C6H6_24h_Mean_Max;
 	#endif
 	#if (GUI_SUPPORT==1)
-		int32_t CO_data[1]; int32_t CH2O_data[1];	//For UnicleoGUI
-		#if (FULL_MODE==1)
-			int32_t NO2_data[1]; int32_t NH3_data[1]; int32_t O3_data[1];	//For UnicleoGUI
-			int32_t SO2_data[1]; int32_t C6H6_data[1];						//For UnicleoGUI
+		int32_t CO_data[1]; int32_t CH2O_data[1]; int32_t NO2_data[1]; int32_t NH3_data[1]	//For UnicleoGUI
+		#if (OUTDOOR_MODE)
+			int32_t O3_data[1]; int32_t SO2_data[1]; int32_t C6H6_data[1];					//For UnicleoGUI
 		#endif
 	#endif
 	#if (VOC_SENSOR_PRESENT==0)

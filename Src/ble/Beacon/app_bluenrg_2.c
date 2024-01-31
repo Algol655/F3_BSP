@@ -348,9 +348,9 @@ void MX_BlueNRG_2_Process(void)
 	#if (GAS_SENSOR_MODULE_PRESENT)
 			HOST_TO_LE_16(manuf_data+man_data_offset+10, CO);
 			HOST_TO_LE_16(manuf_data+man_data_offset+16, CH2O);
-		#if (FULL_MODE)
 			HOST_TO_LE_16(manuf_data+man_data_offset+12, NO2);
 			HOST_TO_LE_16(manuf_data+man_data_offset+14, NH3);
+		#if (OUTDOOR_MODE)
 			HOST_TO_LE_16(manuf_data+man_data_offset+18, O3);
 			HOST_TO_LE_16(manuf_data+man_data_offset+20, SO2);
 			HOST_TO_LE_16(manuf_data+man_data_offset+22, C6H6);
@@ -368,9 +368,9 @@ void MX_BlueNRG_2_Process(void)
 	#if (GAS_SENSOR_MODULE_PRESENT)
 			HOST_TO_LE_16(manuf_data+man_data_offset+10, CO_8h_Mean);
 			HOST_TO_LE_16(manuf_data+man_data_offset+16, CH2O_8h_Mean);
-		#if (FULL_MODE)
 			HOST_TO_LE_16(manuf_data+man_data_offset+12, NO2_1h_Mean);
 			HOST_TO_LE_16(manuf_data+man_data_offset+14, NH3_8h_Mean);
+		#if (OUTDOOR_MODE)
 			HOST_TO_LE_16(manuf_data+man_data_offset+18, O3_1h_Mean);
 			HOST_TO_LE_16(manuf_data+man_data_offset+20, SO2_1h_Mean);
 			HOST_TO_LE_16(manuf_data+man_data_offset+22, C6H6_24h_Mean);
@@ -426,9 +426,9 @@ void MX_BlueNRG_2_Process(void)
 	#if (GAS_SENSOR_MODULE_PRESENT)
 			HOST_TO_LE_16(manuf_data+man_data_offset+10, CO_8h_Mean_Max);		//8h average maximum value
 			HOST_TO_LE_16(manuf_data+man_data_offset+16, CH2O_8h_Mean_Max);		//8h average maximum value
-		#if (FULL_MODE)
 			HOST_TO_LE_16(manuf_data+man_data_offset+12, NO2_1h_Mean_Max);		//1h average maximum value
 			HOST_TO_LE_16(manuf_data+man_data_offset+14, NH3_8h_Mean_Max);		//8h average maximum value
+		#if (OUTDOOR_MODE)
 			HOST_TO_LE_16(manuf_data+man_data_offset+18, O3_1h_Mean_Max);		//1h average maximum value
 			HOST_TO_LE_16(manuf_data+man_data_offset+20, SO2_1h_Mean_Max);		//1h average maximum value
 			HOST_TO_LE_16(manuf_data+man_data_offset+22, C6H6_24h_Mean_Max);	//Daily average maximum value

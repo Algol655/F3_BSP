@@ -126,6 +126,19 @@ void Ain1_Check(uint8_t* b, uint8_t* a, AIN1_FUNCTION An_Func)
 		case AIN_15_1_:
 		{
 			mask = *a;
+/*			if (mask > 116)						//If the read value corresponds to a voltage > 1.5V then
+			{									//the Indoor Gas Sensor Board is not installed or is faulty, so..
+				BIT_CLEAR(SensorStatusReg,21);	//Clear Gas Sensor Module presence in SensorStatusRegister
+				BIT_CLEAR(SensorStatusReg,22);	//Clear Gas Sensor Full Equipped Module presence in SensorStatusRegister
+				BIT_CLEAR(SensorStatusReg,5);	//Clear Gas Sensor Module status in SensorStatusRegister
+				BIT_CLEAR(SensorStatusReg,6);	//Clear Gas Sensor Full Equipped Module status in SensorStatusRegister
+			} else
+			{
+				BIT_SET(SensorStatusReg,21);	//Set Gas Sensor Module presence in SensorStatusRegister
+				BIT_SET(SensorStatusReg,22);	//Set Gas Sensor Full Equipped Module presence in SensorStatusRegister
+				BIT_SET(SensorStatusReg,5);		//Set Gas Sensor Module status in SensorStatusRegister
+				BIT_SET(SensorStatusReg,6);		//Set Gas Sensor Full Equipped Module status in SensorStatusRegister
+			} */
 			b[15] = mask;
 		}
 		break;
@@ -449,8 +462,11 @@ void read_analogs(void)
 **/
 void read_ZE_sensors(void)
 {
+#if (CH2O_FROM_EC)
 	extern int8_t CH2O_Corr;	//In mVolts: 1 = 1mV Correction
+#endif
 	extern int8_t O3_Corr;		//In mVolts: 1 = 1mV Correction
+
 #if (ZE_SENSOR_TC)
 	extern double_t Temperature;
 	float32_t ZE08_TC, ZE25_TC, TOut;
@@ -474,7 +490,9 @@ void read_ZE_sensors(void)
 	}
 #endif
 
+#if (CH2O_FROM_EC)
 	float32_t V0 = mux1_inputs[0] + ((float32_t)CH2O_Corr/1000.0);
+#endif
 	float32_t V1 = mux1_inputs[1] + ((float32_t)O3_Corr/1000.0);
 
 #if (ZE_SENSOR_TC)
@@ -482,11 +500,13 @@ void read_ZE_sensors(void)
 	V1 = V1/ZE25_TC;
 #endif
 
+#if (CH2O_FROM_EC)
 	//Calculate CH2O ppm
 //	ppm_CH2O = (float32_t)fabs((double)ZE08_CH2O(V0));
 	ppm_CH2O = (float32_t)ZE08_CH2O(V0);
 	if (ppm_CH2O < 0)
 		ppm_CH2O = 0;
+#endif
 	//Calculate O3 ppm
 //	ppm_O3 = (float32_t)fabs((double)ZE08_CH2O(V1));
 	ppm_O3 = (float32_t)ZE25_O3(V1);
@@ -498,17 +518,30 @@ void read_ZE_sensors(void)
  * @fn      read_SMO_sensors() - (Semiconductor Metal Oxide Sensor)
  * @brief   Converts the voltage value read by the AD converter into the SMO sensor
  * 			resistive value (Rs). Then converts them to the corresponding value in ppm.
- * 			It is calculated in this manner:
+ * 			For Gas_Sensor_Board V1.0 it is calculated in this manner:
  * 			1) Connect the Non Inverting input to a well-know voltage source Vref
  * 			2) The output of the non-inverting amplifier is: Vad=Vref*(1+(Rf/Rs))
  * 			3) Calculate Rs=Rf/a, where a=(Vad/Vref)-1
+ * 			For Gas_Sensor_Board V2.0 and following it is calculated in this manner:
+ * 			1) The output of the unit-gain non-inverting amplifier is: Vad=Vref*(Rs/(Rf+Rs))
+ * 			2) Calculate Rs=(Vad*Rf)/a, where a=(Vref-Vad)
  * @return	null
 **/
 void read_SMO_sensors(void)
 {
+#if (GSB_HW_VER == 10)
 //	const float32_t VRef = 0.318;
 	const float32_t VRef = 0.293;
-	const float32_t AD_Sensitivity = 0.007;
+	const float32_t AD_Sensitivity = 0.003;
+#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+	const float32_t VRef = 3.3;
+#endif
+#if !(CH2O_FROM_EC)
+	extern int8_t CH2O_Corr;	//In mVolts: 1 = 1mV Correction
+//	extern uint32_t SMD1001_CH2O_Rf;	//The load resistance of the IDM SMD1001 formaldehyde sensor is set at 10Kohm on the board
+	extern uint32_t SMD1001_CH2O_Vo;	//In mVolts
+	extern float32_t SMD1001_CH2O_Vs;
+#endif
 #if !(NO2_FROM_EC)
 	extern uint32_t MiCS_6814_NO2_Rf;
 	float32_t a_NO2;
@@ -525,37 +558,115 @@ void read_SMO_sensors(void)
 	extern uint32_t MiCS_6814_NH3_Ro;	//In ohm
 	extern float32_t MiCS_6814_CO_Rs;	//In ohm
 	extern float32_t MiCS_6814_NH3_Rs;	//In ohm
+#if (SMO_SENSOR_TC)
+	extern double_t Temperature;
+	extern uint8_t Humidity;
+	float32_t TOut, HOut;
+#if !(CH2O_FROM_EC)
+	float32_t SMD1001_CH2O_TC, SMD1001_CH2O_RHC;
+#endif
+#endif	//SMO_SENSOR_TC
 
+#if (SMO_SENSOR_TC)
+	TOut = (float32_t)Temperature;
+	HOut = (float32_t)Humidity;
+#endif
+
+#if !(CH2O_FROM_EC)
+	//Read and correct the CH2O sensor output voltage (SMD1001)
+	float32_t V0 = mux1_inputs[0] + ((float32_t)CH2O_Corr/1000.0);
+#endif
 #if !(NO2_FROM_EC)
+	//Read and correct the voltage across NO2 Rs
 	float32_t V2 = mux1_inputs[2] + ((float32_t)NO2_Corr/100.0);
+#endif
+	//Read and correct the voltage across NH3 Rs
+	float32_t V3 = mux1_inputs[3] + ((float32_t)NH3_Corr/100.0);
+	//Read and correct the voltage across CO Rs
+	float32_t V4 = mux1_inputs[4] + ((float32_t)CO_Corr/100.0);
+
+#if (GSB_HW_VER == 10)
+	//Check the voltage across NO2 Rs
 	if (V2 < VRef)		//The minimum value of V2 so that MiCS_6814_NO2_Rs is a real value
 		V2 = VRef + AD_Sensitivity;
-#endif
-	float32_t V3 = mux1_inputs[3] + ((float32_t)NH3_Corr/100.0);
-	if (V3 < VRef)		//The minimum value of V3 so that MiCS_6814_NH3_Rs is a real value
-		V3 = VRef + AD_Sensitivity;
-	float32_t V4 = mux1_inputs[4] + ((float32_t)CO_Corr/100.0);
-	if (V4 < VRef)		//The minimum value of V4 so that MiCS_6814_CO_Rs is a real value
-		V4 = VRef + AD_Sensitivity;
-
+	//Calculate NO2 Rs
 #if !(NO2_FROM_EC)
 	a_NO2 = (float32_t)fabs((double)((V2/VRef) - 1.0));
-#endif
-	a_NH3 = (float32_t)fabs((double)((V3/VRef) - 1.0));
-	a_CO  = (float32_t)fabs((double)((V4/VRef) - 1.0));
-
-	//Calculate NO2 ppm
-#if !(NO2_FROM_EC)
 	MiCS_6814_NO2_Rs = (float32_t)(MiCS_6814_NO2_Rf)/a_NO2;
-	ppm_NO2 = MiCS_6814_NO2((double)(MiCS_6814_NO2_Rs/MiCS_6814_NO2_Ro));
+#endif
+	//Check the voltage across NH3 Rs
+	if (V3 < VRef)		//The minimum value of V3 so that MiCS_6814_NH3_Rs is a real value
+		V3 = VRef + AD_Sensitivity;
+	//Calculate NH3 Rs
+	a_NH3 = (float32_t)fabs((double)((V3/VRef) - 1.0));
+	MiCS_6814_NH3_Rs = (float32_t)(MiCS_6814_NH3_Rf)/a_NH3;
+	//Check the voltage across CO Rs
+	if (V4 < VRef)		//The minimum value of V4 so that MiCS_6814_CO_Rs is a real value
+		V4 = VRef + AD_Sensitivity;
+	//Calculate CO Rs
+	a_CO  = (float32_t)fabs((double)((V4/VRef) - 1.0));
+	MiCS_6814_CO_Rs = (float32_t)(MiCS_6814_CO_Rf)/a_CO;
+#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+#if !(CH2O_FROM_EC)
+	//Calculate CH2O Vs
+	SMD1001_CH2O_Vs = V0;
+	if (SMD1001_CH2O_Vs < (SMD1001_CH2O_Vo/1000.0))	//The voltage value detected (Vs) cannot be less
+		SMD1001_CH2O_Vs = (SMD1001_CH2O_Vo/1000.0);	//than that in pure air (Vo) (See SMD1001 data sheet)
+#if (SMO_SENSOR_TC)
+	//Calculate the SMD1001 temperature correction
+	if (TOut < 10.0)
+		SMD1001_CH2O_TC = SMD1001_CH2O_TC1(TOut);
+	else
+		SMD1001_CH2O_TC = SMD1001_CH2O_TC2(TOut);
+	//Calculate the SMD1001 humidity correction
+	SMD1001_CH2O_RHC = SMD1001_CH2O_RHC(HOut);
+	//Apply the SMD1001 temperature correction
+	SMD1001_CH2O_Vs = SMD1001_CH2O_Vs/SMD1001_CH2O_TC;
+	//Apply the SMD1001 humidity correction
+	SMD1001_CH2O_Vs = SMD1001_CH2O_Vs/SMD1001_CH2O_RHC;
+#endif	//SMO_SENSOR_TC
+#endif	//!(CH2O_FROM_EC)
+#if !(NO2_FROM_EC)
+	//Calculate NO2 Rs
+	a_NO2 = VRef - V2;
+	MiCS_6814_NO2_Rs = (V2 * (float32_t)MiCS_6814_NO2_Rf)/a_NO2;
+#endif
+	//Calculate NH3 Rs
+	a_NH3 = VRef - V3;
+	MiCS_6814_NH3_Rs =  (V3 * (float32_t)MiCS_6814_NH3_Rf)/a_NH3;
+	//Calculate CO Rs
+	a_CO  = VRef - V4;
+	MiCS_6814_CO_Rs = (V4 * (float32_t)MiCS_6814_CO_Rf)/a_CO;
+#endif	//((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+
+#if (SMO_SENSOR_TC)
+	//Apply the MiCS_6814 temperature/humidity correction
+	MiCS_6814_NO2_Rs = MiCS_6814_TC(MiCS_6814_NO2_Rs,TOut,HOut);
+	MiCS_6814_NH3_Rs = MiCS_6814_TC(MiCS_6814_NH3_Rs,TOut,HOut);
+	MiCS_6814_CO_Rs = MiCS_6814_TC(MiCS_6814_CO_Rs,TOut,HOut);
+#endif
+
+#if !(CH2O_FROM_EC)
+	//Calculate CH2O ppm
+	float32_t Arg_CH2O = SMD1001_CH2O_Vs/((float32_t)(SMD1001_CH2O_Vo/1000));	//SMD1001_CH2O_Vo is stored in mVolts!
+	if (Arg_CH2O <= 1.83)
+		ppm_CH2O = SMD1001_CH2O_1(Arg_CH2O);
+	else
+		ppm_CH2O = SMD1001_CH2O_2(Arg_CH2O);
+	if (ppm_CH2O < 0)
+		ppm_CH2O = 0;
+#endif
+#if !(NO2_FROM_EC)
+	//Calculate NO2 ppm
+	float32_t Arg_NO2 = MiCS_6814_NO2_Rs/((float32_t)MiCS_6814_NO2_Ro);
+	ppm_NO2 = MiCS_6814_NO2((double)(Arg_NO2));
 #endif
 	//Calculate NH3 ppm
-	MiCS_6814_NH3_Rs = (float32_t)(MiCS_6814_NH3_Rf)/a_NH3;
-	ppm_NH3 = MiCS_6814_NH3((double)(MiCS_6814_NH3_Rs/MiCS_6814_NH3_Ro));
-
+	float32_t Arg_NH3 = MiCS_6814_NH3_Rs/((float32_t)MiCS_6814_NH3_Ro);
+	ppm_NH3 = MiCS_6814_NH3((double)(Arg_NH3));
 	//Calculate CO ppm
-	MiCS_6814_CO_Rs = (float32_t)(MiCS_6814_CO_Rf)/a_CO;
-	ppm_CO = MiCS_6814_CO((double)(MiCS_6814_CO_Rs/MiCS_6814_CO_Ro));
+	float32_t Arg_CO = MiCS_6814_CO_Rs/((float32_t)MiCS_6814_CO_Ro);
+	ppm_CO = MiCS_6814_CO((double)(Arg_CO));
 }
 
 /*
@@ -574,13 +685,12 @@ void read_EC_sensors(void)
 #endif
 #if (EC_SENSOR_TC)
 	extern double_t Temperature;
-	float32_t SO2_TC;
+	float32_t SO2_TC, TOut;
 #if (GSB_HW_VER == 10)
 	float32_t C6H6_TC;
 #elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
 	float32_t NO2_TC;
 #endif
-	float32_t TOut;
 
 	TOut = (float32_t)Temperature;
 	SO2_TC = ME4_SO2_TC(TOut);		//ME4_SO2 sensor Temperature Compensation
@@ -589,7 +699,7 @@ void read_EC_sensors(void)
 #elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
 	NO2_TC = ME4_NO2_TC(TOut);		//ME4_NO2 sensor Temperature Compensation
 #endif
-#endif
+#endif	//EC_SENSOR_TC
 
 	float32_t V5 = mux1_inputs[5] + ((float32_t)SO2_Corr/1000.0);
 #if (GSB_HW_VER == 10)
@@ -622,10 +732,12 @@ void read_EC_sensors(void)
 		ppm_C6H6 = 0;
 #elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
 	//Calculate NO2 ppm
+#if (NO2_FROM_EC)
 //	ppm_NO2 = (float32_t)fabs((double)ME4_NO2(V6));
 	ppm_NO2 = (float32_t)ME4_NO2(V6);
 	if (ppm_NO2 < 0)
 		ppm_NO2 = 0;
+#endif
 #endif
 }
 

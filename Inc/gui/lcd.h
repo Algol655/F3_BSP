@@ -35,7 +35,7 @@ extern const uint8_t ROW_20[];
 #define UVx_FRAME_FILL_CHAR	0x20
 
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-	#if (FULL_MODE==1)
+	#if (OUTDOOR_MODE)
 		#define eTVOC_FRAME_W	7U
 		#define eCO2_FRAME_W	9U
 		#define CO_FRAME_W		8U
@@ -50,6 +50,8 @@ extern const uint8_t ROW_20[];
 		#define eCO2_FRAME_W	9U
 		#define CH2O_FRAME_W	8U
 		#define CO_FRAME_W		8U
+		#define NO2_FRAME_W		8U
+		#define NH3_FRAME_W		8U
 	#endif
 #else
 	#define eTVOC_FRAME_W	8U
