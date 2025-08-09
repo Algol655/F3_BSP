@@ -11,45 +11,45 @@
 	#include "platform/mcp23017.h"
 #endif
 #if (PRESSURE_SENSOR_PRESENT==1)
-#if (LPS25HB)
-	#include "platform/LPS25HB_Driver.h"
-	extern LPS25HB_MeasureTypeDef_st PRS_Values;
-#elif (LPS22HB)
-	#include "platform/LPS22HB_Driver.h"
-	extern LPS22HB_MeasureTypeDef_st PRS_Values;
-#endif	// LPS25HB
+	#if (LPS25HB)
+		#include "platform/LPS25HB_Driver.h"
+		extern LPS25HB_MeasureTypeDef_st PRS_Values;
+	#elif (LPS22HB)
+		#include "platform/LPS22HB_Driver.h"
+		extern LPS22HB_MeasureTypeDef_st PRS_Values;
+	#endif	// LPS25HB
 //	extern int64_t MEMS_LclData;
 #endif	// PRESSURE_SENSOR_PRESENT
 #if (HUMIDITY_SENSOR_PRESENT==1)
-#if (HTS221)
-	#include "platform/HTS221_Driver.h"
-	extern HTS221_MeasureTypeDef_st HUM_Values;
-#elif (SHT4x)
-	#include "platform/SHT4x_Driver.h"
-	extern SHT4x_MeasureTypeDef_st HUM_Values;
-#endif	// HTS221
+	#if (HTS221)
+		#include "platform/HTS221_Driver.h"
+		extern HTS221_MeasureTypeDef_st HUM_Values;
+	#elif (SHT4x)
+		#include "platform/SHT4x_Driver.h"
+		extern SHT4x_MeasureTypeDef_st HUM_Values;
+	#endif	// HTS221
 #endif	// HUMIDITY_SENSOR_PRESENT
 #if (UVx_SENSOR_PRESENT==1)
-#if (VEML6075)
-	#include "platform/VEML6075_Driver.h"
-	extern VEML6075_MeasureTypeDef_st UVx_Values;
-#elif (LTR390UV)
-	#include "platform/LTR390UV_Driver.h"
-	extern LTR390UV_MeasureTypeDef_st UVx_Values;
-#endif	// VEML6075
+	#if (VEML6075)
+		#include "platform/VEML6075_Driver.h"
+		extern VEML6075_MeasureTypeDef_st UVx_Values;
+	#elif (LTR390UV)
+		#include "platform/LTR390UV_Driver.h"
+		extern LTR390UV_MeasureTypeDef_st UVx_Values;
+	#endif	// VEML6075
 #endif	// UVx_SENSOR_PRESENT
 #if (ALS_SENSOR_PRESENT==1)
 	#include "platform/VEML7700_Driver.h"
 	extern VEML7700_MeasureTypeDef_st ALS_Values;
 #endif
 #if (VOC_SENSOR_PRESENT==1)
-#if (CCS811)
-	#include "platform/CCS811_Driver.h"
-	extern CCS811_MeasureTypeDef_st VOC_Values;
-#elif (ENS160)
-	#include "platform/ENS160_Driver.h"
-	extern ENS160_MeasureTypeDef_st VOC_Values;
-#endif	// CCS811
+	#if (CCS811)
+		#include "platform/CCS811_Driver.h"
+		extern CCS811_MeasureTypeDef_st VOC_Values;
+	#elif (ENS160)
+		#include "platform/ENS160_Driver.h"
+		extern ENS160_MeasureTypeDef_st VOC_Values;
+	#endif	// CCS811
 #endif	// VOC_SENSOR_PRESENT
 #if (PARTICULATE_SENSOR_PRESENT==1)
 	#include "platform/SPS30_Driver.h"
@@ -95,7 +95,7 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	FLASH_EraseInitTypeDef EraseInitStruct;
 	static DateTime_t Stamp;
 	extern FLASH_DATA_ORG FlashDataOrg;
-	extern uint8_t DeviceName[4], HW_Version[4], SW_Version[4];
+	extern uint8_t DeviceName[5], HW_Version[5], SW_Version[5];
 	extern uint32_t Vendor_ID, Prdct_Code, Rev_Number, Ser_Number;
 	uint32_t SectorError;
 //	const uint32_t FlashAddress = 0x0803F800;	//See processor reference manual
@@ -106,9 +106,9 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	memcpy(&FlashDataOrg.b_time, &Stamp.time[0], 3);
 
 	//Get board data and copy them in the flash board data structure
-	memcpy(&FlashDataOrg.b_mdata.DeviceName, &DeviceName[0], 4);
-	memcpy(&FlashDataOrg.b_mdata.HW_Version, &HW_Version[0], 4);
-	memcpy(&FlashDataOrg.b_mdata.SW_Version, &SW_Version[0], 4);
+	memcpy(&FlashDataOrg.b_mdata.DeviceName, &DeviceName[0], 5);
+	memcpy(&FlashDataOrg.b_mdata.HW_Version, &HW_Version[0], 5);
+	memcpy(&FlashDataOrg.b_mdata.SW_Version, &SW_Version[0], 5);
 	FlashDataOrg.b_mdata.Vendor_ID = Vendor_ID;
 	FlashDataOrg.b_mdata.Prdct_Code = Prdct_Code;
 	FlashDataOrg.b_mdata.Rev_Number = Rev_Number;
@@ -162,7 +162,52 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s14_offset, FlashDataOrg.b_status.s14);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s15_offset, FlashDataOrg.b_status.s15);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s16_offset, FlashDataOrg.b_status.s16);
+#if (POLINOMIAL_REGRESSION)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s17_offset, FlashDataOrg.b_status.s17);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s18_offset, FlashDataOrg.b_status.s18);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s19_offset, FlashDataOrg.b_status.s19);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s20_offset, FlashDataOrg.b_status.s20);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s21_offset, FlashDataOrg.b_status.s21);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s22_offset, FlashDataOrg.b_status.s22);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s23_offset, FlashDataOrg.b_status.s23);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s24_offset, FlashDataOrg.b_status.s24);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s25_offset, FlashDataOrg.b_status.s25);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s26_offset, FlashDataOrg.b_status.s26);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s27_offset, FlashDataOrg.b_status.s27);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s28_offset, FlashDataOrg.b_status.s28);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s29_offset, FlashDataOrg.b_status.s29);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s30_offset, FlashDataOrg.b_status.s30);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s31_offset, FlashDataOrg.b_status.s31);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s32_offset, FlashDataOrg.b_status.s32);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s33_offset, FlashDataOrg.b_status.s33);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s34_offset, FlashDataOrg.b_status.s34);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s35_offset, FlashDataOrg.b_status.s35);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s36_offset, FlashDataOrg.b_status.s36);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s37_offset, FlashDataOrg.b_status.s37);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s38_offset, FlashDataOrg.b_status.s38);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s39_offset, FlashDataOrg.b_status.s39);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s40_offset, FlashDataOrg.b_status.s40);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s41_offset, FlashDataOrg.b_status.s41);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s42_offset, FlashDataOrg.b_status.s42);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s43_offset, FlashDataOrg.b_status.s43);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s44_offset, FlashDataOrg.b_status.s44);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s45_offset, FlashDataOrg.b_status.s45);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s46_offset, FlashDataOrg.b_status.s46);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s47_offset, FlashDataOrg.b_status.s47);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s48_offset, FlashDataOrg.b_status.s48);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s49_offset, FlashDataOrg.b_status.s49);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s50_offset, FlashDataOrg.b_status.s50);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s51_offset, FlashDataOrg.b_status.s51);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s52_offset, FlashDataOrg.b_status.s52);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s53_offset, FlashDataOrg.b_status.s53);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s54_offset, FlashDataOrg.b_status.s54);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s55_offset, FlashDataOrg.b_status.s55);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s56_offset, FlashDataOrg.b_status.s56);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s57_offset, FlashDataOrg.b_status.s57);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s58_offset, FlashDataOrg.b_status.s58);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s59_offset, FlashDataOrg.b_status.s59);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s60_offset, FlashDataOrg.b_status.s60);
+#endif
 	HAL_FLASH_Lock();
 }
 
@@ -178,8 +223,12 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 {
 	static DateTime_t Stamp;
 	extern FLASH_DATA_ORG FlashDataOrg;
-	extern uint8_t DeviceName[4], HW_Version[4], SW_Version[4];
+	extern uint8_t DeviceName[5], HW_Version[5], SW_Version[5];
 	extern uint32_t Vendor_ID, Prdct_Code, Rev_Number, Ser_Number;
+#if (USE_BKUP_SRAM==0)
+	extern uint32_t Up_Time_H;
+#endif
+	uint32_t SW_Ver_Current = 0; uint32_t SW_Ver_Previous = 0;
 //	const uint32_t FlashAddress = 0x0803F800;	//See processor reference manual
 
 	FlashDataOrg.b_date = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_date_offset));
@@ -213,8 +262,52 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 	FlashDataOrg.b_status.s14 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s14_offset));
 	FlashDataOrg.b_status.s15 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s15_offset));
 	FlashDataOrg.b_status.s16 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s16_offset));
+#if (POLINOMIAL_REGRESSION)
 	FlashDataOrg.b_status.s17 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s17_offset));
-
+	FlashDataOrg.b_status.s18 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s18_offset));
+	FlashDataOrg.b_status.s19 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s19_offset));
+	FlashDataOrg.b_status.s20 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s20_offset));
+	FlashDataOrg.b_status.s21 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s21_offset));
+	FlashDataOrg.b_status.s22 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s22_offset));
+	FlashDataOrg.b_status.s23 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s23_offset));
+	FlashDataOrg.b_status.s24 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s24_offset));
+	FlashDataOrg.b_status.s25 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s25_offset));
+	FlashDataOrg.b_status.s26 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s26_offset));
+	FlashDataOrg.b_status.s27 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s27_offset));
+	FlashDataOrg.b_status.s28 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s28_offset));
+	FlashDataOrg.b_status.s29 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s29_offset));
+	FlashDataOrg.b_status.s30 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s30_offset));
+	FlashDataOrg.b_status.s31 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s31_offset));
+	FlashDataOrg.b_status.s32 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s32_offset));
+	FlashDataOrg.b_status.s33 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s33_offset));
+	FlashDataOrg.b_status.s34 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s34_offset));
+	FlashDataOrg.b_status.s35 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s35_offset));
+	FlashDataOrg.b_status.s36 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s36_offset));
+	FlashDataOrg.b_status.s37 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s37_offset));
+	FlashDataOrg.b_status.s38 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s38_offset));
+	FlashDataOrg.b_status.s39 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s39_offset));
+	FlashDataOrg.b_status.s40 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s40_offset));
+	FlashDataOrg.b_status.s41 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s41_offset));
+	FlashDataOrg.b_status.s42 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s42_offset));
+	FlashDataOrg.b_status.s43 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s43_offset));
+	FlashDataOrg.b_status.s44 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s44_offset));
+	FlashDataOrg.b_status.s45 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s45_offset));
+	FlashDataOrg.b_status.s46 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s46_offset));
+	FlashDataOrg.b_status.s47 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s47_offset));
+	FlashDataOrg.b_status.s48 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s48_offset));
+	FlashDataOrg.b_status.s49 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s49_offset));
+	FlashDataOrg.b_status.s50 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s50_offset));
+	FlashDataOrg.b_status.s51 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s51_offset));
+	FlashDataOrg.b_status.s52 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s52_offset));
+	FlashDataOrg.b_status.s53 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s53_offset));
+	FlashDataOrg.b_status.s54 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s54_offset));
+	FlashDataOrg.b_status.s55 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s55_offset));
+	FlashDataOrg.b_status.s56 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s56_offset));
+	FlashDataOrg.b_status.s57 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s57_offset));
+	FlashDataOrg.b_status.s58 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s58_offset));
+	FlashDataOrg.b_status.s59 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s59_offset));
+	FlashDataOrg.b_status.s60 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s60_offset));
+#endif
 	//Format the RTC Current Date & Time read from flash in the time data structure
 	memcpy(&Stamp.date[0], &FlashDataOrg.b_date, 3);
 	Stamp.date[0] = ByteToBcd(Stamp.date[0]);
@@ -224,14 +317,22 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 
 //	RTC_DateRegulate(&hrtc, Stamp.date[2], Stamp.date[0], Stamp.date[1], 0x01);
 
-	//Format the data read from flash in the board data structure (comment if declared as const)
-//	memcpy(&DeviceName[0], &FlashDataOrg.b_mdata.DeviceName, 4);
-//	memcpy(&HW_Version[0], &FlashDataOrg.b_mdata.HW_Version, 4);
-//	memcpy(&SW_Version[0], &FlashDataOrg.b_mdata.SW_Version, 4);
-//	Vendor_ID = FlashDataOrg.b_mdata.Vendor_ID;
-//	Prdct_Code = FlashDataOrg.b_mdata.Prdct_Code;
-//	Rev_Number = FlashDataOrg.b_mdata.Rev_Number;
-//	Ser_Number = FlashDataOrg.b_mdata.Ser_Number;
+	//Format the data read from flash in the board data structure (comment if factory data are declared as constant)
+	memcpy(&DeviceName[0], &FlashDataOrg.b_mdata.DeviceName, 5);
+	memcpy(&HW_Version[0], &FlashDataOrg.b_mdata.HW_Version, 5);
+	memcpy(&SW_Ver_Current, &SW_Version[0], 4);
+	memcpy(&SW_Ver_Previous, &FlashDataOrg.b_mdata.SW_Version, 4);
+	if (SW_Ver_Current != SW_Ver_Previous)
+		memcpy(&FlashDataOrg.b_mdata.SW_Version, &SW_Version[0], 5);
+	else
+		memcpy(&SW_Version[0], &FlashDataOrg.b_mdata.SW_Version, 5);
+	Vendor_ID = FlashDataOrg.b_mdata.Vendor_ID;
+	Prdct_Code = FlashDataOrg.b_mdata.Prdct_Code;
+	Rev_Number = FlashDataOrg.b_mdata.Rev_Number;
+	Ser_Number = FlashDataOrg.b_mdata.Ser_Number;
+#if (USE_BKUP_SRAM==0)				//The Up_Time_H timer is restored from flash only if there is no backup RAM present
+	Up_Time_H = (uint32_t)ceil(FlashDataOrg.b_status.s1/3600.0);
+#endif
 }
 
 /**
@@ -926,6 +1027,7 @@ void HAL_SYSTICK_Callback()
 void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 {
 	extern FLASH_DATA_ORG FlashDataOrg;
+	extern uint32_t Up_Time_H;
 #if ((BLE_SUPPORT) && (BEACON_APP) && (USE_IWDGT))
 	extern IWDG_HandleTypeDef hiwdg;
 #endif
@@ -942,7 +1044,7 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 	const uint16_t Baseline_El_Store_Period = 24*7;
 	const uint16_t GAS_SesorBoard_WarmUp = 45;	//Do not acquire the the analog sensors values
 												//before the warm-up period (in minutes) has elapsed
-	if (Test_Mode)								//GAS_SesorBoard_WarmUp must be greater timeout RUN_IN_TIME
+	if ((Test_Mode) || (!BLE_SUPPORT))			//GAS_SesorBoard_WarmUp must be greater timeout RUN_IN_TIME
 	{											//where the CCS811 VOC sensor loads the BaseLine
 	#if ((BLE_SUPPORT) && (BEACON_APP) && (USE_IWDGT))
 		HAL_IWDG_Refresh(&hiwdg);
@@ -985,7 +1087,8 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 	}
 	if (m > 59)
 	{
-		Write_Flash(0, 0);					//Store board data-base every hour
+		Up_Time_H = (uint32_t)ceil(FlashDataOrg.b_status.s1/3600.0);
+//		Write_Flash(0, 0);					//Store board data-base every hour
 #if (USE_BKUP_SRAM)
 		/*
 		 * Every hour the average values of the sensors are stored in the processor's Static Ram Backup.
@@ -996,19 +1099,20 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 #endif
 		update_1h = true;
 		m = 0;
-		if (++hd > 24)						//Perform HTS221 memory boot every day
+		if (++hd > 24)
 		{
 #if (HTS221)
-			HTS221_status = HTS221_MemoryBoot(HTS221_BADDR);
+			HTS221_status = HTS221_MemoryBoot(HTS221_BADDR);	//Perform HTS221 memory boot every day
 #endif
+			Write_Flash(0, 0);					//Store board data-base every day
 			update_1d = true;
 			hd = 0;
 		}
-		if (++h > Baseline_El_Store_Period)	//Store CCS811 Baseline every week
+		if (++h > Baseline_El_Store_Period)		//Store CCS811 Baseline every week
 		{
 #if (VOC_SENSOR_PRESENT==1)
 	#if (CCS811)
-			Store_CCS811_Baseline = true;	//Update CCS811 Baseline in board database structure
+			Store_CCS811_Baseline = true;		//Update CCS811 Baseline in board database structure
 	#endif
 #endif
 			h = 0;
@@ -1379,46 +1483,46 @@ void button_manage(void)
 	PM_toggle = 1;
 #if (GUI_SUPPORT==0)
 	#if (PRESSURE_SENSOR_PRESENT)
-	send_lcl_prs_data = true;
-	#if (GLCD_SUPPORT)
-	display_prs_data = true;
-	#endif	//GLCD_SUPPORT
+		send_lcl_prs_data = true;
+		#if (GLCD_SUPPORT)
+			display_prs_data = true;
+		#endif	//GLCD_SUPPORT
 	#endif	//PRESSURE_SENSOR_PRESENT
 	#if (HUMIDITY_SENSOR_PRESENT)
-	send_lcl_hum_data = true;
-	#if (GLCD_SUPPORT)
-	display_hum_data = true;
-	#endif	//GLCD_SUPPORT
+		send_lcl_hum_data = true;
+		#if (GLCD_SUPPORT)
+			display_hum_data = true;
+		#endif	//GLCD_SUPPORT
 	#endif	//HUMIDITY_SENSOR_PRESENT
 	#if (UVx_SENSOR_PRESENT)
-	send_lcl_uvx_data = true;
-	#if (GLCD_SUPPORT)
-	display_uvx_data = true;
-	#endif	//GLCD_SUPPORT
+		send_lcl_uvx_data = true;
+		#if (GLCD_SUPPORT)
+			display_uvx_data = true;
+		#endif	//GLCD_SUPPORT
 	#endif	//UVx_SENSOR_PRESENT
 	#if (ALS_SENSOR_PRESENT)
-	send_lcl_als_data = true;
-	#if (GLCD_SUPPORT)
-	display_als_data = true;
-	#endif	//GLCD_SUPPORT
+		send_lcl_als_data = true;
+		#if (GLCD_SUPPORT)
+			display_als_data = true;
+		#endif	//GLCD_SUPPORT
 	#endif	//ALS_SENSOR_PRESENT
 	#if (VOC_SENSOR_PRESENT)
-	send_lcl_voc_data = true;
-	#if (GLCD_SUPPORT)
-	display_voc_data = true;
-	#endif	//GLCD_SUPPORT
+		send_lcl_voc_data = true;
+		#if (GLCD_SUPPORT)
+			display_voc_data = true;
+		#endif	//GLCD_SUPPORT
 	#endif	//VOC_SENSOR_PRESENT
 	#if (PARTICULATE_SENSOR_PRESENT)
-	send_lcl_pms_data = true;
-	#if (GLCD_SUPPORT)
-	display_pms_data = true;
-	#endif	//GLCD_SUPPORT
+		send_lcl_pms_data = true;
+		#if (GLCD_SUPPORT)
+			display_pms_data = true;
+		#endif	//GLCD_SUPPORT
 	#endif	//PARTICULATE_SENSOR_PRESENT
 	#if (GAS_SENSOR_MODULE_PRESENT)
-	send_lcl_gas_data = true;
-	#if (GLCD_SUPPORT)
-	display_gas_data = true;
-	#endif	//GLCD_SUPPORT
+		send_lcl_gas_data = true;
+		#if (GLCD_SUPPORT)
+			display_gas_data = true;
+		#endif	//GLCD_SUPPORT
 	#endif	//GAS_SENSOR_MODULE_PRESENT
 #endif	//GUI_SUPPORT==0
 #if (IMU_PRESENT==1)
@@ -1504,16 +1608,17 @@ void process_timer3_irq(void)
 #if ((BLE_SUPPORT) && (BEACON_APP))
 	#if (CCS811)
 	extern void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
-							CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate);
+							CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, VEML6075_MeasureTypeDef_st *LuxUVI);
 	#elif(ENS160)
-	extern void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
-	                        ENS160_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate);
+	extern void StoreMinMax(LPS22HB_MeasureTypeDef_st *PressTemp, SHT4x_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
+					        ENS160_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, LTR390UV_MeasureTypeDef_st *LuxUVI);
 	#endif
 #endif
 #if ((BLE_SUPPORT) && (SENSOR_APP))
 	static bool button_manage_done = false;
 #endif
 
+	SensorStatusReg &= 0xFFFF0000;
 	update_5s = true;
 	__HAL_TIM_SET_COUNTER(&htim3, 0);	//Clear Timer3
 	HAL_NVIC_ClearPendingIRQ(TIM3_IRQn);
@@ -1540,15 +1645,22 @@ void process_timer3_irq(void)
 #else
 	RTC_Handler(&hrtc, &dataseq1[0]);
 	#if ((BLE_SUPPORT) && (BEACON_APP))
-	dataseq1[6] = 0x0a;
-	memcpy(&BLE_TimeStamp, &dataseq1[3], 4);
+		memcpy(&BLE_TimeStamp, &dataseq1[3], 4);
 	#endif
 #endif
 #if (PRESSURE_SENSOR_PRESENT==1)
 	#if (LPS25HB)
 		LPS25HB_status = LPS25HB_Get_Measurement(LPS25HB_BADDR, &PRS_Values);
+		if (LPS25HB_status == (uint8_t)LPS25HB_OK)
+		{
+			BIT_SET(SensorStatusReg,0);
+		}
 	#elif (LPS22HB)
 		LPS22HB_status = LPS22HB_Get_Measurement(LPS22HB_BADDR, &PRS_Values);
+		if (LPS22HB_status == (uint8_t)LPS22HB_OK)
+		{
+			BIT_SET(SensorStatusReg,0);
+		}
 	#endif	// LPS25HB
 //	MEMS_LclData = (uint32_t)PRS_Values.Pout; MEMS_LclData <<= 16;
 //	MEMS_LclData |= (uint16_t)PRS_Values.Tout;
@@ -1559,8 +1671,16 @@ void process_timer3_irq(void)
 #if (HUMIDITY_SENSOR_PRESENT==1)
 	#if (HTS221)
 		HTS221_status = HTS221_Get_Measurement(HTS221_BADDR, &HUM_Values);
+		if (HTS221_status == (uint8_t)HTS221_OK)
+		{
+			BIT_SET(SensorStatusReg,1);
+		}
 	#elif (SHT4x)
 		SHT4x_status = SHT4x_Get_Measurement(SHT4x_BADDR, &HUM_Values);
+		if (SHT4x_status == (uint8_t)SHT4x_OK)
+		{
+			BIT_SET(SensorStatusReg,1);
+		}
 	#endif	// HTS221
 	lcl_hum_data_rdy = true;
 	send_lcl_hum_data = true;
@@ -1569,8 +1689,16 @@ void process_timer3_irq(void)
 #if (UVx_SENSOR_PRESENT==1)
 	#if (VEML6075)
 		VEML6075_status = VEML6075_Get_Measurement(&hi2c1, &UVx_Values);
+		if (VEML6075_status == (uint8_t)VEML6075_OK)
+		{
+			BIT_SET(SensorStatusReg,2);
+		}
 	#elif (LTR390UV)
 		LTR390UV_status = LTR390UV_Get_Measurement(LTR390UV_BADDR, &UVx_Values);
+		if (LTR390UV_status == (uint8_t)LTR390UV_OK)
+		{
+			BIT_SET(SensorStatusReg,2);
+		}
 	#endif	//VEML6075
 	lcl_uvx_data_rdy = true;
 	send_lcl_uvx_data = true;
@@ -1578,6 +1706,10 @@ void process_timer3_irq(void)
 #endif	//UVx_SENSOR_PRESENT
 #if (ALS_SENSOR_PRESENT==1)
 	VEML7700_status = VEML7700_Get_Measurement(&hi2c1, &ALS_Values);
+	if (VEML7700_status == (uint8_t)VEML7700_OK)
+	{
+		BIT_SET(SensorStatusReg,7);
+	}
 	lcl_als_data_rdy = true;
 	send_lcl_als_data = true;
 	display_als_data = StartDataStrmng;
@@ -1598,10 +1730,21 @@ void process_timer3_irq(void)
 		{
 	#if (CCS811)
 			CCS811_status = CCS811_Get_Measurement(&VOC_Values);
+			if (CCS811_status == (uint8_t)CCS811_OK)
+			{
+				BIT_SET(SensorStatusReg,3);
+			}
 	#elif (ENS160)
 			ENS160_status = ENS160_Get_Measurement(&VOC_Values);
 			ENS160_status = ENS160_Get_Raw_Data(&VOC_Values);
+			if (ENS160_status == (uint8_t)ENS160_OK)
+			{
+				BIT_SET(SensorStatusReg,3);
+			}
 	#endif
+		} else
+		{
+			BIT_SET(SensorStatusReg,3);	//Take sensor init status during WarmUpPeriod
 		}
 	lcl_voc_data_rdy = true;
 	send_lcl_voc_data = true;
@@ -1616,6 +1759,10 @@ void process_timer3_irq(void)
 #endif
 #if (PARTICULATE_SENSOR_PRESENT==1)
 	SPS30_status = SPS30_Get_Measurement(&PMS_Values);
+	if (SPS30_status == (uint8_t)SPS30_OK)
+	{
+		BIT_SET(SensorStatusReg,4);
+	}
 	lcl_pms_data_rdy = true;
 	send_lcl_pms_data = true;
 	display_pms_data = StartDataStrmng;
@@ -1628,6 +1775,13 @@ void process_timer3_irq(void)
 		 * inside the "ANLG_Get_Measurement(&GAS_Values)" function
 		 */
 		ANLG_status = ANLG_Get_Measurement(&GAS_Values);
+		if (ANLG_status == (uint8_t)ANLG_OK)
+		{
+			BIT_SET(SensorStatusReg,5);
+	#if (OUTDOOR_MODE)
+			BIT_SET(SensorStatusReg,6);
+	#endif
+		}
 	} else
 	{
 		/*
@@ -1636,6 +1790,10 @@ void process_timer3_irq(void)
 		 */
 		if(!Test_Mode)
 			read_analogs();
+		BIT_SET(SensorStatusReg,5);	//Take sensor init status during WarmUpPeriod
+	#if (OUTDOOR_MODE)
+		BIT_SET(SensorStatusReg,6);
+	#endif
 	}
 	lcl_gas_data_rdy = true;
 	send_lcl_gas_data = true;
@@ -1644,9 +1802,9 @@ void process_timer3_irq(void)
 #if ((BLE_SUPPORT) && (BEACON_APP))
 	if ((MidNight) && !(MinMaxStored))
 	{
-		StoreMinMax(&PRS_Values, &HUM_Values, &GAS_Values, &VOC_Values, &PMS_Values);
+		StoreMinMax(&PRS_Values, &HUM_Values, &GAS_Values, &VOC_Values, &PMS_Values, &UVx_Values);
 		MinMaxStored = true;
-		if (Restart_Reverved)
+		if (Restart_Reserved)
 		{
 			NVIC_SystemReset();
 		}

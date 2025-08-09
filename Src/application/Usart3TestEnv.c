@@ -14,7 +14,7 @@
 const uint8_t mystring0[] ="\r\n\nALGOL TSXX - Personal Air Monitoring Station";
 const uint8_t mystring1[] ="Premere il pulsante per piu' di 5s";
 const uint8_t mystring2[] =" per attivare i menu' di test...\r\n";
-uint8_t mystring3[8];
+uint8_t mystring3[CmdLineMaxLen];
 const uint8_t mystring4[] = "\r\n\n  ---- Bye!! ----\r\n\n";
 const uint8_t mystring5[] = "\r\n\n  Are you sure you want to update the FW? [N/y]";
 const uint8_t mystring6[] = "\r\n\n  Close the terminal, connect the programming cable and start the programming tool on the PC...";
@@ -28,16 +28,14 @@ const uint8_t mystring6[] = "\r\n\n  Close the terminal, connect the programming
 	const uint8_t mystring9c[] = "\r\n\n  The current altitude is:";
 	const uint8_t mystring9d[] = "  Enter the new altitude in meters (meters above the sea level): ";
 #endif
-#if (HUMIDITY_SENSOR_PRESENT==1)
-	const uint8_t mystring10a[] = "\r\n\n  The current humidity read by the HTS221 sensor is:";
-	const uint8_t mystring10b[] = "  Enter the reference hum. in % RH: ";
-#endif
 #if ((PRESSURE_SENSOR_PRESENT==1) || (HUMIDITY_SENSOR_PRESENT==1))
 	#if (HUMIDITY_SENSOR_PRESENT==1)
 		#if (HTS221)
 			const uint8_t mystring8a[] = "\r\n\n  The current temperature read by the HTS221 sensor is:";
+			const uint8_t mystring10a[] = "\r\n\n  The current humidity read by the HTS221 sensor is:";
 		#elif (SHT4x)
 			const uint8_t mystring8a[] = "\r\n\n  The current temperature read by the SHT4x sensor is:";
+			const uint8_t mystring10a[] = "\r\n\n  The current humidity read by the SHT4x sensor is:";
 		#endif
 	#else
 		#if (LPS25HB)
@@ -47,6 +45,7 @@ const uint8_t mystring6[] = "\r\n\n  Close the terminal, connect the programming
 		#endif
 	#endif
 	const uint8_t mystring8b[] = "  Enter the reference temp. in °C in XX.X or -XX.X format: ";
+	const uint8_t mystring10b[] = "  Enter the reference hum. in % RH: ";
 #endif
 const uint8_t mystring8c[] = "\r\n\n  ** Restart the board to make the changes effective! **";
 #if ((VOC_SENSOR_PRESENT) && (CCS811))
@@ -57,30 +56,47 @@ const uint8_t mystring8c[] = "\r\n\n  ** Restart the board to make the changes e
 	const uint8_t mystring11e[] = "\r\n\n  CCS811 current Ro will be saved after the 30 min. burn-in period";
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
+#if !(CO_FROM_EC)
 	const uint8_t mystring12a[] = "  The current CO read by the MiCS-6814 sensor is:";
 	//const uint8_t mystring12b[] = "  Enter the reference CO in mg/m3: ";
 	const uint8_t mystring12b[] = "  Enter the reference CO in mV/10: ";
 	const uint8_t mystring12c[] = "\r\n\n  The current MiCS-6814 Ro_CO is:";
 	const uint8_t mystring12d[] = "  Enter the reference Ro_CO in ohm: ";
-	const uint8_t mystring12e[] = "\r\n\n  The read value of Rs is:";
-	const uint8_t mystring12f[] = "  If you are in clean air use this value as reference value.";
 	const uint8_t mystring12g[] = "\r\n\n  The read value of Rf_CO is:";
-	const uint8_t mystring12h[] = "  Enter the new Rf in ohm: ";
+#else
+	const uint8_t mystring12a[] = "  The current CO read by the EC sensor is:";
+	const uint8_t mystring12b[] = "  Enter the reference CO in mV: ";
+#endif
+#if !(NO2_FROM_EC)
 	const uint8_t mystring14a[] = "  The current NO2 read by the MiCS-6814 sensor is:";
 	//const uint8_t mystring14b[] = "  Enter the reference NO2 in ug/m3: ";
 	const uint8_t mystring14b[] = "  Enter the reference NO2 in mV/10: ";
 	const uint8_t mystring14c[] = "\r\n\n  The current MiCS-6814 Ro_NO2 is:";
 	const uint8_t mystring14d[] = "  Enter the reference Ro_NO2 in ohm: ";
 	const uint8_t mystring14e[] = "\r\n\n  The read value of Rf_NO2 is:";
+#else
+	const uint8_t mystring14a[] = "  The current NO2 read by the EC sensor is:";
+	const uint8_t mystring14b[] = "  Enter the reference NO2 in mV: ";
+#endif
 	const uint8_t mystring15a[] = "  The current NH3 read by the MiCS-6814 sensor is:";
 	//const uint8_t mystring15b[] = "  Enter the reference NH3 in ug/m3: ";
 	const uint8_t mystring15b[] = "  Enter the reference NH3 in mV/10: ";
 	const uint8_t mystring15c[] = "\r\n\n  The current MiCS-6814 Ro_NH3 is:";
 	const uint8_t mystring15d[] = "  Enter the reference Ro_NH3 in ohm: ";
+	const uint8_t mystring12e[] = "\r\n\n  The read value of Rs is:";
+	const uint8_t mystring12f[] = "  If you are in clean air use this value as reference value.";
 	const uint8_t mystring15e[] = "\r\n\n  The read value of Rf_NH3 is:";
-	const uint8_t mystring13a[] = "  The current CH2O read by the ZE8-CH2O sensor is:";
+	const uint8_t mystring12h[] = "  Enter the new Rf in ohm: ";
 	//const uint8_t mystring13b[] = "  Enter the reference CH2O in ug/m3: ";
 	const uint8_t mystring13b[] = "  Enter the reference CH2O in mV: ";
+	#if !(CH2O_FROM_EC)
+		const uint8_t mystring13c[] = "\r\n\n  The current SMD1001 Vo_CH2O is:";
+		const uint8_t mystring13d[] = "  Enter the reference Vo_CH2O in mVolts: ";
+		const uint8_t mystring13a[] = "  The current CH2O read by the SMD1001-CH2O sensor is:";
+		const uint8_t mystring13f[] = "\r\n\n  The read value of Vs is:";
+	#else
+		const uint8_t mystring13a[] = "  The current CH2O read by the ZE8-CH2O sensor is:";
+	#endif
 	#if (OUTDOOR_MODE)
 		const uint8_t mystring16a[] = "  The current O3 read by the ZE25-O3 sensor is:";
 		//const uint8_t mystring16b[] = "  Enter the reference O3 in ug/m3: ";
@@ -100,6 +116,37 @@ const uint8_t top_menu_items_row3[]="+-------------------+\r\n";
 const uint8_t L10_menu_items_row1[]="\r\n\n+---------------------+\r\n";
 const uint8_t L10_menu_items_row3[]="+---------------------+\r\n";
 const uint8_t L10_menu_items_row5[]="|   ESC.: MAIN MENU   |\r\n";
+#if (FACTORY_DATA)
+	const uint8_t top_menu_items_row3a[]="| FACTORY DATA: [0] |\r\n";
+	const uint8_t L00_menu_items_row2[]="|    FACTORY DATA     |\r\n";
+	const uint8_t L00_menu_items_row4[]="|  DEVICE NAME...: 1  |\r\n";
+	#if (CHG_HW_VER)
+		const uint8_t L00_menu_items_row5[]="|  HW VERSION....: 2  |\r\n";
+	#endif
+	#if (CHG_FW_VER)
+		const uint8_t L00_menu_items_row6[]="|  SW VERSION....: 3  |\r\n";
+	#endif
+	const uint8_t L00_menu_items_row7[]="|  VENDOR ID.....: 4  |\r\n";
+	const uint8_t L00_menu_items_row8[]="|  PRODUCT CODE..: 5  |\r\n";
+	const uint8_t L00_menu_items_row9[]="|  REVISION NUMB.: 6  |\r\n";
+	const uint8_t L00_menu_items_row10[]="|  SERIAL NUMBER.: 7  |\r\n";
+	const uint8_t L00_menu_items_row11[]="|  UPTIME SETTING: 8  |\r\n";
+	const uint8_t mystring23a[] = "\r\n\n  The current Device Name is: ";
+	const uint8_t mystring23b[] =  "\r\n  Enter the new value.......: ";
+	const uint8_t mystring23b0[] = "  Enter the new value in hours: ";
+	const uint8_t mystring23b1[] = "  Enter the new value.......: ";
+	#if (CHG_HW_VER)
+		const uint8_t mystring23c[] = "\r\n\n  The current HW Version is.: ";
+	#endif
+	#if (CHG_FW_VER)
+		const uint8_t mystring23d[] = "\r\n\n  The current FW Version is.: ";
+	#endif
+	const uint8_t mystring23e[] = "\r\n\n  The current Vendor ID is..:";
+	const uint8_t mystring23f[] = "\r\n\n  Current Product Code is...:";
+	const uint8_t mystring23g[] = "\r\n\n  Current Revision Number is:";
+	const uint8_t mystring23h[] = "\r\n\n  Current Serial Number is..:";
+	const uint8_t mystring23i[] = "\r\n\n  Current Uptime is...........:";
+#endif
 #if	(OUTPUT_TEST==1)
 	const uint8_t top_menu_items_row4[]="| OUTPUTS TEST: [1] |\r\n";
 	const uint8_t L10_menu_items_row2[]="|     OUTPUTS TEST    |\r\n";
@@ -134,14 +181,45 @@ const uint8_t L10_menu_items_row5[]="|   ESC.: MAIN MENU   |\r\n";
 #endif
 #if	(ANALOG_TEST==1)
 	const uint8_t top_menu_items_row8[]="| ANALOG TEST.: [5] |\r\n";
-	const uint8_t L50_menu_items_row5a[]="| 01    02    03    04    05    06    07    08  "  ;
-	const uint8_t L50_menu_items_row5b[]="  09    10    11    12    13    14    15    16    |\r\n";
+	#if (GSB_HW_VER == 10)
+		const uint8_t L50_menu_items_row5a[]="| CH2O  O3    NO2   NH3   CO    SO2   C6H6  08  "  ;
+		const uint8_t L50_menu_items_row5b[]="  09    10    11    12    13    14    15    16    |\r\n";
+	#elif ((GSB_HW_VER == 20) && (OUTDOOR_MODE==1))
+		const uint8_t L50_menu_items_row5a[]="| CH2O  O3    03    NH3   05    SO2   07    08  "  ;
+		const uint8_t L50_menu_items_row5b[]="  C6H6  10    NO2   12    CO    14    15    3.3V/2|\r\n";
+	#elif ((GSB_HW_VER > 20) && (OUTDOOR_MODE==1))
+		const uint8_t L50_menu_items_row5a[]="| CH2O  O3    03    NH3   05    SO2   NO2   08  "  ;
+		const uint8_t L50_menu_items_row5b[]="  09    C6H6  CO    12    13    14    15    3.3V/2|\r\n";
+	#elif ((GSB_HW_VER >= 20) && (OUTDOOR_MODE==0))
+		const uint8_t L50_menu_items_row5a[]="| CH2O  02    NO2   NH3   CO    06    07    08  "  ;
+		const uint8_t L50_menu_items_row5b[]="  09    10    11    12    13    14    15    3.3V/2|\r\n";
+	#else
+		const uint8_t L50_menu_items_row5a[]="| 01    02    03    04    05    06    07    08  "  ;
+		const uint8_t L50_menu_items_row5b[]="  09    10    11    12    13    14    15    16    |\r\n";
+	#endif
 	const uint8_t L50_menu_items_row6a[]="|                                                ";
 	const uint8_t L50_menu_items_row6b[]="                                                 |\r\n";
 	const uint8_t L50_menu_items_row2a[]="|                                       ANALOG IN";
 	const uint8_t L50_menu_items_row2b[]="PUTS TEST                                        |\r\n";
+	#if (GSB_HW_VER == 10)
+		#if (OUTDOOR_MODE)
+			const uint8_t mystring24b[] = " (0: Outdoor Gas Sensor Board detected)\r\n";
+		#else
+			const uint8_t mystring24b[] = " (0: Indoor Gas Sensor Board detected)\r\n";
+		#endif
+	#endif
+	#if (GSB_HW_VER > 10)
+		const uint8_t mystring24a[] = " (> 0: ADC Fault detected)  -  ";
+		#if (OUTDOOR_MODE)
+			const uint8_t mystring24b[] = " (0: Outdoor Gas Sensor Board detected)\r\n";
+		#else
+			const uint8_t mystring24b[] = " (0: Indoor Gas Sensor Board detected)\r\n";
+		#endif
+	#endif
 	uint8_t L50_menu_items_row7a[]="| 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000";
 	uint8_t L50_menu_items_row7b[]=" 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 |\r\n";
+	uint8_t L50_menu_items_C14_2[]="1.234";
+	uint8_t L50_menu_items_C15_2[]="1.234";
 #endif
 const uint8_t top_menu_items_row9[]="  SELECT......: ";
 const uint8_t top_menu_items_row10[]="| FW UPDATE...: [6] |\r\n";
@@ -187,6 +265,7 @@ const uint8_t L50_menu_items_row3a[]="|                                         
 const uint8_t L50_menu_items_row3b[]=": MAIN MENU                                         |\r\n";
 uint8_t L50_menu_items_row4a[]="+------------------------------------------------";
 uint8_t L50_menu_items_row4b[]="-------------------------------------------------+\r\n";
+uint8_t L50_menu_items_row4c[]="-------------------------------------------------+\r\n\n";
 #if (RTC_CALIB==1)
 	const uint8_t L80_menu_items_row20[]="| RTC CALIB.......: D |\r\n";
 #endif
@@ -238,17 +317,35 @@ void USART3_Tx(const uint8_t *Buffer, uint16_t Length)
 void DisplayAnalogValues()
 {
 #if	(ANALOG_TEST==1)
-	USART3_Tx(L50_menu_items_row7a,strlen((const char*)L50_menu_items_row7a));
-	USART3_Tx(L50_menu_items_row7b,strlen((const char*)L50_menu_items_row7b));
-	USART3_Tx(L50_menu_items_row4a,strlen((const char*)L50_menu_items_row4a));
-	USART3_Tx(L50_menu_items_row4b,strlen((const char*)L50_menu_items_row4b));
+	#if (GSB_HW_VER == 10)
+		USART3_Tx((uint8_t*)L50_menu_items_C15_2,strlen((const char*)L50_menu_items_C15_2));
+		USART3_Tx((uint8_t*)mystring24b,strlen((const char*)mystring24b));
+	#endif
+	#if (GSB_HW_VER > 10)
+		USART3_Tx((uint8_t*)L50_menu_items_C14_2,strlen((const char*)L50_menu_items_C14_2));
+		USART3_Tx((uint8_t*)mystring24a,strlen((const char*)mystring24a));
+		USART3_Tx((uint8_t*)L50_menu_items_C15_2,strlen((const char*)L50_menu_items_C15_2));
+		USART3_Tx((uint8_t*)mystring24b,strlen((const char*)mystring24b));
+	#endif
+	USART3_Tx((uint8_t*)L50_menu_items_row4a,strlen((const char*)L50_menu_items_row4a));
+	USART3_Tx((uint8_t*)L50_menu_items_row4b,strlen((const char*)L50_menu_items_row4b));
+	USART3_Tx((uint8_t*)L50_menu_items_row5a,strlen((const char*)L50_menu_items_row5a));
+	USART3_Tx((uint8_t*)L50_menu_items_row5b,strlen((const char*)L50_menu_items_row5b));
+	USART3_Tx((uint8_t*)L50_menu_items_row7a,strlen((const char*)L50_menu_items_row7a));
+	USART3_Tx((uint8_t*)L50_menu_items_row7b,strlen((const char*)L50_menu_items_row7b));
+	USART3_Tx((uint8_t*)L50_menu_items_row4a,strlen((const char*)L50_menu_items_row4a));
+	#if (GSB_HW_VER > 10)
+		USART3_Tx((uint8_t*)L50_menu_items_row4c,strlen((const char*)L50_menu_items_row4c));
+	#else
+		USART3_Tx((uint8_t*)L50_menu_items_row4c,strlen((const char*)L50_menu_items_row4b));
+	#endif
 #endif
 }
-
 #pragma GCC optimize ("Os")
 void GetNumericString(bool nopoint, bool nominus)
 {
 	char Char = 0;
+	uint16_t Len;
 
 	memset(mystring3, 0, sizeof(mystring3));
 	do
@@ -264,6 +361,7 @@ void GetNumericString(bool nopoint, bool nominus)
 				USART3_Tx(&mystring3[j], 1);
 				j++;
 				numb = false;
+				point = false;
 			}
 			break;
 			case 0x30 ... 0x39:
@@ -273,6 +371,7 @@ void GetNumericString(bool nopoint, bool nominus)
 				USART3_Tx(&mystring3[j], 1);
 				j++;
 				numb = true;
+				point = false;
 			}
 			break;
 			case 0x2E:	// '.'
@@ -300,16 +399,21 @@ void GetNumericString(bool nopoint, bool nominus)
 			break;
 			case 0x08:	// 'BackSpace'
 			{
-				USART3_Tx(&usart3app.usartbuf[usart3app.usartlen-1], 1);
-				usart3app.usartbuf[usart3app.usartlen-1] = ' ';
-				USART3_Tx(&usart3app.usartbuf[usart3app.usartlen-1], 1);
-				usart3app.usartbuf[usart3app.usartlen-1] = 0x08;
-				USART3_Tx(&usart3app.usartbuf[usart3app.usartlen-1], 1);
-				usart3app.usartbuf[usart3app.usartlen-1] = 0;
-				j--;
-				if (mystring3[j] == '.')
-					point = false;
-				mystring3[j] = 0;
+				if (strlen((const char*)(mystring3)))
+				{
+					Len = usart3app.usartlen-1;
+
+					USART3_Tx(&usart3app.usartbuf[Len], 1);
+					usart3app.usartbuf[Len] = ' ';
+					USART3_Tx(&usart3app.usartbuf[Len], 1);
+					usart3app.usartbuf[Len] = 0x08;
+					USART3_Tx(&usart3app.usartbuf[Len], 1);
+					usart3app.usartbuf[Len] = 0;
+					j--;
+					if (mystring3[j] == '.')
+						point = false;
+					mystring3[j] = 0;
+				}
 			}
 			break;
 			case 0x0A:	// 'NewLine (/n)'
@@ -342,13 +446,20 @@ void PrintNumHeader(const uint8_t *msg1, const uint8_t *msg2, float32_t fval, bo
 {
 	uint8_t ascii_val[32];
 
-	USART3_Tx((uint8_t*)msg1,strlen((const char*)msg1));
+	if (msg1 != NULL)
+		USART3_Tx((uint8_t*)msg1,strlen((const char*)msg1));
 	if (Float)
-		sprintf((char*)&ascii_val[0], " %.1f%s\r\n", fval, meas_unit);
+	{
+		if (strcmp(meas_unit, " Volts"))
+			sprintf((char*)&ascii_val[0], " %.1f%s\r\n", fval, meas_unit);
+		else
+			sprintf((char*)&ascii_val[0], " %.3f%s\r\n", fval, meas_unit);
+	}
 	else
 		sprintf((char*)&ascii_val[0], " %ld%s\r\n", (int32_t)fval, meas_unit);
 	USART3_Tx((uint8_t*)ascii_val,strlen((const char*)ascii_val));
-	USART3_Tx((uint8_t*)msg2,strlen((const char*)msg2));
+	if (msg2 != NULL)
+		USART3_Tx((uint8_t*)msg2,strlen((const char*)msg2));
 }
 
 #pragma GCC optimize ("Os")
@@ -362,13 +473,17 @@ void PrintNumHeader(const uint8_t *msg1, const uint8_t *msg2, float32_t fval, bo
  * */
 void PrintTextHeader(const uint8_t *msg1, const uint8_t *msg2, uint8_t *ascii_val, char meas_unit[])
 {
-	USART3_Tx((uint8_t*)msg1,strlen((const char*)msg1));
+	if (msg1 != NULL)
+		USART3_Tx((uint8_t*)msg1,strlen((const char*)msg1));
 	if (ascii_val != NULL)
 	{
 		strcat((char*)ascii_val, "\r\n");
 		USART3_Tx((uint8_t*)ascii_val,strlen((const char*)ascii_val));
 	}
-	USART3_Tx((uint8_t*)msg2,strlen((const char*)msg2));
+	if (strlen((const char*)msg2))
+		USART3_Tx((uint8_t*)msg2,strlen((const char*)msg2));
+	if (strlen((const char*)meas_unit))
+		USART3_Tx((uint8_t*)meas_unit,strlen((const char*)meas_unit));
 }
 
 #pragma GCC optimize ("Os")
@@ -392,6 +507,9 @@ void top_menu()
 	USART3_Tx((uint8_t*)top_menu_items_row1,strlen((const char*)top_menu_items_row1));
 	USART3_Tx((uint8_t*)top_menu_items_row2,strlen((const char*)top_menu_items_row2));
 	USART3_Tx((uint8_t*)top_menu_items_row3,strlen((const char*)top_menu_items_row3));
+#if (FACTORY_DATA)
+	USART3_Tx((uint8_t*)top_menu_items_row3a,strlen((const char*)top_menu_items_row3a));
+#endif
 #if	(OUTPUT_TEST==1)
 	USART3_Tx((uint8_t*)top_menu_items_row4,strlen((const char*)top_menu_items_row4));
 #endif
@@ -428,6 +546,11 @@ void top_menu()
 		mystring3[0]=sel;
 		switch (sel)
 		{
+#if (FACTORY_DATA)
+			case 0x30:
+				L00_menu();
+				break;
+#endif
 #if	(OUTPUT_TEST==1)
 			case 0x31:
 				L10_menu();
@@ -493,6 +616,195 @@ void top_menu()
 
 }	// end top_menu
 
+#if	(FACTORY_DATA)
+#pragma GCC optimize ("Os")
+/* @fn 		L00_menu()
+ * @brief 	Display and select the level 0,0 menu items (FACTORY DATA)
+ * @return	null
+ * */
+void L00_menu_Strings()
+{
+	memset(&mystring3[0], 0, sizeof(mystring3));
+	USART3_Tx((uint8_t*)L10_menu_items_row1,strlen((const char*)L10_menu_items_row1));
+	USART3_Tx((uint8_t*)L00_menu_items_row2,strlen((const char*)L00_menu_items_row2));
+	USART3_Tx((uint8_t*)L10_menu_items_row3,strlen((const char*)L10_menu_items_row3));
+	USART3_Tx((uint8_t*)L00_menu_items_row4,strlen((const char*)L00_menu_items_row4));
+#if (CHG_HW_VER)
+	USART3_Tx((uint8_t*)L00_menu_items_row5,strlen((const char*)L00_menu_items_row5));
+#endif
+#if (CHG_FW_VER)
+	USART3_Tx((uint8_t*)L00_menu_items_row6,strlen((const char*)L00_menu_items_row6));
+#endif
+	USART3_Tx((uint8_t*)L00_menu_items_row7,strlen((const char*)L00_menu_items_row7));
+	USART3_Tx((uint8_t*)L00_menu_items_row8,strlen((const char*)L00_menu_items_row8));
+	USART3_Tx((uint8_t*)L00_menu_items_row9,strlen((const char*)L00_menu_items_row9));
+	USART3_Tx((uint8_t*)L00_menu_items_row10,strlen((const char*)L00_menu_items_row10));
+	USART3_Tx((uint8_t*)L00_menu_items_row11,strlen((const char*)L00_menu_items_row11));
+	USART3_Tx((uint8_t*)L10_menu_items_row3,strlen((const char*)L10_menu_items_row3));
+	USART3_Tx((uint8_t*)top_menu_items_row9,strlen((const char*)top_menu_items_row9));
+}
+
+#pragma GCC optimize ("Os")
+/* @fn 		L00_menu()
+ * @brief 	Display and set the Device Factory Data
+ * @return	null
+ * */
+void L00_menu()
+{
+	static volatile uint8_t len1;
+	extern FLASH_DATA_ORG FlashDataOrg;
+	extern uint8_t DeviceName[5];
+	extern uint8_t Version[];
+#if (CHG_HW_VER)
+	extern uint8_t HW_Version[5];
+#endif
+#if (CHG_FW_VER)
+	extern uint8_t SW_Version[5];
+#endif
+	extern uint32_t Vendor_ID;
+	extern uint32_t Prdct_Code;
+	extern uint32_t Rev_Number;
+	extern uint32_t Ser_Number;
+	uint8_t HW_Version1[5];
+	bool updated = false;
+
+	memset(&HW_Version1[0], 0, sizeof(HW_Version1));
+	usart3app.usartbuf[usart3app.usartlen-1] = 0;
+
+	L00_menu_Strings();
+	do
+	{
+		len1 = (uint8_t)usart3app.usartlen;	//We need to save the receive buffer pointer
+		if (len1 == 0)		//because it is used in the main application
+			len1 = 1;
+		sel = usart3app.usartbuf[len1-1];
+
+		switch (sel)
+		{
+			case 0x31:
+				usart3app.usartbuf[len1-1] = 0;
+				PrintTextHeader((uint8_t*)mystring23a, (uint8_t*)DeviceName, NULL, (char*)mystring23b);
+				GetNumericString(true, false);
+				if (strlen((const char*)(mystring3)))
+				{
+					strncpy((char*)DeviceName, (const char*)mystring3, 4);
+					memcpy((void *)&FlashDataOrg.b_mdata.DeviceName, (void *)&DeviceName, 4);
+					updated = true;
+				}
+				break;
+		#if (CHG_HW_VER)
+			case 0x32:
+				usart3app.usartbuf[len1-1] = 0;
+				HW_Version1[0] = HW_Version[0]; HW_Version1[1] = '.'; HW_Version1[2] = HW_Version[1];
+				PrintTextHeader((uint8_t*)mystring23c, (uint8_t*)HW_Version1, NULL, (char*)mystring23b);
+				GetNumericString(true, false);
+				if (strlen((const char*)(mystring3)))
+				{
+					strncpy((char*)HW_Version1, (const char*)mystring3, 3);
+					Version[14] = HW_Version[0] = HW_Version1[0];
+					Version[16] = HW_Version[1] = HW_Version1[2];
+					memcpy((void *)&FlashDataOrg.b_mdata.HW_Version, (void *)&HW_Version, 4);
+					updated = true;
+				}
+				break;
+		#endif
+		#if (CHG_FW_VER)
+			case 0x33:
+				usart3app.usartbuf[len1-1] = 0;
+				PrintTextHeader((uint8_t*)mystring23d, (uint8_t*)&Version[32], NULL, (char*)mystring23b);
+				GetNumericString(true, false);
+				if (strlen((const char*)(mystring3)))
+				{
+					Version[32] = SW_Version[0] = mystring3[0];
+					Version[34] = SW_Version[1] = mystring3[2];
+					Version[36] = SW_Version[2] = mystring3[4];
+					Version[37] = SW_Version[3] = mystring3[5];
+					memcpy((void *)&FlashDataOrg.b_mdata.SW_Version, (void *)SW_Version, 4);
+					updated = true;
+				}
+				break;
+		#endif
+			case 0x34:
+				usart3app.usartbuf[len1-1] = 0;
+				PrintNumHeader((uint8_t*)mystring23e, (uint8_t*)mystring23b1, (float32_t)Vendor_ID, false, "");
+				GetNumericString(false, false);
+				if (strlen((const char*)(mystring3)))
+				{
+					FlashDataOrg.b_mdata.Vendor_ID = Vendor_ID = (uint32_t)(atoi((const char*)mystring3));
+					updated = true;
+				}
+				break;
+			case 0x35:
+				usart3app.usartbuf[len1-1] = 0;
+				PrintNumHeader((uint8_t*)mystring23f, (uint8_t*)mystring23b1, (float32_t)Prdct_Code, false, "");
+				GetNumericString(false, false);
+				if (strlen((const char*)(mystring3)))
+				{
+					FlashDataOrg.b_mdata.Prdct_Code = Prdct_Code = (uint32_t)(atoi((const char*)mystring3));
+					updated = true;
+				}
+				break;
+			case 0x36:
+				usart3app.usartbuf[len1-1] = 0;
+				PrintNumHeader((uint8_t*)mystring23g, (uint8_t*)mystring23b1, (float32_t)Rev_Number, false, "");
+				GetNumericString(false, false);
+				if (strlen((const char*)(mystring3)))
+				{
+					FlashDataOrg.b_mdata.Rev_Number = Rev_Number = (uint32_t)(atoi((const char*)mystring3));
+					updated = true;
+				}
+				break;
+			case 0x37:
+				usart3app.usartbuf[len1-1] = 0;
+				PrintNumHeader((uint8_t*)mystring23h, (uint8_t*)mystring23b1, (float32_t)Ser_Number, false, "");
+				GetNumericString(false, false);
+				if (strlen((const char*)(mystring3)))
+				{
+					FlashDataOrg.b_mdata.Ser_Number = Ser_Number = (uint32_t)(atoi((const char*)mystring3));
+					updated = true;
+				}
+				break;
+			case 0x38:
+				usart3app.usartbuf[len1-1] = 0;
+				PrintNumHeader((uint8_t*)mystring23i, (uint8_t*)mystring23b0, (float32_t)Up_Time_H, false, " hours");
+				GetNumericString(false, false);
+				if (strlen((const char*)(mystring3)))
+				{
+					FlashDataOrg.b_status.s1 = (uint32_t)((atoi((const char*)mystring3)) * 3600);	//seconds conversion
+					Up_Time_H = (uint32_t)(atoi((const char*)mystring3));
+					updated = true;
+				}
+				break;
+			case 0x04:
+				memcpy(&mystring3[0], (const uint8_t *) "EOT", 3);
+				L00_menu_Strings();
+				usart3app.usartbuf[len1-1] = 0;
+				break;
+			case 0x1B:
+				if (updated)
+				{
+					updated = false;
+#if (WRITE_FLASH)
+					//Update the new factory data when exit
+					USART3_Tx((uint8_t*)mystring_w1,strlen((const char*)mystring_w1));
+					Write_Flash(0, 0);
+					memset(mystring3, 0, sizeof(mystring3));
+					USART3_Tx((uint8_t*)mystring8c,strlen((const char*)mystring8c));
+#endif	//WRITE_FLASH
+				}
+				memcpy(&mystring3[0], (const uint8_t *) "ESC", 3);
+				top_menu();
+				break;
+			default:
+				// do nothing for undefined choices
+				break;
+		}
+	}
+	while (sel != 0x1B);
+
+}	// end L00_menu
+#endif
+
 #if	(OUTPUT_TEST==1)
 #pragma GCC optimize ("Os")
 /* @fn 		L10_menu()
@@ -504,8 +816,7 @@ void L10_menu()
 	usart3app.usartbuf[usart3app.usartlen-1] = 0;
 	output = 0;
 
-	USART3_Tx(mystring3,strlen((const char*)mystring3));
-	memcpy(&mystring3[0], (const uint8_t *) "    ", 4);
+	memset(&mystring3[0], 0, sizeof(mystring3));
 	USART3_Tx((uint8_t*)L10_menu_items_row1,strlen((const char*)L10_menu_items_row1));
 	USART3_Tx((uint8_t*)L10_menu_items_row2,strlen((const char*)L10_menu_items_row2));
 	USART3_Tx((uint8_t*)L10_menu_items_row3,strlen((const char*)L10_menu_items_row3));
@@ -546,8 +857,7 @@ void L11_menu()
 	usart3app.usartbuf[usart3app.usartlen-1] = 0;
 	Test_Mode = true;
 
-	USART3_Tx(mystring3,strlen((const char*)mystring3));
-	memcpy(&mystring3[0], (const uint8_t *) "    ", 4);
+	memset(&mystring3[0], 0, sizeof(mystring3));
 	USART3_Tx((uint8_t*)L10_menu_items_row1,strlen((const char*)L10_menu_items_row1));
 	USART3_Tx((uint8_t*)L11_menu_items_row2,strlen((const char*)L11_menu_items_row2));
 	USART3_Tx((uint8_t*)L10_menu_items_row3,strlen((const char*)L10_menu_items_row3));
@@ -589,8 +899,7 @@ void L12_menu()
 	usart3app.usartbuf[usart3app.usartlen-1] = 0;
 	Test_Mode = true;
 
-	USART3_Tx(mystring3,strlen((const char*)mystring3));
-	memcpy(&mystring3[0], (const uint8_t *) "    ", 4);
+	memset(&mystring3[0], 0, sizeof(mystring3));
 	USART3_Tx((uint8_t*)L10_menu_items_row1,strlen((const char*)L10_menu_items_row1));
 	USART3_Tx((uint8_t*)L12_menu_items_row2,strlen((const char*)L12_menu_items_row2));
 	USART3_Tx((uint8_t*)L10_menu_items_row3,strlen((const char*)L10_menu_items_row3));
@@ -634,8 +943,7 @@ void L20_menu()
 	Test_Mode = true;
 	output = 0;
 
-	USART3_Tx(mystring3,strlen((const char*)mystring3));
-	memcpy(&mystring3[0], (const uint8_t *) "    ", 4);
+	memset(&mystring3[0], 0, sizeof(mystring3));
 	USART3_Tx((uint8_t*)L20_menu_items_row1,strlen((const char*)L20_menu_items_row1));
 	USART3_Tx((uint8_t*)L20_menu_items_row2,strlen((const char*)L20_menu_items_row2));
 	USART3_Tx((uint8_t*)L20_menu_items_row3,strlen((const char*)L20_menu_items_row3));
@@ -693,8 +1001,7 @@ void L30_menu()
     HAL_NVIC_EnableIRQ(CAN1_TX_IRQn);
     HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
 
-	USART3_Tx(mystring3,strlen((const char*)mystring3));
-	memcpy(&mystring3[0], (const uint8_t *) "    ", 4);
+	memset(&mystring3[0], 0, sizeof(mystring3));
 	USART3_Tx((uint8_t*)L10_menu_items_row1,strlen((const char*)L10_menu_items_row1));
 	USART3_Tx((uint8_t*)L30_menu_items_row2,strlen((const char*)L30_menu_items_row2));
 	USART3_Tx((uint8_t*)L10_menu_items_row3,strlen((const char*)L10_menu_items_row3));
@@ -769,8 +1076,7 @@ void L40_menu()
 	HAL_NVIC_EnableIRQ(CAN2_TX_IRQn);
 	HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
 
-	USART3_Tx(mystring3,strlen((const char*)mystring3));
-	memcpy(&mystring3[0], (const uint8_t *) "    ", 4);
+	memset(&mystring3[0], 0, sizeof(mystring3));
 	USART3_Tx((uint8_t*)L10_menu_items_row1,strlen((const char*)L10_menu_items_row1));
 	USART3_Tx((uint8_t*)L40_menu_items_row2,strlen((const char*)L40_menu_items_row2));
 	USART3_Tx((uint8_t*)L10_menu_items_row3,strlen((const char*)L10_menu_items_row3));
@@ -827,8 +1133,7 @@ void L50_menu()
  	usart3app.usartbuf[usart3app.usartlen-1] = 0;
 	output = 0;
 
-	USART3_Tx(mystring3,strlen((const char*)mystring3));
-	memcpy(&mystring3[0], (const uint8_t *) "    ", 4);
+	memset(&mystring3[0], 0, sizeof(mystring3));
 	USART3_Tx((uint8_t*)L50_menu_items_row1a,strlen((const char*)L50_menu_items_row1a));
 	USART3_Tx((uint8_t*)L50_menu_items_row1b,strlen((const char*)L50_menu_items_row1b));
 	USART3_Tx((uint8_t*)L50_menu_items_row2a,strlen((const char*)L50_menu_items_row2a));
@@ -837,14 +1142,14 @@ void L50_menu()
 	USART3_Tx((uint8_t*)L50_menu_items_row3b,strlen((const char*)L50_menu_items_row3b));
 	USART3_Tx((uint8_t*)L50_menu_items_row4a,strlen((const char*)L50_menu_items_row4a));
 	USART3_Tx((uint8_t*)L50_menu_items_row4b,strlen((const char*)L50_menu_items_row4b));
-	USART3_Tx((uint8_t*)L50_menu_items_row5a,strlen((const char*)L50_menu_items_row5a));
-	USART3_Tx((uint8_t*)L50_menu_items_row5b,strlen((const char*)L50_menu_items_row5b));
-//	USART3_Tx(L50_menu_items_row6a,strlen((const char*)L50_menu_items_row6a));
-//	USART3_Tx(L50_menu_items_row6b,strlen((const char*)L50_menu_items_row6b));
-//	USART3_Tx(L50_menu_items_row7a,strlen((const char*)L50_menu_items_row7a));
-//	USART3_Tx(L50_menu_items_row7b,strlen((const char*)L50_menu_items_row7b));
-	USART3_Tx(L50_menu_items_row4a,strlen((const char*)L50_menu_items_row4a));
-	USART3_Tx(L50_menu_items_row4b,strlen((const char*)L50_menu_items_row4b));
+//	USART3_Tx((uint8_t*)L50_menu_items_row5a,strlen((const char*)L50_menu_items_row5a));
+//	USART3_Tx((uint8_t*)L50_menu_items_row5b,strlen((const char*)L50_menu_items_row5b));
+//	USART3_Tx((uint8_t*)L50_menu_items_row6a,strlen((const char*)L50_menu_items_row6a));
+//	USART3_Tx((uint8_t*)L50_menu_items_row6b,strlen((const char*)L50_menu_items_row6b));
+//	USART3_Tx((uint8_t*)L50_menu_items_row7a,strlen((const char*)L50_menu_items_row7a));
+//	USART3_Tx((uint8_t*)L50_menu_items_row7b,strlen((const char*)L50_menu_items_row7b));
+//	USART3_Tx((uint8_t*)L50_menu_items_row4a,strlen((const char*)L50_menu_items_row4a));
+//	USART3_Tx((uint8_t*)L50_menu_items_row4b,strlen((const char*)L50_menu_items_row4b));
 	do
 	{
 		sel = usart3app.usartbuf[usart3app.usartlen-1];
@@ -1071,16 +1376,28 @@ void L80_menu()
 	extern uint32_t CCS811_VOC_Ro_Stored;
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-	extern uint16_t CH2O, CO, NO2, NH3;
+	extern uint16_t CH2O, NO2, NH3; //CO
 	uint16_t COref = 0; uint16_t CH2Oref = 0; int16_t NO2ref = 0; int16_t NH3ref = 0;
 	extern int8_t CO_Corr; extern int8_t CH2O_Corr;
 	extern int8_t NO2_Corr; extern int8_t NH3_Corr;
+#if !(NO2_FROM_EC)
+	extern uint32_t MiCS_6814_NO2_Ro;
+	extern uint32_t MiCS_6814_NO2_Rf;
+	extern float32_t MiCS_6814_NO2_Rs_AD;
+#endif
+#if !(CO_FROM_EC)
 	extern uint32_t MiCS_6814_CO_Ro;
 	extern uint32_t MiCS_6814_CO_Rf;
-	extern float32_t MiCS_6814_CO_Rs;
-	extern uint32_t MiCS_6814_NO2_Ro; extern uint32_t MiCS_6814_NH3_Ro;
-	extern uint32_t MiCS_6814_NO2_Rf; extern uint32_t MiCS_6814_NH3_Rf;
-	extern float32_t MiCS_6814_NO2_Rs; extern float32_t MiCS_6814_NH3_Rs;
+	extern float32_t MiCS_6814_CO_Rs_AD;
+#endif
+	extern uint32_t MiCS_6814_NH3_Ro;
+	extern uint32_t MiCS_6814_NH3_Rf;
+	extern float32_t MiCS_6814_NH3_Rs_AD;
+#if !(CH2O_FROM_EC)
+	extern uint32_t SMD1001_CH2O_Vo;
+//	extern uint32_t SMD1001_CH2O_Rf;
+	extern float32_t SMD1001_CH2O_Vs_AD;
+#endif
 #if (OUTDOOR_MODE)
 	extern uint16_t O3, SO2, C6H6;
 	int16_t O3ref = 0; int16_t SO2ref = 0; int16_t C6H6ref = 0;
@@ -1123,6 +1440,7 @@ void L80_menu()
 #if (SET_DATE_TIME==1)
 			case 0x31:
 				usart3app.usartbuf[len-1] = 0;
+				usart3app.usartbuf[usart3app.usartlen] = 0;
 				USART3_Tx((uint8_t*)mystring7,strlen((const char*)mystring7));
 				do
 				{
@@ -1227,6 +1545,7 @@ void L80_menu()
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 			case 0x36:
+	#if !(CO_FROM_EC)
 				usart3app.usartbuf[len-1] = 0;
 				PrintNumHeader((uint8_t*)mystring12g, (uint8_t*)mystring12h, MiCS_6814_CO_Rf, false, " ohm");
 				GetNumericString(false, false);
@@ -1237,10 +1556,10 @@ void L80_menu()
 					updated = true;
 				} else
 				{
-					PrintNumHeader((uint8_t*)mystring12e, (uint8_t*)mystring12f, (uint32_t)lrintf(MiCS_6814_CO_Rs), false, " ohm");
+					PrintNumHeader((uint8_t*)mystring12e, (uint8_t*)mystring12f, (uint32_t)lrintf(MiCS_6814_CO_Rs_AD), false, " ohm");
 
-					usart3app.usartbuf[usart3app.usartlen-1] = 0;
 					PrintNumHeader((uint8_t*)mystring12c, (uint8_t*)mystring12d, MiCS_6814_CO_Ro, false, " ohm");
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
 					GetNumericString(false, false);
 					//Enter the new MiCS_6814_CO_Ro
 					if (strlen((const char*)(mystring3)))
@@ -1248,25 +1567,42 @@ void L80_menu()
 						FlashDataOrg.b_status.sb = MiCS_6814_CO_Ro = (uint32_t)(atoi((const char*)mystring3));
 						updated = true;
 					}
-
+	#endif
 					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+	#if !(CO_FROM_EC)
 					PrintNumHeader((uint8_t*)mystring18c, NULL, CO_Corr, false, "mV/10: 1=10mV");
-					PrintNumHeader((uint8_t*)mystring12a, (uint8_t*)mystring12b, CO, false, "mg/m3");
+	#else
+					PrintNumHeader((uint8_t*)mystring18c, NULL, CO_Corr, false, "mV");
+	#endif
+					PrintNumHeader((uint8_t*)mystring12a, (uint8_t*)mystring12b, GAS_Values.CO, true, "mg/m3");
 					GetNumericString(false, true);
 					COref = atoi((const char*)mystring3);
 					//Calculate the new CO_Corr
 					if (strlen((const char*)(mystring3)))
 					{
-						//While waiting to implement the mg/m3->Volts conversion, the reference value is entered in mVolts/10
-						//and coincides with the correction value
+						//N.B.: This is just an offset on the ADC reading.
+						//The correction of the ppm value is done later via the linear regression coefficients.
 						CO_Corr = (int8_t)lrintf(COref);
-	//					CO_Corr = (int8_t)lrintf(COref - GAS_Values.CO);
 						updated = true;
 					}
+	#if !(CO_FROM_EC)
 				}
+	#endif
 				break;
 			case 0x37:
 				usart3app.usartbuf[len-1] = 0;
+	#if !(CH2O_FROM_EC)
+				PrintNumHeader((uint8_t*)mystring13f, (uint8_t*)mystring12f, SMD1001_CH2O_Vs_AD, true, " Volts");
+				PrintNumHeader((uint8_t*)mystring13c, (uint8_t*)mystring13d, SMD1001_CH2O_Vo, false, " mVolts");
+				GetNumericString(false, false);
+				//Enter the new MiCS_6814_CO_Ro
+				if (strlen((const char*)(mystring3)))
+				{
+					FlashDataOrg.b_status.s14 = SMD1001_CH2O_Vo = (uint32_t)(atoi((const char*)mystring3));
+					updated = true;
+				}
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+	#endif
 				PrintNumHeader((uint8_t*)mystring18c, NULL, CH2O_Corr, false, "mV");
 				PrintNumHeader((uint8_t*)mystring13a, (uint8_t*)mystring13b, CH2O, false, "ug/m3");
 				GetNumericString(false, true);
@@ -1274,14 +1610,14 @@ void L80_menu()
 				//Calculate the new CH2O_Corr
 				if (strlen((const char*)(mystring3)))
 				{
-					//While waiting to implement the ug/m3->Volts conversion, the reference value is entered in mVolts/10
-					//and coincides with the correction value
+					//N.B.: This is just an offset on the ADC reading.
+					//The correction of the ppm value is done later via the linear regression coefficients.
 					CH2O_Corr = (int8_t)lrintf(CH2Oref);
-//					CH2O_Corr = (int8_t)lrintf((CH2Oref - GAS_Values.CH2O);
 					updated = true;
 				}
 				break;
 			case 0x38:
+	#if !(NO2_FROM_EC)
 				usart3app.usartbuf[len-1] = 0;
 				PrintNumHeader((uint8_t*)mystring14e, (uint8_t*)mystring12h, MiCS_6814_NO2_Rf, false, " ohm");
 				GetNumericString(false, false);
@@ -1292,10 +1628,10 @@ void L80_menu()
 					updated = true;
 				} else
 				{
-					PrintNumHeader((uint8_t*)mystring12e, (uint8_t*)mystring12f, (uint32_t)lrintf(MiCS_6814_NO2_Rs), false, " ohm");
+					PrintNumHeader((uint8_t*)mystring12e, (uint8_t*)mystring12f, (uint32_t)lrintf(MiCS_6814_NO2_Rs_AD), false, " ohm");
 
-					usart3app.usartbuf[usart3app.usartlen-1] = 0;
 					PrintNumHeader((uint8_t*)mystring14c, (uint8_t*)mystring14d, MiCS_6814_NO2_Ro, false, " ohm");
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
 					GetNumericString(false, false);
 					//Enter the new MiCS_6814_NO2_Ro
 					if (strlen((const char*)(mystring3)))
@@ -1303,22 +1639,27 @@ void L80_menu()
 						FlashDataOrg.b_status.sd = MiCS_6814_NO2_Ro = (uint32_t)(atoi((const char*)mystring3));
 						updated = true;
 					}
-
+	#endif
 					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+	#if !(NO2_FROM_EC)
 					PrintNumHeader((uint8_t*)mystring18c, NULL, NO2_Corr, false, "mV/10: 1=10mV");
+	#else
+					PrintNumHeader((uint8_t*)mystring18c, NULL, NO2_Corr, false, "mV");
+	#endif
 					PrintNumHeader((uint8_t*)mystring14a, (uint8_t*)mystring14b, NO2, false, "ug/m3");
 					GetNumericString(false, true);
 					NO2ref = atoi((const char*)mystring3);
 					//Calculate the new NO2_Corr
 					if (strlen((const char*)(mystring3)))
 					{
-						//While waiting to implement the ug/m3->Volts conversion, the reference value is entered in mVolts/10
-						//and coincides with the correction value
+						//N.B.: This is just an offset on the ADC reading.
+						//The correction of the ppm value is done later via the linear regression coefficients.
 						NO2_Corr = (int8_t)NO2ref;
-	//					NO2_Corr = (int8_t)lrintf((NO2ref - GAS_Values.NO2);
 						updated = true;
 					}
+	#if !(NO2_FROM_EC)
 				}
+	#endif
 				break;
 			case 0x39:
 				usart3app.usartbuf[len-1] = 0;
@@ -1331,10 +1672,10 @@ void L80_menu()
 					updated = true;
 				} else
 				{
-					PrintNumHeader((uint8_t*)mystring12e, (uint8_t*)mystring12f, (uint32_t)lrintf(MiCS_6814_NH3_Rs), false, " ohm");
+					PrintNumHeader((uint8_t*)mystring12e, (uint8_t*)mystring12f, (uint32_t)lrintf(MiCS_6814_NH3_Rs_AD), false, " ohm");
 
-					usart3app.usartbuf[usart3app.usartlen-1] = 0;
 					PrintNumHeader((uint8_t*)mystring15c, (uint8_t*)mystring15d, MiCS_6814_NH3_Ro, false, " ohm");
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
 					GetNumericString(false, false);
 					//Enter the new MiCS_6814_NH3_Ro
 					if (strlen((const char*)(mystring3)))
@@ -1351,10 +1692,9 @@ void L80_menu()
 					//Calculate the new NH3_Corr
 					if (strlen((const char*)(mystring3)))
 					{
-						//While waiting to implement the ug/m3->Volts conversion, the reference value is entered in mVolts/10
-						//and coincides with the correction value
+						//N.B.: This is just an offset on the ADC reading.
+						//The correction of the ppm value is done later via the linear regression coefficients.
 						NH3_Corr = (int8_t)NH3ref;
-	//					NH3_Corr = (int8_t)lrintf((NH3ref - GAS_Values.NH3);
 						updated = true;
 					}
 				}
@@ -1370,10 +1710,9 @@ void L80_menu()
 				//Calculate the new O3_Corr
 				if (strlen((const char*)(mystring3)))
 				{
-					//While waiting to implement the ug/m3->Volts conversion, the reference value is entered in mVolts/10
-					//and coincides with the correction value
+					//N.B.: This is just an offset on the ADC reading.
+					//The correction of the ppm value is done later via the linear regression coefficients.
 					O3_Corr = (int8_t)lrintf(O3ref);
-//					O3_Corr = (int8_t)lrintf(O3ref - GAS_Values.O3);
 					updated = true;
 				}
 				break;
@@ -1387,10 +1726,9 @@ void L80_menu()
 				//Calculate the new SO2_Corr
 				if (strlen((const char*)(mystring3)))
 				{
-					//While waiting to implement the ug/m3->Volts conversion, the reference value is entered in mVolts/10
-					//and coincides with the correction value
+					//N.B.: This is just an offset on the ADC reading.
+					//The correction of the ppm value is done later via the linear regression coefficients.
 					SO2_Corr = (int8_t)lrintf(SO2ref);
-//					SO2_Corr = (int8_t)lrintf(SO2ref - GAS_Values.SO2);
 					updated = true;
 				}
 				break;
@@ -1404,10 +1742,9 @@ void L80_menu()
 				//Calculate the new C6H6_Corr
 				if (strlen((const char*)(mystring3)))
 				{
-					//While waiting to implement the ug/m3->Volts conversion, the reference value is entered in mVolts/10
-					//and coincides with the correction value
+					//N.B.: This is just an offset on the ADC reading.
+					//The correction of the ppm value is done later via the linear regression coefficients.
 					C6H6_Corr = (int8_t)lrintf(C6H6ref);
-//					C6H6_Corr = (int8_t)lrintf(C6H6ref - GAS_Values.C6H6);
 					updated = true;
 				}
 				break;
@@ -1423,7 +1760,14 @@ void L80_menu()
 				{
 					if (!((strcmp((const char*)mystring3, "y")) && (strcmp((const char*)mystring3, "Y"))))
 					{
-						memset(&BakUpRTC_Data[6], 0x00, 68);
+	#if defined(STM32F405xx)
+						memset(&BakUpSRam_Data[6], 0x00, 68);		//Save Up_Time_H register
+						memset(&BakUpSRam_Data[78], 0x00, 50);
+	#elif defined(STM32F105xC)
+						memset(&BakUpRTC_Data[6], 0x00, 67);		//Save Up_Time_H register & DayLight status byte (bit 31..24)
+						memset(&BakUpRTC_Data[78], 0x00, 6);
+	#endif
+
 						enable_backup_rtc();
 						writeBkpRTC((uint8_t *)BakUpRTC_Data, sizeof(BakUpRTC_Data), 0);
 						disable_backup_rtc();

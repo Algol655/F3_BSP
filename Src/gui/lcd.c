@@ -29,6 +29,7 @@ const char sensor_fail1a[] = " FAIL";
 const char sensor_fail1b[] = " FAIL ";
 const char sensor_fail1c[] = " FAIL  ";
 const char sensor_fail2p[] = "FAIL  ";
+const char sensor_fail2p1[] = "  FAIL  ";
 #if ((UVx_SENSOR_PRESENT==1) && ((GLCD_SUPPORT==1) || (TLCD_SUPPORT==1)))
 	static bool UVx_Display = false;
 	static bool ClearDisplay = false;
@@ -286,6 +287,8 @@ uint8_t u8x8_byte_4wire_hw_spi(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void 
 	{
 		case U8X8_MSG_BYTE_SEND:
 			HAL_SPI_Transmit(&hspi2, (uint8_t *) arg_ptr, arg_int, 10000);
+			while(HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY){}
+//			HAL_SPI_Transmit_DMA(&hspi2, (uint8_t *) arg_ptr, arg_int);
 		break;
 		case U8X8_MSG_BYTE_INIT:
 		break;
@@ -358,29 +361,27 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 		{
 			if (PM_toggle == 2)		//+1 because PM_toggle is incremented at the end of the
 			{						//PRESSURE_SENSOR section of the FormatDisplayString function
-		#if (UVx_SENSOR_PRESENT==1)
-				if ((UVx_Display) || (ClearDisplay))
-				{
-					u8g2_ClearDisplay(&u8g2);
-					ClearDisplay = false;
-				}
-		#endif
 				//Resends string, so it will be displayed immediately
 				u8g2_DrawStr(&u8g2, TextXPos, TextYPos, (char*)&usbVCOMout[0]);
 
-				u8g2_DrawRFrame(&u8g2, 0, 0, 46, 31, 3);
+				u8g2_DrawRFrame(&u8g2, 0, 0, 37, 31, 3);
 	//			u8g2_DrawLine(&u8g2, 0, 15, 45, 15);
-				u8g2_DrawRFrame(&u8g2, 47, 0, 40, 31, 3);
+				u8g2_DrawRFrame(&u8g2, 38, 0, 49, 31, 3);
 				u8g2_DrawRFrame(&u8g2, 88, 0, 51, 31, 3);
 				u8g2_DrawRFrame(&u8g2, 140, 0, 52, 31, 3);
 				u8g2_SetFont(&u8g2, u8g2_font_t0_12b_tf);
 		#if (CALC_ALTITUDE==1)
 				u8g2_DrawStr(&u8g2, 20, 12, "T      RH      Pr      H\r\n");
 		#elif (CALC_DEWPOINT==1)
-				u8g2_DrawStr(&u8g2, 20, 12, "T      RH\r\n");
+				u8g2_DrawStr(&u8g2, 10, 12, "T\r\n");
+				u8g2_DrawStr(&u8g2, 45, 10, "RH  AH\r\n");
 				u8g2_DrawStr(&u8g2, 112, 12, "Pr   Td    Tp\r\n");
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_tf);
-				u8g2_DrawStr(&u8g2, 159, 13, (char*)&mystring[0]);
+				u8g2_DrawStr(&u8g2, 19, 12, (char*)&mystring[0]);
+				u8g2_DrawStr(&u8g2, 159, 12, (char*)&mystring[0]);
+				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
+				u8g2_DrawStr(&u8g2, 48, 18, "%\r\n");
+				u8g2_DrawStr(&u8g2, 63, 18, "g/m3\r\n");
 		#endif
 				u8g2_SetFont(&u8g2, u8g2_font_unifont_t_weather);
 				switch (forecast & 0x3F)	//Mask Steady and pressure increase/decrease bits
@@ -456,7 +457,7 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 				u8g2_DrawStr(&u8g2, TextXPos, TextYPos, (char*)&usbVCOMout[0]);
 
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
-				u8g2_DrawStr(&u8g2, 6, 18, " (ppb)    (mg/mc)  (ug/mc)   (ug/mc)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 18, " (ppb)    (mg/m3)  (ug/m3)   (ug/m3)\r\n");
 				u8g2_SetFont(&u8g2, u8g2_font_t0_12b_tf);
 				u8g2_DrawStr(&u8g2, 9, 10, "eTVOC     CO     NO2     NH3\r\n");
 
@@ -473,9 +474,9 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
 			#if (DISPLAY_C6H6)
-				u8g2_DrawStr(&u8g2, 6, 18, "(ug/mc)   (ug/mc)  (ug/mc)   (ug/mc)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 18, "(ug/m3)   (ug/m3)  (ug/m3)   (ug/m3)\r\n");
 			#else
-				u8g2_DrawStr(&u8g2, 6, 18, "(ug/mc)   (ug/mc)  (ug/mc)    (ppm)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 18, "(ug/m3)   (ug/m3)  (ug/m3)    (ppm)\r\n");
 			#endif
 				u8g2_SetFont(&u8g2, u8g2_font_t0_12b_tf);
 			#if (DISPLAY_C6H6)
@@ -494,7 +495,7 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 			u8g2_DrawStr(&u8g2, TextXPos, TextYPos, (char*)&usbVCOMout[0]);
 
 			u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
-			u8g2_DrawStr(&u8g2, 6, 18, " (ppb)     (ppm)   (ug/mc)   (mg/mc)\r\n");
+			u8g2_DrawStr(&u8g2, 6, 18, " (ppb)     (ppm)   (ug/m3)   (mg/m3)\r\n");
 			u8g2_SetFont(&u8g2, u8g2_font_t0_12b_tf);
 			u8g2_DrawStr(&u8g2, 9, 10, "eTVOC    eCO2    CH20     CO\r\n");
 
@@ -527,7 +528,7 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 				u8g2_DrawStr(&u8g2, TextXPos, TextYPos, (char*)&usbVCOMout[0]);
 
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
-				u8g2_DrawStr(&u8g2, 6, 18, "(ug/mc)   (ug/mc)  (ug/mc)   (ug/mc)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 18, "(ug/m3)   (ug/m3)  (ug/m3)   (ug/m3)\r\n");
 				u8g2_SetFont(&u8g2, u8g2_font_t0_12b_tf);
 				u8g2_DrawStr(&u8g2, 9, 10, "PM1.0   PM2.5   PM4.0    PM10\r\n");
 
@@ -572,7 +573,7 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 			u8g2_DrawStr(&u8g2, TextXPos, TextYPos, (char*)&usbVCOMout[0]);
 
 			u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
-			u8g2_DrawStr(&u8g2, 6, 18, "(ug/mc)   (ug/mc)  (ug/mc)   (ug/mc)\r\n");
+			u8g2_DrawStr(&u8g2, 6, 18, "(ug/m3)   (ug/m3)  (ug/m3)   (ug/m3)\r\n");
 			u8g2_SetFont(&u8g2, u8g2_font_t0_12b_tf);
 			u8g2_DrawStr(&u8g2, 9, 10, "PM1.0   PM2.5   PM4.0    PM10\r\n");
 
@@ -606,7 +607,8 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	extern uint16_t CH2O, CO, NO2, NH3;
-	extern uint16_t CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean;
+	extern uint16_t CH2O_8h_Mean, CO_8h_Mean, CO_8h_Mean_t, NO2_1h_Mean, NH3_8h_Mean;
+	float32_t CO_8h_Mean_f;
 	#if (OUTDOOR_MODE)
 		extern uint16_t O3, SO2, C6H6;
 		extern uint16_t O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean;
@@ -617,13 +619,13 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 	#if (OUTDOOR_MODE)
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 										   CH2O, CO, NO2, NH3, O3, SO2, C6H6, MC_10p0, MC_2p5,
-										   CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean,
+										   CH2O_8h_Mean, CO_8h_Mean_t, NO2_1h_Mean, NH3_8h_Mean,
 										   O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
 	#else	//OUTDOOR_MODE==0
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 										   CH2O, CO, NO2, NH3, 0, 0, 0, MC_10p0, MC_2p5,
-										   CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean, 0, 0, 0,
+										   CH2O_8h_Mean, CO_8h_Mean_t, NO2_1h_Mean, NH3_8h_Mean, 0, 0, 0,
 										   MC_10p0_24h_Mean, MC_2p5_24h_Mean);
 	#endif	//OUTDOOR_MODE
 #else	//GAS_SENSOR_MODULE_PRESENT==0
@@ -703,11 +705,15 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 			if (PM_toggle == 2)		//+1 because PM_toggle is incremented at the end of the
 			{						//VOC_SENSOR section of the FormatDisplayString function
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
-				u8g2_DrawStr(&u8g2, 6, 18, " (ppb)    (mg/mc)  (ug/mc)   (mg/mc)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 19, " (ppb)    (mg/m3)  (ug/m3)   (mg/m3)\r\n");
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_mf);
 				sprintf((char*)&etvoc_v_1h_Mean[0],  "%u", eq_TVOC_1h_Mean);
 				u8g2_DrawStr(&u8g2, 2, 30, (char*)&etvoc_v_1h_Mean[0]);
-				sprintf((char*)&co_v_8h_Mean[0],  "%u", CO_8h_Mean);
+				CO_8h_Mean_f = CO_8h_Mean/100.0;
+				if (CO_8h_Mean_f < 0.1)
+					co_v_8h_Mean[0] = 0x30;
+				else
+					sprintf((char*)&co_v_8h_Mean[0],  "%.1f", CO_8h_Mean_f);
 				u8g2_DrawStr(&u8g2, 50, 30, (char*)&co_v_8h_Mean[0]);
 				sprintf((char*)&no2_v_1h_Mean[0],  "%u", NO2_1h_Mean);
 				u8g2_DrawStr(&u8g2, 98, 30, (char*)&no2_v_1h_Mean[0]);
@@ -740,9 +746,9 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 			{						//VOC_SENSOR section of the FormatDisplayString function
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
 			#if (DISPLAY_C6H6)
-				u8g2_DrawStr(&u8g2, 6, 18, "(ug/mc)   (ug/mc)  (ug/mc)   (ug/mc)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 19, "(ug/m3)   (ug/m3)  (ug/m3)   (ug/m3)\r\n");
 			#else
-				u8g2_DrawStr(&u8g2, 6, 18, "(ug/mc)   (ug/mc)  (ug/mc)    (ppm)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 19, "(ug/m3)   (ug/m3)  (ug/m3)    (ppm)\r\n");
 			#endif
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_mf);
 				sprintf((char*)&ch2o_v_8h_Mean[0],  "%u", CH2O_8h_Mean);
@@ -796,7 +802,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 //			if (PM_toggle == 2)		//+1 because PM_toggle is incremented at the end of the
 //			{						//VOC_SENSOR section of the FormatDisplayString function
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
-				u8g2_DrawStr(&u8g2, 6, 18, " (ppb)     (ppm)   (ug/mc)   (mg/mc)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 19, " (ppb)     (ppm)   (ug/m3)   (mg/m3)\r\n");
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_mf);
 				sprintf((char*)&etvoc_v_1h_Mean[0],  "%u", eq_TVOC_1h_Mean);
 				u8g2_DrawStr(&u8g2, 2, 30, (char*)&etvoc_v_1h_Mean[0]);
@@ -899,7 +905,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 			if (PM_toggle == 2)		//+1 because PM_toggle is incremented at the end of the
 			{						//PARTICULATE_SENSOR section of the FormatDisplayString function
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
-				u8g2_DrawStr(&u8g2, 6, 19, "(ug/mc)   (ug/mc)  (ug/mc)   (ug/mc)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 19, "(ug/m3)   (ug/m3)  (ug/m3)   (ug/m3)\r\n");
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_mf);
 				sprintf((char*)&mc_1p0_v_24h_Mean[0],  "%u", MC_1p0_24h_Mean);
 				u8g2_DrawStr(&u8g2, 7, 30, (char*)&mc_1p0_v_24h_Mean[0]);
@@ -913,7 +919,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 			if (PM_toggle == 3)		//+1 because PM_toggle is incremented at the end of the
 			{						//PARTICULATE_SENSOR section of the FormatDisplayString function
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
-				u8g2_DrawStr(&u8g2, 6, 19, "(ug/mc)   (ug/mc)  (ug/mc)   (ug/mc)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 19, "(ug/m3)   (ug/m3)  (ug/m3)   (ug/m3)\r\n");
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_mf);
 				sprintf((char*)&mc_1p0_v_24h_Mean[0],  "%u", MC_1p0_24h_Mean);
 				u8g2_DrawStr(&u8g2, 7, 30, (char*)&mc_1p0_v_24h_Mean[0]);
@@ -927,7 +933,7 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 			if (PM_toggle == 1)		//+1 because PM_toggle is incremented at the end of the
 			{						//PARTICULATE_SENSOR section of the FormatDisplayString function
 				u8g2_SetFont(&u8g2, u8g2_font_5x8_mf);
-				u8g2_DrawStr(&u8g2, 6, 19, "(ug/mc)   (ug/mc)  (ug/mc)   (ug/mc)\r\n");
+				u8g2_DrawStr(&u8g2, 6, 19, "(ug/m3)   (ug/m3)  (ug/m3)   (ug/m3)\r\n");
 				u8g2_SetFont(&u8g2, u8g2_font_t0_11_mf);
 				sprintf((char*)&mc_1p0_v_24h_Mean[0],  "%u", MC_1p0_24h_Mean);
 				u8g2_DrawStr(&u8g2, 7, 30, (char*)&mc_1p0_v_24h_Mean[0]);
@@ -968,9 +974,14 @@ LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 LCD_Error_et SendWelcomeMessage()
 {
 	extern uint8_t Version[];
+	extern uint8_t DeviceName[5];
 	char MyVersion[40];
+	char MyWelcomeString1[40] = {'\0'};
 
 	memcpy(&MyVersion[0], &Version[2], 36);
+	memcpy(&MyWelcomeString1[0], &WELCOME_STRING1[0], sizeof(WELCOME_STRING1));
+	memcpy(&MyWelcomeString1[14], &DeviceName[1], 3);
+
 	MyVersion[36] = 0x0D; MyVersion[37] = 0x0A; MyVersion[38] = 0x00;
 
 	u8g2_SetFont(&u8g2, u8g2_font_t0_12_mf);
@@ -983,7 +994,7 @@ LCD_Error_et SendWelcomeMessage()
 	Disp_Area = 0;
 	u8g2_SetFont(&u8g2, u8g2_font_t0_14_mf);
 	u8g2_ClearDisplay(&u8g2);
-    send_glcdmessage(WELCOME_STRING1, 10, 15, 2, 26, false, true);
+    send_glcdmessage(MyWelcomeString1, 10, 15, 2, 26, false, true);
     u8g2_SetFont(&u8g2, u8g2_font_5x7_tf);
     send_glcdmessage(MyVersion, 6, 25, 2, 26, true, true);
 
@@ -1021,61 +1032,83 @@ LCD_Error_et MX_GLCD_Init()
  * Returns a string "str" centered in string of a length width "new_length".
  * Padding is done using the specified fill character "placeholder".
  */
-char *str_center(char str[], unsigned int new_length, char placeholder)
+char *str_center(char str[], uint8_t new_length, char placeholder)
 {
-    size_t str_length = strlen(str);
+	size_t str_length = strlen(str);
 
-    // if a new length is less or equal length of the original string, returns the original string
-    if (new_length <= str_length)
-        return str;
+	// if a new length is less or equal length of the original string, returns the original string
+	if (new_length <= str_length)
+		return str;
 
-    char *buffer;
-    unsigned int i, total_rest_length;
+	static char buffer[12];
+	memset(buffer, 0, sizeof(buffer));
+//	char *buffer;
+	uint8_t i, total_rest_length;
+	float32_t total_rest_length_f;
 
-    buffer = malloc(sizeof(char) * new_length + 1);
+//	buffer = malloc(sizeof(char) * new_length + 1);
 
-    // length of a wrapper of the original string
-    total_rest_length = new_length - str_length;
+	// length of a wrapper of the original string
+	total_rest_length = new_length - str_length;
 
-    // write a prefix to buffer
-    i = 0;
-    while (i < (total_rest_length / 2))
-    {
-        buffer[i] = placeholder;
-        ++i;
-    }
+	// write a prefix to buffer
+	i = 0;
+	if (total_rest_length > 1)
+		total_rest_length_f = total_rest_length / 2.0;
+	else
+		total_rest_length_f = 0.0;
+	while (i < (uint8_t)(round(total_rest_length_f)))
+	{
+		buffer[i] = placeholder;
+		++i;
+	}
 //	buffer[i+1] = '\0';		//Original
-    buffer[i] = '\0';
+//	buffer[i] = '\0';
 
-    // write the original string
-    strcat(buffer, str);
+	// write the original string
+	strcat((char*)buffer, str);
 
-    // write a postfix to the buffer
-    i += str_length;
-    while (i < new_length)
-    {
-        buffer[i] = placeholder;
-        ++i;
-    }
+	// write a postfix to the buffer
+	i += str_length;
+	while (i < new_length)
+	{
+		buffer[i] = placeholder;
+		++i;
+	}
 //	buffer[i+1] = '\0';		//Original
-    buffer[i] = '\0';
+//	buffer[i] = '\0';
 
-    free(buffer);
+//	free(buffer);
 
-    return buffer;
+	return (char*) buffer;
 }
 
-void FillAirQualityField(char* field, uint16_t value, uint8_t ovfl_check)
+void FillAirQualityField(char* field, uint16_t value, uint8_t ovfl_check, uint16_t div)
 {
+	float32_t d_val;
+
 	if (ovfl_check)
 	{
 		strcpy(field, "OVFL");
 	} else
 	if(value)
-		sprintf((char*)&field[0], "%u", value);
-	else
-		strcpy(field, "< 1");
+	{
+		if (div > 1)
+		{
+			d_val = (float32_t)value/(float32_t)div;
+			if (d_val > 0.1)
+				sprintf((char*)&field[0], "%.1f", d_val);
+			else
+				strcpy(field, "< 0.1");
+		} else
+			sprintf((char*)&field[0], "%u", value);
+	} else
+		if (div == 1)
+			strcpy(field, "< 1");
+		else
+			strcpy(field, "< 0.1");
 }
+
 void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 {
 #if ((TLCD_SUPPORT==1) || (GLCD_SUPPORT==1))
@@ -1089,6 +1122,7 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 	#endif
 	#if (HUMIDITY_SENSOR_PRESENT==1)
 		extern uint8_t	Humidity;
+		extern float32_t AH;
 		#if(CALC_DEWPOINT==1)
 			extern float TemperatureD;
 		#endif
@@ -1123,7 +1157,7 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 		extern float TypicalParticleSize;
 	#endif
 	#if (GAS_SENSOR_MODULE_PRESENT==1)
-		extern uint16_t CH2O, CO, NO2, NH3;
+		extern uint16_t CH2O, CO, CO_Out, NO2, NH3;
 		#if (OUTDOOR_MODE)
 			extern uint16_t C6H6, O3, SO2;
 		#endif
@@ -1219,66 +1253,75 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 				{
 					if (PM_toggle == 1)
 					{
-						TextXPos = 5; TextYPos = 27; Sh = 0;
+						TextXPos = 5; TextYPos = 29; Sh = 0;
 
-						sprintf((char*)&temp_v[0],  "%.1f%cC", Temperature, 0xB0);
+//						sprintf((char*)&temp_v[0],  "%.1f%cC", Temperature, 0xB0);
+						sprintf((char*)&temp_v[0],  "%.1f ", Temperature);
 						ptr = str_center(temp_v, TEMP_FRAME_W, ENV_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[0], ptr, TEMP_FRAME_W);
 				#if (HUMIDITY_SENSOR_PRESENT==1)
-						sprintf((char*)&hum_v[0],  "%2u%%", Humidity);
-						ptr = str_center(hum_v, HUM_FRAME_W, ENV_FRAME_FILL_CHAR);
-						memcpy((void *)&Buff[TEMP_FRAME_W], ptr, HUM_FRAME_W);
+//						sprintf((char*)&hum_v[0],  "%2u%%", Humidity);
+						sprintf((char*)&hum_v[0],  "%2u", Humidity);
+						ptr = str_center(hum_v, HUMr_FRAME_W, ENV_FRAME_FILL_CHAR);
+						memcpy((void *)&Buff[TEMP_FRAME_W], ptr, HUMr_FRAME_W);
+
+						sprintf((char*)&hum_v[0],  "%.1f", AH);
+						ptr = str_center(hum_v, HUMa_FRAME_W, ENV_FRAME_FILL_CHAR);
+						memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W], ptr, HUMa_FRAME_W);
 				#else
 						memcpy((void *)&Buff[TEMP_FRAME_W], &sensor_fail1c[0], 7);
-						memcpy((void *)&Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W], &sensor_fail[0], 4);
-						memcpy((void *)&Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W + (TEMPd_FRAME_W+Sh)], &sensor_fail[0], 4);
+						memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W], &sensor_fail[0], 4);
+						memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W + (TEMPd_FRAME_W+Sh)], &sensor_fail[0], 4);
 				#endif
 						sprintf((char*)&press_v[0],  "%.1fmb", press_value);
 						ptr = str_center(press_v, PRESS_FRAME_W, ENV_FRAME_FILL_CHAR);
-						memcpy((void *)&Buff[TEMP_FRAME_W + HUM_FRAME_W], ptr, PRESS_FRAME_W);
+						memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W], ptr, PRESS_FRAME_W);
 				#if (CALC_ALTITUDE==1)
 						sprintf((char*)&alt_v[0],  "%.1fm", Altitude);
 						ptr = str_center(alt_v, ALT_FRAME_W, ENV_FRAME_FILL_CHAR);
-						memcpy((void *)&Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W], ptr, ALT_FRAME_W);
+						memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W], ptr, ALT_FRAME_W);
 
 						sprintf((char*)&tempp_v[0],  "%2u", (uint8_t)lrint(Temperature));
 						ptr = str_center(tempp_v, TEMPp_FRAME_W, ENV_FRAME_FILL_CHAR);
-						memcpy((void *)&Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W], ptr, TEMPp_FRAME_W);
+						memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W], ptr, TEMPp_FRAME_W);
 				#elif ((CALC_DEWPOINT==1) && (HUMIDITY_SENSOR_PRESENT==1))
 						sprintf((char*)&tempd_v[0],  "%.1f", TemperatureD);
 						ptr = str_center(tempd_v, TEMPd_FRAME_W, ENV_FRAME_FILL_CHAR);
-						memcpy((void *)&Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W], ptr, TEMPd_FRAME_W);
+						memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W], ptr, TEMPd_FRAME_W);
 					#if (DISPLAY_SIMMER_INDEX==1)
 						sprintf((char*)&tempp_v[0],  "%2u", (uint8_t)lrintf(SI));
 						if ((uint8_t)lrintf(SI) > 9)
 						{	//This crap is just to improve the Apparent Temperature display (SI or HI) (!!!)
-							Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W] = 0x20;
+							Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W] = 0x20;
 							Sh = 1;
 						}
 					#elif (DISPLAY_HEAT_INDEX==1)
 						sprintf((char*)&tempp_v[0],  "%2u", (uint8_t)lrintf(HI));
 						if ((uint8_t)lrintf(HI) > 9)
 						{	//This crap is just to improve the Apparent Temperature display (SI or HI) (!!!)
-							Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W] = 0x20;
+							Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W] = 0x20;
 							Sh = 1;
 						}
 					#endif
 						ptr = str_center(tempp_v, TEMPp_FRAME_W, ENV_FRAME_FILL_CHAR);
-						memcpy((void *)&Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W + (TEMPd_FRAME_W+Sh)], ptr, TEMPp_FRAME_W);
+						memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W + (TEMPd_FRAME_W+Sh)], ptr, TEMPp_FRAME_W);
 
 				#endif
 				#if (CALC_ALTITUDE==1)
-						*len = TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W + ALT_FRAME_W + TEMPp_FRAME_W;
+						*len = TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W + ALT_FRAME_W + TEMPp_FRAME_W;
 				#else
-						*len = TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W + TEMPp_FRAME_W + Sh;
+						*len = TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W + TEMPp_FRAME_W + Sh;
 				#endif
 //						*len = sprintf((char*)&Buff[0], "ABCDEFGHILMNOPQRSTUVZ0123456789");
 					}
 				#if ((UVx_SENSOR_PRESENT) || (ALS_SENSOR_PRESENT))
+				/* UV index and brightness values are set here and displayed on the Environmental page 2
+				 * when the temperature sensor or humidity sensor is working.
+				 */
 					else
 					if (PM_toggle == 2)
 					{
-						TextXPos = 3; TextYPos = 27;
+						TextXPos = 3; TextYPos = 29;
 					#if (VEML6075)
 						sprintf((char*)&uva_v[0], "%.1f", UVa);
 						ptr = str_center(uva_v, UVA_FRAME_W, UVx_FRAME_FILL_CHAR);
@@ -1302,13 +1345,13 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 						ptr = str_center(uvi_v, UVIDX_FRAME_W+1, UVx_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[UVA_FRAME_W], ptr, UVIDX_FRAME_W);
 
-						*len = UVA_FRAME_W + UVIDX_FRAME_W;
+						*len = UVA_FRAME_W + UVIDX_FRAME_W + 1;
 					#endif // VEML6075
 					}
 				#endif //(UVx_SENSOR_PRESENT) || (ALS_SENSOR_PRESENT)
 				} else
 				{
-					TextXPos = 11; TextYPos = 27;
+					TextXPos = 11; TextYPos = 29;
 					*len += sprintf((char*)&Buff[0], " FAIL           FAIL        \r\n");
 				}
 				if (++PM_toggle > NumENV_Pages)
@@ -1340,30 +1383,37 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 			{												//PM_Toggle+1 because PM_toggle is incremented at the end of the
 				u8g2_SetFont(&u8g2, u8g2_font_t0_12_mf);	//TVOC section of the FormatDisplayString function
 				u8g2_SetFontMode(&u8g2, 0);
-				TextXPos = 5; TextYPos = 27;
+				TextXPos = 5; TextYPos = 29;
 
 				if (((SensorStatusReg) & (HUMIDITY_SENSOR_OK)) && !((SensorStatusReg) & (PRESSURE_SENSOR_OK)))
 				{
-					sprintf((char*)&temp_v[0],  "%.1f%cC", Temperature, 0xB0);
+//					sprintf((char*)&temp_v[0],  "%.1f%cC", Temperature, 0xB0);
+					sprintf((char*)&temp_v[0],  "%.1f ", Temperature);
 					ptr = str_center(temp_v, TEMP_FRAME_W, ENV_FRAME_FILL_CHAR);
 					memcpy((void *)&Buff[0], ptr, TEMP_FRAME_W);
 
-					sprintf((char*)&hum_v[0],  "%2u%%", Humidity);
-					ptr = str_center(hum_v, HUM_FRAME_W, ENV_FRAME_FILL_CHAR);
-					memcpy((void *)&Buff[TEMP_FRAME_W], ptr, HUM_FRAME_W);
+//					sprintf((char*)&hum_v[0],  "%2u%%", Humidity);
+					sprintf((char*)&hum_v[0],  "%2u", Humidity);
+					ptr = str_center(hum_v, HUMr_FRAME_W, ENV_FRAME_FILL_CHAR);
+					memcpy((void *)&Buff[TEMP_FRAME_W], ptr, HUMr_FRAME_W);
+
+					sprintf((char*)&hum_v[0],  "%.1f", AH);
+					ptr = str_center(hum_v, HUMa_FRAME_W, ENV_FRAME_FILL_CHAR);
+					memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W], ptr, HUMa_FRAME_W);
 
 					Sh = 1;
-					memcpy((void *)&Buff[TEMP_FRAME_W + (HUM_FRAME_W+Sh)], &sensor_fail1c[0], 7);
+					memcpy((void *)&Buff[TEMP_FRAME_W + (HUMr_FRAME_W+HUMa_FRAME_W+Sh)], &sensor_fail1c[0], 7);
 
 				} else
 				if (!((SensorStatusReg) & (HUMIDITY_SENSOR_OK)))
 				{
-					memcpy((void *)&Buff[TEMP_FRAME_W+1], &sensor_fail[0], 4);
-					memcpy((void *)&Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W], &sensor_fail[0], 4);
-					memcpy((void *)&Buff[TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W + (TEMPd_FRAME_W+Sh)], &sensor_fail[0], 4);
+					memcpy((void *)&Buff[0], &sensor_fail2p[0], 6);
+					memcpy((void *)&Buff[TEMP_FRAME_W+1], &sensor_fail2p1[0], 8);
+					memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W], &sensor_fail[0], 4);
+					memcpy((void *)&Buff[TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W + (TEMPd_FRAME_W+Sh)], &sensor_fail[0], 4);
 				}
 
-				*len = TEMP_FRAME_W + HUM_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W + TEMPp_FRAME_W + Sh;
+				*len = TEMP_FRAME_W + HUMr_FRAME_W + HUMa_FRAME_W + PRESS_FRAME_W + TEMPd_FRAME_W + TEMPp_FRAME_W + Sh;
 
 				NextPage = true;
 				ClearBuff = false;
@@ -1394,9 +1444,12 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 
 			u8g2_SetFont(&u8g2, u8g2_font_t0_12_mf);
 			u8g2_SetFontMode(&u8g2, 0);
+			/* UV index and brightness values are set here and displayed on the Environmental page 2
+			 * when the temperature sensor is faulty.
+			 */
 			if (((SensorStatusReg) & (UVx_SENSOR_OK)) && !((SensorStatusReg) & (PRESSURE_SENSOR_OK)))
 			{
-				TextXPos = 3; TextYPos = 27;
+				TextXPos = 3; TextYPos = 29;
 			#if (VEML6075)
 				sprintf((char*)&uva_v[0], "%.1f", UVa);
 				ptr = str_center(uva_v, UVA_FRAME_W, UVx_FRAME_FILL_CHAR);
@@ -1405,16 +1458,23 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 				sprintf((char*)&uvb_v[0], "%.1f", UVb);
 				ptr = str_center(uvb_v, UVB_FRAME_W, UVx_FRAME_FILL_CHAR);
 				memcpy((void *)&Buff[UVA_FRAME_W], ptr, UVB_FRAME_W);
+
+				sprintf((char*)&uvi_v[0], "%.3f", UV_Index);
+				ptr = str_center(uvi_v, UVIDX_FRAME_W, UVx_FRAME_FILL_CHAR);
+				memcpy((void *)&Buff[UVA_FRAME_W + UVB_FRAME_W], ptr, UVIDX_FRAME_W);
+
+				*len = UVA_FRAME_W + UVB_FRAME_W + UVIDX_FRAME_W;
 			#elif (LTR390UV)
 				sprintf((char*)&uva_v[0], "%.1f lx", Lux);
 				ptr = str_center(uva_v, UVA_FRAME_W, UVx_FRAME_FILL_CHAR);
 				memcpy((void *)&Buff[0], ptr, UVA_FRAME_W);
-			#endif // VEML6075
+
 				sprintf((char*)&uvi_v[0], "%.2f", UV_Index);
-				ptr = str_center(uvi_v, UVIDX_FRAME_W, UVx_FRAME_FILL_CHAR);
+				ptr = str_center(uvi_v, UVIDX_FRAME_W+1, UVx_FRAME_FILL_CHAR);
 				memcpy((void *)&Buff[UVA_FRAME_W], ptr, UVIDX_FRAME_W);
 
-				*len = UVA_FRAME_W + UVB_FRAME_W + UVIDX_FRAME_W;
+				*len = UVA_FRAME_W + UVIDX_FRAME_W + 1;
+			#endif
 			} else
 			if (!((SensorStatusReg) & (UVx_SENSOR_OK)))
 			{
@@ -1473,7 +1533,7 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 
 						if ((SensorStatusReg) & (VOC_SENSOR_OK))
 						{
-							FillAirQualityField(etvoc_v, eq_TVOC, 0);
+							FillAirQualityField(etvoc_v, eq_TVOC, 0, 1);
 							ptr = str_center(etvoc_v, eTVOC_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 							memcpy((void *)&Buff[0], ptr, eTVOC_FRAME_W);
 						} else
@@ -1482,15 +1542,15 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 							memcpy((void *)&Buff[0], ptr, FAIL_MSG_W);
 						}
 
-						FillAirQualityField(co_v, CO, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,4));
+						FillAirQualityField(co_v, CO_Out, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,4), 100);
 						ptr = str_center(co_v, CO_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[eTVOC_FRAME_W], ptr, CO_FRAME_W);
 
-						FillAirQualityField(no2_v, NO2, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,2));
+						FillAirQualityField(no2_v, NO2, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,2), 1);
 						ptr = str_center(no2_v, NO2_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[eTVOC_FRAME_W+CO_FRAME_W], ptr, NO2_FRAME_W);
 
-						FillAirQualityField(nh3_v, NH3, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,3));
+						FillAirQualityField(nh3_v, NH3, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,3), 1);
 						ptr = str_center(nh3_v, NH3_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[eTVOC_FRAME_W+CO_FRAME_W+NO2_FRAME_W], ptr, NH3_FRAME_W);
 
@@ -1504,41 +1564,41 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 					#endif
 						PM_Toggle_2 = true;
 
-						FillAirQualityField(ch2o_v, CH2O, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,0));
+						FillAirQualityField(ch2o_v, CH2O, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,0), 1);
 						ptr = str_center(ch2o_v, CH2O_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[0], ptr, CH2O_FRAME_W);
 					#if (OUTDOOR_MODE)
-						FillAirQualityField(o3_v, O3, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,1));
+						FillAirQualityField(o3_v, O3, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,1), 1);
 						ptr = str_center(o3_v, O3_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[CH2O_FRAME_W], ptr, O3_FRAME_W);
 
-						FillAirQualityField(so2_v, SO2, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,5));
+						FillAirQualityField(so2_v, SO2, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,5), 1);
 						ptr = str_center(so2_v, SO2_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[CH2O_FRAME_W+O3_FRAME_W], ptr, SO2_FRAME_W);
 					#else
-						FillAirQualityField(o3_v, 0, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,1));
+						FillAirQualityField(o3_v, 0, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,1), 1);
 						ptr = str_center(o3_v, 8, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[CH2O_FRAME_W], ptr, 8);
 
-						FillAirQualityField(so2_v, 0, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,5));
+						FillAirQualityField(so2_v, 0, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,5), 1);
 						ptr = str_center(so2_v, 8, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[CH2O_FRAME_W+8], ptr, 8);
 					#endif	//OUTDOOR_MODE
 					#if (DISPLAY_C6H6)
-						FillAirQualityField(c6h6_v, C6H6, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,6));
+						FillAirQualityField(c6h6_v, C6H6, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,6), 1);
 						ptr = str_center(c6h6_v, C6H6_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[CH2O_FRAME_W+O3_FRAME_W+SO2_FRAME_W], ptr, C6H6_FRAME_W);
 
 						*len = CH2O_FRAME_W + O3_FRAME_W + SO2_FRAME_W + C6H6_FRAME_W;
 					#else
-						FillAirQualityField(eco2_v, eq_CO2, 0);
+						FillAirQualityField(eco2_v, eq_CO2, 0, 1);
 						ptr = str_center(eco2_v, eCO2_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 					#if (OUTDOOR_MODE)
 						memcpy((void *)&Buff[CH2O_FRAME_W+O3_FRAME_W+SO2_FRAME_W], ptr, eCO2_FRAME_W);
 
 						*len = CH2O_FRAME_W + O3_FRAME_W + SO2_FRAME_W + eCO2_FRAME_W;
 					#else
-						memcpy((void *)&Buff[CH2O_FRAME_W+7+8], ptr, eCO2_FRAME_W);
+						memcpy((void *)&Buff[CH2O_FRAME_W+8+8], ptr, eCO2_FRAME_W);
 
 						*len = CH2O_FRAME_W + 8 + 8 + eCO2_FRAME_W;
 					#endif	//OUTDOOR_MODE
@@ -1558,7 +1618,7 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 
 						if ((SensorStatusReg) & (VOC_SENSOR_OK))
 						{
-							FillAirQualityField(etvoc_v, eq_TVOC, 0);
+							FillAirQualityField(etvoc_v, eq_TVOC, 0, 1);
 							ptr = str_center(etvoc_v, eTVOC_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 							memcpy((void *)&Buff[0], ptr, eTVOC_FRAME_W);
 						} else
@@ -1567,15 +1627,15 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 							memcpy((void *)&Buff[0], ptr, FAIL_MSG_W);
 						}
 
-						FillAirQualityField(eco2_v, eq_CO2, 0);
+						FillAirQualityField(eco2_v, eq_CO2, 0, 1);
 						ptr = str_center(eco2_v, eCO2_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[eTVOC_FRAME_W], ptr, eCO2_FRAME_W);
 
-						FillAirQualityField(ch2o_v, CH2O, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,0));
+						FillAirQualityField(ch2o_v, CH2O, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,0), 1);
 						ptr = str_center(ch2o_v, CH2O_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[eTVOC_FRAME_W+eCO2_FRAME_W], ptr, CH2O_FRAME_W);
 
-						FillAirQualityField(co_v, CO, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,4));
+						FillAirQualityField(co_v, CO_Out, (uint8_t)BIT_CHECK(AnlgOvflStatusReg,4), 100);
 						ptr = str_center(co_v, CO_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 						memcpy((void *)&Buff[eTVOC_FRAME_W+eCO2_FRAME_W+CH2O_FRAME_W], ptr, CO_FRAME_W);
 
@@ -1588,11 +1648,11 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 			#else			//GAS_SENSOR_MODULE_PRESENT==0
 					TextXPos = 46; TextYPos = 29;
 
-					FillAirQualityField(etvoc_v, eq_TVOC, 0);
+					FillAirQualityField(etvoc_v, eq_TVOC, 0, 1);
 					ptr = str_center(etvoc_v, eTVOC_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 					memcpy((void *)&Buff[0], ptr, eTVOC_FRAME_W);
 
-					FillAirQualityField(eco2_v, eq_CO2, 0);
+					FillAirQualityField(eco2_v, eq_CO2, 0, 1);
 					ptr = str_center(eco2_v, eCO2_FRAME_W, AIRQ_FRAME_FILL_CHAR);
 					memcpy((void *)&Buff[eTVOC_FRAME_W], ptr, eCO2_FRAME_W);
 
@@ -1656,19 +1716,19 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 				if (PM_toggle == 1)
 				{
 					//Format first TLCD row
-					*len = sprintf((char*)&Buff[*len], "PM1.0:%3uug/mc", MC_1p0);
+					*len = sprintf((char*)&Buff[*len], "PM1.0:%3uug/m3", MC_1p0);
 					*len += sprintf((char*)&Buff[*len], " %3u/cmc\r\n", NC_1p0);
 					//Format second TLCD row
-					*len += sprintf((char*)&Buff[*len], "PM2.5:%3uug/mc", MC_2p5);
+					*len += sprintf((char*)&Buff[*len], "PM2.5:%3uug/m3", MC_2p5);
 					*len += sprintf((char*)&Buff[*len], " %3u/cmc\r\n", NC_2p5);
 				} else
 				if (PM_toggle == 2)
 				{
 					//Format first TLCD row
-					*len = sprintf((char*)&Buff[*len], "PM4.0:%3uug/mc", MC_4p0);
+					*len = sprintf((char*)&Buff[*len], "PM4.0:%3uug/m3", MC_4p0);
 					*len += sprintf((char*)&Buff[*len], " %3u/cmc\r\n", NC_4p0);
 					//Format second TLCD row
-					*len += sprintf((char*)&Buff[*len], "PM10 :%3uug/mc", MC_10p0);
+					*len += sprintf((char*)&Buff[*len], "PM10 :%3uug/m3", MC_10p0);
 					*len += sprintf((char*)&Buff[*len], " %3u/cmc\r\n", NC_10p0);
 				} else
 				if (PM_toggle == 3)

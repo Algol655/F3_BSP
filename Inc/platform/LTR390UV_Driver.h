@@ -80,9 +80,11 @@ typedef struct
 * Values write in the registers in the MX_LPS22HB_Init() function
 */
 //LTR390UV Register Addresses Values
-#define LTR390UV_MAIN_CTRL_VAL		(uint8_t)0x0AU	// 0x00 - Main control register (r/w)
+#define LTR390UV_MAIN_CTRL_VAL		(uint8_t)0x02U	// 0x00 - Main control register (r/w)
 #define LTR390UV_MEAS_RATE_VAL		(uint8_t)0x05U	// 0x04 - Resolution and data rate (r/w)
+//#define LTR390UV_MEAS_RATE_VAL		(uint8_t)0x25U	// 0x04 - Resolution and data rate (r/w) 0010 0101
 #define LTR390UV_GAIN_VAL			(uint8_t)0x04U	// 0x05 - ALS and UVS gain range (r/w)
+//#define LTR390UV_GAIN_VAL			(uint8_t)0x01U	// 0x05 - ALS and UVS gain range (r/w)
 #define LTR390UV_PART_ID_VAL		(uint8_t)0xB2U	// 0x06 - Part id/revision register (r)
 #define LTR390UV_MAIN_STATUS_VAL	(uint8_t)0x00U	// 0x07 - Main status register (r)
 #define LTR390UV_ALSDATA_0_VAL		(uint8_t)0x00U	// 0x0D - ALS ADC measurement data, LSB (r)
@@ -102,6 +104,29 @@ typedef struct
 
 //#define LTR390UV_UV_SENSITIVITY		0x8FCU			// 2300 Counts/UVI (Update to 1.1 DataSheet Version, 24-Aug-15)
 #define LTR390UV_UV_SENSITIVITY		0x578U			// 1400 Counts/UVI (Update to 1.4 DataSheet Version, 14-Sep-21)
+
+/* Ambient Light Typical Values:
+ *
+ * 0.002 lux		Moonless clear night sky
+ * 0.2 lux			Design minimum for emergency lighting (AS2293).
+ * 0.27 – 1 lux 	Full moon on a clear night
+ * 3.4 lux			Dark limit of civil twilight under a clear sky
+ * 50 lux			Family living room
+ * 80 lux			Hallway/toilet
+ * 100 lux			Very dark overcast day
+ * 300 – 500 lux	Sunrise or sunset on a clear day. Well-lit office area.
+ * 1,000 lux		Overcast day; typical TV studio lighting
+ * 10,000 – 25,000 lux 	Full daylight (not direct sun)
+ * 32,000 – 130,000 lux 	Direct sunlight
+ */
+#define LTR390UV_UPPER_L_LIMIT		(100000*1000)	// Ambient Light maximum value
+#define LTR390UV_LOWER_L_LIMIT		(0*1000)		// Ambient Light minimum value
+/*
+ * From "https://en.wikipedia.org/wiki/Ultraviolet_index"
+ */
+#define LTR390UV_UPPER_U_LIMIT		(20*1000)		// Ultraviolet Index maximum value
+#define LTR390UV_LOWER_U_LIMIT		(0*1000)		// Ultraviolet Index minimum value
+
 /**
  * Set resolution and sampling time of module, the sampling time must be greater than the time for collecting resolution
  * +------------+------------+------------+------------+------------+------------+------------+------------+
@@ -174,6 +199,8 @@ LTR390UV_Error_et MX_LTR390UV_Init(void);
 LTR390UV_Error_et LTR390UV_DeviceId_Get(uint8_t B_Addr, uint8_t *buff);
 LTR390UV_Error_et LTR390UV_ALS_UVS_Set(uint8_t B_Addr, uint8_t val);
 LTR390UV_Error_et LTR390UV_SwRst_Set(uint8_t B_Addr, uint8_t val);
+LTR390UV_Error_et LTR390UV_ALS_UVS_Rate_Res_Set(uint8_t B_Addr, uint8_t rate, uint8_t res);
+LTR390UV_Error_et LTR390UV_ALS_UVS_Gain_Set(uint8_t B_Addr, uint8_t gain);
 LTR390UV_Error_et LTR390UV_RawUVS_Get(uint8_t B_Addr, uint32_t *buff);
 LTR390UV_Error_et LTR390UV_RawALS_Get(uint8_t B_Addr, uint32_t *buff);
 LTR390UV_Error_et LTR390UV_Lux_Get(uint8_t B_Addr, float32_t *buff);

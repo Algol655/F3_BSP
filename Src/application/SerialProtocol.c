@@ -370,14 +370,15 @@ int HandleUSB_MSG(uint8_t* Buff)
 //			RTC_TimeRegulate(&hrtc, hh, mm, ss, FORMAT_BCD);
 //			RTC_DateRegulate(&hrtc, y, m, d, dw);
 			RTC_DateTimeRegulate(&hrtc, y, m, d, dw, hh, mm, ss, FORMAT_BCD);
-			//STM32F1xx loses the date after a reset or a power cycle;
-			//therefore we have to memorize the set date in the Flash
-//			Write_Flash(0, 0);	//Valid only for STM32F1xx Series
 
 			SendCntrlMsg = true;
-			dataseq[0] = 'O';
-			dataseq[1] = 'K';
-			Message_Length = 2;
+			dataseq[0] = 0x0A;
+			dataseq[1] = 0x0D;
+			dataseq[2] = 'O';
+			dataseq[3] = 'K';
+			dataseq[4] = 0x0A;
+			dataseq[5] = 0x0D;
+			Message_Length = 6;
 		}
 		break;
 
@@ -401,7 +402,7 @@ int HandleUSB_MSG(uint8_t* Buff)
 		case CMD_OpenTestEnv_Mode:			//From Remote Controller
 		{
 			top_menu();
-			memset(&Buff[0], 0x00, BUFFLEN);			//Clear VCP Rx Buffer
+			memset(&Buff[0], 0x00, USBBUFFLEN);			//Clear VCP Rx Buffer
 			memset(&dataseq[0], 0x00, sizeof(dataseq));	//Clear VCP Tx Buffer
 			local_buff_offset = 0;
 			local_buff_length = 0;
@@ -417,13 +418,13 @@ int HandleUSB_MSG(uint8_t* Buff)
 		break;
 		case CMD_Restart_Reservation:		//From Remote Controller
 		{
-			if (!Restart_Reverved)
+			if (!Restart_Reserved)
 			{
-				Restart_Reverved = true;
+				Restart_Reserved = true;
 				CDC_Transmit_FS((uint8_t*)Message, strlen((const char*)Message));
 			} else
 			{
-				Restart_Reverved = false;
+				Restart_Reserved = false;
 				CDC_Transmit_FS((uint8_t*)Message1, strlen((const char*)Message1));
 			}
 		}
@@ -521,14 +522,15 @@ int HandleUSART3_MSG(uint8_t* Buff)
 //			RTC_TimeRegulate(&hrtc, hh, mm, ss, FORMAT_BCD);
 //			RTC_DateRegulate(&hrtc, y, m, d, dw);
 			RTC_DateTimeRegulate(&hrtc, y, m, d, dw, hh, mm, ss, FORMAT_BCD);
-			//STM32F1xx loses the date after a reset or a power cycle;
-			//therefore we have to memorize the set date in the Flash
-//			Write_Flash(0, 0);	//Valid only for STM32F1xx Series
 
 			SendCntrlMsg = true;
-			dataseq[0] = 'O';
-			dataseq[1] = 'K';
-			Message_Length = 2;
+			dataseq[0] = 0x0A;
+			dataseq[1] = 0x0D;
+			dataseq[2] = 'O';
+			dataseq[3] = 'K';
+			dataseq[4] = 0x0A;
+			dataseq[5] = 0x0D;
+			Message_Length = 6;
 		}
 		break;
 
@@ -552,8 +554,8 @@ int HandleUSART3_MSG(uint8_t* Buff)
 		case CMD_OpenTestEnv_Mode:			//From Remote Controller
 		{
 			top_menu();
-			memset(&Buff[0], 0x00, BUFFLEN);			//Clear VCP Rx Buffer
-			memset(&dataseq[0], 0x00, sizeof(dataseq));	//Clear VCP Tx Buffer
+			memset(&Buff[0], 0x00, USARTBUFFLEN);			//Clear UART Rx Buffer
+			memset(&dataseq[0], 0x00, sizeof(dataseq));		//Clear UART Tx Buffer
 			usart3_local_buff_offset = 0;
 			usart3_local_buff_length = 0;
 			usart3app.usartlen = 0;
@@ -568,13 +570,13 @@ int HandleUSART3_MSG(uint8_t* Buff)
 		break;
 		case CMD_Restart_Reservation:		//From Remote Controller
 		{
-			if (!Restart_Reverved)
+			if (!Restart_Reserved)
 			{
-				Restart_Reverved = true;
+				Restart_Reserved = true;
 				HAL_UART_Transmit_DMA(&huart3, (uint8_t*)Message, strlen((const char*)Message));
 			} else
 			{
-				Restart_Reverved = false;
+				Restart_Reserved = false;
 				HAL_UART_Transmit_DMA(&huart3, (uint8_t*)Message1, strlen((const char*)Message1));
 			}
 		}

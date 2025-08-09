@@ -102,25 +102,7 @@ uint8_t manuf_data[] =
 	0x80        									//Packet Identifier (AdvCodes - manuf_data[30])
 };
 
-/*uint8_t manuf_data[] =
-{
-	// Advertising data: Flags AD Type
-	0x02, AD_TYPE_FLAGS,
-	0x06,		//AD_TYPE_FLAGS Payload
-	// Advertising data: manufacturer specific data
-	3, AD_TYPE_16_BIT_SERV_UUID,
-	0x30, 0x00,		//CID: Company identifier code (Default is 0x0030 - STMicroelectronics: To be customized for specific identifier)
-	23, AD_TYPE_MANUFACTURER_SPECIFIC_DATA,
-	0x55,											//Custom Data (manuf_data[9])
-	0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,	//Custom Data (manuf_data[10..17])
-	0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,	//Custom Data (manuf_data[18..25])
-	0x11, 0x12,										//Custom Data (manuf_data[26..27])
-	0x13, 0x14,										//Custom Data (manuf_data[28..29])
-	0x15        									//Packet Identifier (AdvCodes - manuf_data[30])
-//	0xC8        									//2's complement of the Tx power (-56dBm at 1meter);
-};*/
-
-const uint8_t AdvCodes[] =	//manuf_data[30]
+const uint8_t AdvCodes[] =
 {
 	0x01,		//Environmental code: Adv ID 0x01
 	0x80,		//Status Report: Adv ID = 0x80
@@ -174,7 +156,7 @@ const uint8_t AdvCodes[] =	//manuf_data[30]
 	0x80,		//Status Report: Adv ID = 0x80
 	0x80,		//Status Report: Adv ID = 0x80
 //
-	0x80,		//Status Report: Adv ID = 0x80
+	0x05,		//Extra Environmental code: Adv ID 0x05
 	0x80,		//Status Report: Adv ID = 0x80
 	0x80,		//Status Report: Adv ID = 0x80
 	0x80,		//Status Report: Adv ID = 0x80
@@ -308,37 +290,49 @@ void MX_BlueNRG_2_Process(void)
 #if (USE_SENSUS191==1)
 //	uint16_t Lux_Out = 0x55AA;
 	static uint8_t ret = 0;
-	uint8_t mycmd = 0;
-	bool ConfCmd = false;
+//	uint8_t mycmd = 0;
+//	bool ConfCmd = false;
+	extern uint8_t HW_Version[5];
+	extern uint8_t SW_Version[5];
+	extern uint32_t Up_Time_H;
 
 //	beacon_number = 0;
 /*
  * The data types that the beacon packet can contain (Environmental, Air Quality, Air Pollution)
  * are distinguished by the value of Adv_Code, entered in the Minor_Number field
  */
-	do
+//	do
 	{
-		mycmd = app.usbbuf[0];
+//		mycmd = app.usbbuf[0];
 //		mycmd = usart3app.usartbuf[0];
-		ConfCmd = (bool)(((mycmd == 0x10) || (mycmd == 0x7F) || (mycmd == 0x12)));
+//		ConfCmd = (bool)(((mycmd == 0x10) || (mycmd == 0x7F) || (mycmd == 0x12)));
 
 		memset(&manuf_data[8], 0xFF, 22);
 
 		manuf_data[man_data_offset+28] = Adv_Code;
-		if(Adv_Code == 0x01)	//Main Beacon Adv_Code 0x01
+		if(Adv_Code == 0x01)	//Beacon type 1 (sent every minute) Adv_Code 0x01
 		{
 			//Send Environmental Data
+	#if ((PRESSURE_SENSOR_PRESENT) || (HUMIDITY_SENSOR_PRESENT))
 			HOST_TO_LE_16(manuf_data+man_data_offset+6, T_Out);
+	#endif
+	#if (PRESSURE_SENSOR_PRESENT)
 			HOST_TO_LE_32(manuf_data+man_data_offset+8, P0_Out);	//Sea-level pressure
+	#endif
 	#if (HUMIDITY_SENSOR_PRESENT)
 			HOST_TO_LE_16(manuf_data+man_data_offset+12, Hum_Out);
 			HOST_TO_LE_16(manuf_data+man_data_offset+14, T2_Out);	//Dew Point
 			HOST_TO_LE_16(manuf_data+man_data_offset+16, T3_Out);	//Heat Index
 	#endif
+	#if (PRESSURE_SENSOR_PRESENT)
 			HOST_TO_LE_32(manuf_data+man_data_offset+18, P_Out);	//Absolute Pressure
 			manuf_data[man_data_offset+22] = Z_forecast;
+	#endif
+	#if (UVx_SENSOR_PRESENT)
+			HOST_TO_LE_32(manuf_data+man_data_offset+23, UV_Index_Out);	//UltraViolet Light Index
+	#endif
 		} else
-		if(Adv_Code == 0x02)	//Main Beacon Adv_Code 0x02
+		if(Adv_Code == 0x02)	//Beacon type 1 (sent every minute) Adv_Code 0x02
 		{
 			//Send Air Quality Data. Absolute values
 	#if (VOC_SENSOR_PRESENT)
@@ -346,7 +340,7 @@ void MX_BlueNRG_2_Process(void)
 			HOST_TO_LE_16(manuf_data+man_data_offset+8, eq_CO2);
 	#endif
 	#if (GAS_SENSOR_MODULE_PRESENT)
-			HOST_TO_LE_16(manuf_data+man_data_offset+10, CO);
+			HOST_TO_LE_16(manuf_data+man_data_offset+10, CO_Out);
 			HOST_TO_LE_16(manuf_data+man_data_offset+16, CH2O);
 			HOST_TO_LE_16(manuf_data+man_data_offset+12, NO2);
 			HOST_TO_LE_16(manuf_data+man_data_offset+14, NH3);
@@ -358,7 +352,7 @@ void MX_BlueNRG_2_Process(void)
 	#endif	//GAS_SENSOR_MODULE_PRESENT
 			manuf_data[man_data_offset+27] = Gas_AQI;
 		} else
-		if(Adv_Code == 0x03)	//Main Beacon Adv_Code 0x03
+		if(Adv_Code == 0x03)	//Beacon type 1 (sent every minute) Adv_Code 0x03
 		{
 			//Send Air Quality Data. Averaged values
 	#if (VOC_SENSOR_PRESENT)
@@ -379,7 +373,7 @@ void MX_BlueNRG_2_Process(void)
 			manuf_data[man_data_offset+26] = T_AVG_Gas_AQI;
 			manuf_data[man_data_offset+27] = AVG_Gas_AQI;
 		} else
-		if(Adv_Code == 0x04)	//Main Beacon Adv_Code 0x04
+		if(Adv_Code == 0x04)	//Beacon type 1 (sent every minute) Adv_Code 0x04
 		{
 			//Send Air pollution Data
 	#if (PARTICULATE_SENSOR_PRESENT)
@@ -397,26 +391,50 @@ void MX_BlueNRG_2_Process(void)
 			manuf_data[man_data_offset+27] = AVG_PMx_AQI;
 	#endif	//PARTICULATE_SENSOR_PRESENT
 		} else
-		if(Adv_Code == 0x80)	//Main Status Report Beacon; sent every seconds
+		if(Adv_Code == 0x05)	//Beacon type 1 (sent every minute) Adv_Code 0x05
+		{
+	#if (ALS_SENSOR_PRESENT)
+			HOST_TO_LE_32(manuf_data+man_data_offset+6, Lux_Out);	//Ambient Light (ALS)
+	#endif
+	#if (HUMIDITY_SENSOR_PRESENT)
+			HOST_TO_LE_16(manuf_data+man_data_offset+10, Hum2_Out);	//Absolute Humidity
+	#endif
+		} else
+		if(Adv_Code == 0x80)	//Main Status Report Beacon (type 0 Beacon); sent every seconds
 		{
 			//Send Device Status
 			HOST_TO_BE_32(manuf_data+man_data_offset+6, SensorStatusReg);
 			HOST_TO_LE_32(manuf_data+man_data_offset+10, BLE_TimeStamp);
 			HOST_TO_BE_32(manuf_data+man_data_offset+14, StatusReg);
 		} else
-		if(Adv_Code == 0x81)	//Secondary Beacon Adv_Code 0x81
+		if(Adv_Code == 0x81)	//Beacon type 2 (sent every hour) Adv_Code 0x81
 		{
 			//Send Environmental Daily Min-Max Data
+	#if ((PRESSURE_SENSOR_PRESENT) || (HUMIDITY_SENSOR_PRESENT))
 			HOST_TO_LE_16(manuf_data+man_data_offset+6, T_Min);		//Daily minimum temperature
 			HOST_TO_LE_32(manuf_data+man_data_offset+8, P_Min);		//Daily minimum Sea-level pressure
+	#endif
 	#if (HUMIDITY_SENSOR_PRESENT)
 			HOST_TO_LE_16(manuf_data+man_data_offset+12, H_Min);	//Daily minimum relative humidity
 			HOST_TO_LE_16(manuf_data+man_data_offset+14, H_Max);	//Daily maximum relative humidity
+			HOST_TO_LE_16(manuf_data+man_data_offset+22, AH_Min);	//Daily minimum absolute relative humidity
+			HOST_TO_LE_16(manuf_data+man_data_offset+24, AH_Max);	//Daily maximum absolute relative humidity
 	#endif
+	#if ((PRESSURE_SENSOR_PRESENT) || (HUMIDITY_SENSOR_PRESENT))
 			HOST_TO_LE_16(manuf_data+man_data_offset+16, T_Max);	//Daily maximum temperature
 			HOST_TO_LE_32(manuf_data+man_data_offset+18, P_Max);	//Daily maximum Sea-level pressure
+	#endif
 		} else
-		if(Adv_Code == 0x83)	//Secondary Beacon Adv_Code 0x83
+		if(Adv_Code == 0x82)	//Beacon type 2 (sent every hour) Adv_Code 0x82
+		{
+	#if (ALS_SENSOR_PRESENT)
+			HOST_TO_LE_32(manuf_data+man_data_offset+6, Lux_Max);	//Daily maximum Ambient Light
+	#endif
+	#if (UVx_SENSOR_PRESENT)
+			HOST_TO_LE_32(manuf_data+man_data_offset+10, UV_Index_Max);	//Daily maximum UltraViolet Light Index
+	#endif
+		} else
+		if(Adv_Code == 0x83)	//Beacon type 2 (sent every hour) Adv_Code 0x83
 		{
 			//Send Air Quality maximum values of the averages in the day, starting from midnight
 	#if (VOC_SENSOR_PRESENT)
@@ -435,9 +453,12 @@ void MX_BlueNRG_2_Process(void)
 		#endif
 	#endif	//GAS_SENSOR_MODULE_PRESENT
 		} else
-		if(Adv_Code == 0x84)	//Secondary Beacon Adv_Code 0x84
+		if(Adv_Code == 0x84)	//Beacon type 2 (sent every hour) Adv_Code 0x84
 		{
 			//Send Air pollution Data maximum values of the averages in the day, starting from midnight
+			memcpy((void *)&manuf_data[man_data_offset+6], (void *)&SW_Version, 4);
+			memcpy((void *)&manuf_data[man_data_offset+10], (void *)&HW_Version, 4);
+			HOST_TO_LE_32(manuf_data+man_data_offset+14, Up_Time_H);			//Up time timer, in hours
 	#if (PARTICULATE_SENSOR_PRESENT)
 			HOST_TO_LE_16(manuf_data+man_data_offset+18, MC_2p5_24h_Mean_Max);
 			HOST_TO_LE_16(manuf_data+man_data_offset+22, MC_10p0_24h_Mean_Max);
@@ -460,8 +481,8 @@ void MX_BlueNRG_2_Process(void)
 		hci_user_evt_proc();
 		User_Process();
 	}
-	while ((Adv_Code != 0x80) && (!ConfCmd));
-#endif	//USE_SENSUS191==0
+//	while ((Adv_Code != 0x80) && (!ConfCmd));
+#endif	//USE_SENSUS191==1
 	/* USER CODE END BlueNRG_2_Process_PostTreatment */
 }
 #else	//MY_BEACON==0
@@ -531,7 +552,7 @@ static void Device_Init(void)
   uint16_t service_handle;
   uint16_t dev_name_char_handle;
   uint16_t appearance_char_handle;
-  uint8_t bdaddr[] = {0xf5, 0x00, 0x00, 0xE1, 0x80, 0x02};	//Big Endian!!
+  uint8_t bdaddr[] = {0xF5, 0x00, 0x00, 0xE1, 0x80, 0x02};	//Big Endian!!
 //uint8_t bdaddr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};	//Big Endian!!
   extern FLASH_DATA_ORG FlashDataOrg;
 /*	 5    4    3    2    1   0  Byte order

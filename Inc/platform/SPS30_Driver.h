@@ -47,7 +47,7 @@ extern "C" {
 const char *SPS_DRV_VERSION_STR;
 
 /*************************************************************************/
-/*                          sensirion_arch_config.h						 */
+/*                          SPS30_arch_config.h						 */
 /*************************************************************************/
 /* Define the endianness of your architecture:
  * 0: little endian, 1: big endian
@@ -84,7 +84,7 @@ const char *SPS_DRV_VERSION_STR;
 #define SENSIRION_I2C_CLOCK_PERIOD_USEC 10
 
 /*************************************************************************/
-/*                          sensirion_common.h							 */
+/*                          SPS30_common.h							 */
 /*************************************************************************/
 #if SENSIRION_BIG_ENDIAN
 #define be16_to_cpu(s) (s)
@@ -144,12 +144,12 @@ typedef enum
 	SPS30_TIMEOUT = 0x03U
 } SPS30_Error_et;
 
-uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count);
+uint8_t SPS30_common_generate_crc(uint8_t *data, uint16_t count);
 
-SPS30_Error_et sensirion_common_check_crc(uint8_t *data, uint16_t count, uint8_t checksum);
+SPS30_Error_et SPS30_common_check_crc(uint8_t *data, uint16_t count, uint8_t checksum);
 
 /**
- * sensirion_fill_cmd_send_buf() - create the i2c send buffer for a command and
+ * SPS30_fill_cmd_send_buf() - create the i2c send buffer for a command and
  *                                 a set of argument words. The output buffer
  *                                 interleaves argument words with their
  *                                 checksums.
@@ -162,10 +162,10 @@ SPS30_Error_et sensirion_common_check_crc(uint8_t *data, uint16_t count, uint8_t
  *
  * @return      The number of bytes written to buf
  */
-uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd, const uint16_t *args, uint8_t num_args);
+uint16_t SPS30_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd, const uint16_t *args, uint8_t num_args);
 
 /**
- * sensirion_i2c_read_words() - read data words from sensor
+ * SPS30_i2c_read_words() - read data words from sensor
  *
  * @address:    Sensor i2c address
  * @data_words: Allocated buffer to store the read words.
@@ -174,10 +174,10 @@ uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd, const uint16_t 
  *
  * @return      SPS30_OK on success, an error code otherwise
  */
-SPS30_Error_et sensirion_i2c_read_words(uint8_t address, uint16_t *data_words, uint16_t num_words);
+SPS30_Error_et SPS30_i2c_read_words(uint8_t address, uint16_t *data_words, uint16_t num_words);
 
 /**
- * sensirion_i2c_read_words_as_bytes() - read data words as byte-stream from
+ * SPS30_i2c_read_words_as_bytes() - read data words as byte-stream from
  *                                       sensor
  *
  * Read bytes without adjusting values to the uP's word-order.
@@ -192,19 +192,19 @@ SPS30_Error_et sensirion_i2c_read_words(uint8_t address, uint16_t *data_words, u
  *
  * @return      SPS30_OK on success, an error code otherwise
  */
-SPS30_Error_et sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data, uint16_t num_words);
+SPS30_Error_et SPS30_i2c_read_words_as_bytes(uint8_t address, uint8_t *data, uint16_t num_words);
 
 /**
- * sensirion_i2c_write_cmd() - writes a command to the sensor
+ * SPS30_i2c_write_cmd() - writes a command to the sensor
  * @address:    Sensor i2c address
  * @command:    Sensor command
  *
  * @return      SPS30_OK on success, an error code otherwise
  */
-SPS30_Error_et sensirion_i2c_write_cmd(uint8_t address, uint16_t command);
+SPS30_Error_et SPS30_i2c_write_cmd(uint8_t address, uint16_t command);
 
 /**
- * sensirion_i2c_write_cmd_with_args() - writes a command with arguments to the
+ * SPS30_i2c_write_cmd_with_args() - writes a command with arguments to the
  *                                       sensor
  * @address:    Sensor i2c address
  * @command:    Sensor command
@@ -213,12 +213,12 @@ SPS30_Error_et sensirion_i2c_write_cmd(uint8_t address, uint16_t command);
  *
  * @return      SPS30_OK on success, an error code otherwise
  */
-SPS30_Error_et sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,
+SPS30_Error_et SPS30_i2c_write_cmd_with_args(uint8_t address, uint16_t command,
 										  const uint16_t *data_words,
 										  uint16_t num_words);
 
 /**
- * sensirion_i2c_delayed_read_cmd() - send a command, wait for the sensor to
+ * SPS30_i2c_delayed_read_cmd() - send a command, wait for the sensor to
  *                                    process and read data back
  * @address:    Sensor i2c address
  * @cmd:        Command
@@ -228,11 +228,11 @@ SPS30_Error_et sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t comma
  *
  * @return      SPS30_OK on success, an error code otherwise
  */
-SPS30_Error_et sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,
+SPS30_Error_et SPS30_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,
 									   uint32_t delay_us, uint16_t *data_words,
 									   uint16_t num_words);
 /**
- * sensirion_i2c_read_cmd() - reads data words from the sensor after a command
+ * SPS30_i2c_read_cmd() - reads data words from the sensor after a command
  *                            is issued
  * @address:    Sensor i2c address
  * @cmd:        Command
@@ -241,16 +241,16 @@ SPS30_Error_et sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,
  *
  * @return      SPS30_OK on success, an error code otherwise
  */
-SPS30_Error_et sensirion_i2c_read_cmd(uint8_t address, uint16_t cmd,
+SPS30_Error_et SPS30_i2c_read_cmd(uint8_t address, uint16_t cmd,
 							   uint16_t *data_words, uint16_t num_words);
 
 /*************************************************************************/
-/*                          sensirion_i2c.h								 */
+/*                          SPS30_i2c.h								 */
 /*************************************************************************/
 /**
- * Release all resources initialized by sensirion_i2c_init().
+ * Release all resources initialized by SPS30_i2c_init().
  */
-void sensirion_i2c_release(void);
+void SPS30_i2c_release(void);
 
 /**
  * Execute one read transaction on the I2C bus, reading a given number of bytes.
@@ -262,7 +262,7 @@ void sensirion_i2c_release(void);
  * @param count   number of bytes to read from I2C and store in the buffer
  * @returns 0 on success, error code otherwise
  */
-SPS30_Error_et sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count);
+SPS30_Error_et SPS30_i2c_read(uint8_t address, uint8_t *data, uint16_t count);
 
 /**
  * Execute one write transaction on the I2C bus, sending a given number of
@@ -275,7 +275,7 @@ SPS30_Error_et sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count
  * @param count   number of bytes to read from the buffer and send over I2C
  * @returns 0 on success, error code otherwise
  */
-SPS30_Error_et sensirion_i2c_write(uint8_t address, const uint8_t *data, uint16_t count);
+SPS30_Error_et SPS30_i2c_write(uint8_t address, const uint8_t *data, uint16_t count);
 
 /*************************************************************************/
 /*                          	sps30.h									 */

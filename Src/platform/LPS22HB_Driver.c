@@ -297,7 +297,7 @@ float32_t LPS22HB_LSB_2_DegC(int16_t lsb)
 /**
   * @brief  Reset Autozero function.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of reset_az in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -321,7 +321,7 @@ LPS22HB_Error_et LPS22HB_AutozeroRst_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Reset Autozero function.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of reset_az in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -340,7 +340,7 @@ LPS22HB_Error_et LPS22HB_AutozeroRst_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Enable Autozero function.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of autozero in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -364,7 +364,7 @@ LPS22HB_Error_et LPS22HB_Autozero_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Enable Autozero function.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of autozero in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -383,7 +383,7 @@ LPS22HB_Error_et LPS22HB_Autozero_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Reset AutoRifP function.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of reset_arp in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -407,7 +407,7 @@ LPS22HB_Error_et LPS22HB_PressSnapRst_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Reset AutoRifP function.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of reset_arp in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -426,7 +426,7 @@ LPS22HB_Error_et LPS22HB_PressSnapRst_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Enable AutoRifP function.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of autorifp in reg INTERRUPT_CFG.
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -450,7 +450,7 @@ LPS22HB_Error_et LPS22HB_PressSnap_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Enable AutoRifP function.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of autorifp in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -469,7 +469,7 @@ LPS22HB_Error_et LPS22HB_PressSnap_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Block data update.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of bdu in reg CTRL_REG1
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -493,7 +493,7 @@ LPS22HB_Error_et LPS22HB_BlockDataUpdate_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Block data update.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of bdu in reg CTRL_REG1
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -512,7 +512,7 @@ LPS22HB_Error_et LPS22HB_BlockDataUpdate_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Low-pass bandwidth selection.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of lpfp in reg CTRL_REG1
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -536,7 +536,7 @@ LPS22HB_Error_et LPS22HB_LPF_Mode_Set(uint8_t B_Addr, LPS22HB_LPFp_t val)
 /**
   * @brief   Low-pass bandwidth selection.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of lpfp in reg CTRL_REG1
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -573,7 +573,7 @@ LPS22HB_Error_et LPS22HB_LPF_Mode_Get(uint8_t B_Addr, LPS22HB_LPFp_t *val)
 /**
   * @brief  Output data rate selection.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of odr in reg CTRL_REG1
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -597,7 +597,7 @@ LPS22HB_Error_et LPS22HB_DataRate_Set(uint8_t B_Addr, LPS22HB_ODR_t val)
 /**
   * @brief  Output data rate selection.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of odr in reg CTRL_REG1
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -646,7 +646,7 @@ LPS22HB_Error_et LPS22HB_DataRate_Get(uint8_t B_Addr, LPS22HB_ODR_t *val)
 /**
   * @brief  One-shot mode. Device perform a single measure.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of one_shot in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -670,7 +670,7 @@ LPS22HB_Error_et LPS22HB_OneShootTrigger_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  One-shot mode. Device perform a single measure.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of one_shot in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -691,7 +691,7 @@ LPS22HB_Error_et LPS22HB_OneShootTrigger_Get(uint8_t B_Addr, uint8_t *val)
   *         expressed as 2’s complement. The value is used when AUTOZERO
   *         or AUTORIFP function is enabled.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that contains data to write
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -714,7 +714,7 @@ LPS22HB_Error_et LPS22HB_PressRef_Set(uint8_t B_Addr, int32_t val)
   *         expressed as 2’s complement. The value is used when AUTOZERO
   *         or AUTORIFP function is enabled.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -736,7 +736,7 @@ LPS22HB_Error_et LPS22HB_PressRef_Get(uint8_t B_Addr, int32_t *val)
   * @brief  The pressure offset value is 16-bit data that can be used to
   *         implement one-point calibration (OPC) after soldering.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that contains data to write
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -757,7 +757,7 @@ LPS22HB_Error_et LPS22HB_PressOffset_Set(uint8_t B_Addr, int16_t val)
   * @brief  The pressure offset value is 16-bit data that can be used to
   *         implement one-point calibration (OPC) after soldering.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -777,7 +777,7 @@ LPS22HB_Error_et LPS22HB_PressOffset_Get(uint8_t B_Addr, int16_t *val)
 /**
   * @brief  Pressure data available.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of p_da in reg STATUS
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -796,7 +796,7 @@ LPS22HB_Error_et LPS22HB_PressDataReady_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Temperature data available.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of t_da in reg STATUS
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -815,7 +815,7 @@ LPS22HB_Error_et LPS22HB_TempDataReady_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Pressure data overrun.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of p_or in reg STATUS
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -834,7 +834,7 @@ LPS22HB_Error_et LPS22HB_PressDataOvr_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Temperature data overrun.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of t_or in reg STATUS
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -853,7 +853,7 @@ LPS22HB_Error_et LPS22HB_TempDataOvr_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Pressure output value[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -896,7 +896,7 @@ LPS22HB_Error_et LPS22HB_PressRaw_Get(uint8_t B_Addr, uint32_t *buff)
 /**
   * @brief  temperature_raw:   Temperature output value[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read.
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -919,7 +919,7 @@ LPS22HB_Error_et LPS22HB_TempRaw_Get(uint8_t B_Addr, int16_t *buff)
   *         reset by reading this register before generating pressure
   *         measurements.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -948,7 +948,7 @@ LPS22HB_Error_et LPS22HB_LPF_Rst_Get(uint8_t B_Addr, uint8_t *buff)
 /**
   * @brief  Device Who am I[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -965,7 +965,7 @@ LPS22HB_Error_et LPS22HB_DeviceId_Get(uint8_t B_Addr, uint8_t *buff)
 /**
   * @brief  Software reset. Restore the default values in user registers[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of swreset in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -989,7 +989,7 @@ LPS22HB_Error_et LPS22HB_SwRst_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Software reset. Restore the default values in user registers[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of swreset in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1008,7 +1008,7 @@ LPS22HB_Error_et LPS22HB_SwRst_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Reboot memory content. Reload the calibration parameters.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of boot in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1032,7 +1032,7 @@ LPS22HB_Error_et LPS22HB_Boot_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Reboot memory content. Reload the calibration parameters.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of boot in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1051,7 +1051,7 @@ LPS22HB_Error_et LPS22HB_Boot_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Low current mode.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of lc_en in reg RES_CONF
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1075,7 +1075,7 @@ LPS22HB_Error_et LPS22HB_LowPwr_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Low current mode.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of lc_en in reg RES_CONF
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1094,7 +1094,7 @@ LPS22HB_Error_et LPS22HB_LowPwr_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  If ‘1’ indicates that the Boot (Reboot) phase is running.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of boot_status in reg INT_SOURCE
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1113,7 +1113,7 @@ LPS22HB_Error_et LPS22HB_BootStatus_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  All the status bit, FIFO and data generation[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Structure of registers from FIFO_STATUS to STATUS
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1142,7 +1142,7 @@ LPS22HB_Error_et LPS22HB_DevStatus_Get(uint8_t B_Addr, LPS22HB_DevStat_t *val)
 /**
   * @brief  Enable interrupt generation on pressure low/high event.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of pe in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1166,7 +1166,7 @@ LPS22HB_Error_et LPS22HB_InterruptThresholdSign_Set(uint8_t B_Addr, LPS22HB_pe_t
 /**
   * @brief  Enable interrupt generation on pressure low/high event.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of pe in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1208,7 +1208,7 @@ LPS22HB_Error_et LPS22HB_InterruptThresholdSign_Get(uint8_t B_Addr, LPS22HB_pe_t
   * @brief  Interrupt request to the INT_SOURCE (25h) register
   *         mode (pulsed / latched) [set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of lir in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1233,7 +1233,7 @@ LPS22HB_Error_et LPS22HB_IntNotificationMode_Set(uint8_t B_Addr, LPS22HB_lir_t v
   * @brief   Interrupt request to the INT_SOURCE (25h) register
   *          mode (pulsed / latched) [get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of lir in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1266,7 +1266,7 @@ LPS22HB_Error_et LPS22HB_IntNotificationMode_Get(uint8_t B_Addr, LPS22HB_lir_t *
 /**
   * @brief  Enable interrupt generation.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of diff_en in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1290,7 +1290,7 @@ LPS22HB_Error_et LPS22HB_IntGenerationSet(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Enable interrupt generation.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of diff_en in reg INTERRUPT_CFG
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1309,7 +1309,7 @@ LPS22HB_Error_et LPS22HB_IntGenerationGet(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  User-defined threshold value for pressure interrupt event[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that contains data to write
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1329,7 +1329,7 @@ LPS22HB_Error_et LPS22HB_IntThreshold_Set(uint8_t B_Addr, uint16_t val)
 /**
   * @brief  User-defined threshold value for pressure interrupt event[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1349,7 +1349,7 @@ LPS22HB_Error_et LPS22HB_IntThreshold_Get(uint8_t B_Addr, uint16_t *val)
 /**
   * @brief  Data signal on INT_DRDY pin control bits.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of int_s in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1373,7 +1373,7 @@ LPS22HB_Error_et LPS22HB_IntPinMode_Set(uint8_t B_Addr, LPS22HB_int_s_t val)
 /**
   * @brief  Data signal on INT_DRDY pin control bits.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of int_s in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1414,7 +1414,7 @@ LPS22HB_Error_et LPS22HB_IntPinMode_Get(uint8_t B_Addr, LPS22HB_int_s_t *val)
 /**
   * @brief  Data-ready signal on INT_DRDY pin.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of drdy in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1438,7 +1438,7 @@ LPS22HB_Error_et LPS22HB_DrdyOnInt_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Data-ready signal on INT_DRDY pin.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of drdy in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1457,7 +1457,7 @@ LPS22HB_Error_et LPS22HB_DrdyOnInt_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  FIFO overrun interrupt on INT_DRDY pin.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of f_ovr in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1481,7 +1481,7 @@ LPS22HB_Error_et LPS22HB_FifoOvrOnInt_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  FIFO overrun interrupt on INT_DRDY pin.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of f_ovr in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1500,7 +1500,7 @@ LPS22HB_Error_et LPS22HB_FifoOvrOnInt_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  FIFO watermark status on INT_DRDY pin.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of f_fth in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1524,7 +1524,7 @@ LPS22HB_Error_et LPS22HB_FifoThresholdOnInt_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief   FIFO watermark status on INT_DRDY pin.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of f_fth in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1543,7 +1543,7 @@ LPS22HB_Error_et LPS22HB_FifoThresholdOnInt_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  FIFO full flag on INT_DRDY pin.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of f_fss5 in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1567,7 +1567,7 @@ LPS22HB_Error_et LPS22HB_FifoFullOnInt_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  FIFO full flag on INT_DRDY pin.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of f_fss5 in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1586,7 +1586,7 @@ LPS22HB_Error_et LPS22HB_FifoFullOnInt_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Push-pull/open drain selection on interrupt pads.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of pp_od in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1610,7 +1610,7 @@ LPS22HB_Error_et LPS22HB_PinMode_Set(uint8_t B_Addr, LPS22HB_pp_od_t val)
 /**
   * @brief  Push-pull/open drain selection on interrupt pads.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of pp_od in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1643,7 +1643,7 @@ LPS22HB_Error_et LPS22HB_PinMode_Get(uint8_t B_Addr, LPS22HB_pp_od_t *val)
 /**
   * @brief  Interrupt active-high/low.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of int_h_l in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1667,7 +1667,7 @@ LPS22HB_Error_et LPS22HB_IntPol_Set(uint8_t B_Addr, LPS22HB_int_h_l_t val)
 /**
   * @brief  Interrupt active-high/low.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of int_h_l in reg CTRL_REG3
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1700,7 +1700,7 @@ LPS22HB_Error_et LPS22HB_IntPol_Get(uint8_t B_Addr, LPS22HB_int_h_l_t *val)
 /**
   * @brief  Interrupt source register[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Register INT_SOURCE
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1717,7 +1717,7 @@ LPS22HB_Error_et LPS22HB_IntSource_Get(uint8_t B_Addr, LPS22HB_IntSource_t *val)
 /**
   * @brief  Differential pressure high interrupt flag.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of ph in reg INT_SOURCE
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1737,7 +1737,7 @@ LPS22HB_Error_et LPS22HB_IntOnPressHigh_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Differential pressure low interrupt flag.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of pl in reg INT_SOURCE
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1757,7 +1757,7 @@ LPS22HB_Error_et LPS22HB_IntOnPressLow_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  Interrupt active flag.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of ia in reg INT_SOURCE
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1790,7 +1790,7 @@ LPS22HB_Error_et LPS22HB_IntEvent_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief   Stop on FIFO watermark. Enable FIFO watermark level use.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of stop_on_fth in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1814,7 +1814,7 @@ LPS22HB_Error_et LPS22HB_StopOnFifoThreshold_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief   Stop on FIFO watermark. Enable FIFO watermark level use.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of stop_on_fth in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1833,7 +1833,7 @@ LPS22HB_Error_et LPS22HB_StopOnFifoThreshold_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  FIFO enable.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of fifo_en in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1857,7 +1857,7 @@ LPS22HB_Error_et LPS22HB_Fifo_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  FIFO enable.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of fifo_en in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1876,7 +1876,7 @@ LPS22HB_Error_et LPS22HB_Fifo_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  FIFO watermark level selection.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of wtm in reg FIFO_CTRL
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1900,7 +1900,7 @@ LPS22HB_Error_et LPS22HB_FifoWatermark_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  FIFO watermark level selection.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of wtm in reg FIFO_CTRL
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1919,7 +1919,7 @@ LPS22HB_Error_et LPS22HB_FifoWatermark_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  FIFO mode selection.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of f_mode in reg FIFO_CTRL
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1943,7 +1943,7 @@ LPS22HB_Error_et LPS22HB_FifoMode_Set(uint8_t B_Addr, LPS22HB_f_mode_t val)
 /**
   * @brief  FIFO mode selection.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of f_mode in reg FIFO_CTRL
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -1996,7 +1996,7 @@ LPS22HB_Error_et LPS22HB_FifoMode_Get(uint8_t B_Addr, LPS22HB_f_mode_t *val)
 /**
   * @brief  FIFO stored data level.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of fss in reg FIFO_STATUS
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -2015,7 +2015,7 @@ LPS22HB_Error_et LPS22HB_FifoDataLevel_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  FIFO overrun status.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of ovr in reg FIFO_STATUS
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -2034,7 +2034,7 @@ LPS22HB_Error_et LPS22HB_FifoOvrFlag_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  FIFO watermark status.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of fth_fifo in reg FIFO_STATUS
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -2066,7 +2066,7 @@ LPS22HB_Error_et LPS22HB_FifoFthFlag_Get(uint8_t B_Addr, uint8_t *val)
 /**
   * @brief  SPI Serial Interface Mode selection.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of sim in reg CTRL_REG1
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -2090,7 +2090,7 @@ LPS22HB_Error_et LPS22HB_SPI_Mode_Set(uint8_t B_Addr, LPS22HB_sim_t val)
 /**
   * @brief  SPI Serial Interface Mode selection.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of sim in reg CTRL_REG1
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -2123,7 +2123,7 @@ LPS22HB_Error_et LPS22HB_SPI_Mode_Get(uint8_t B_Addr, LPS22HB_sim_t *val)
 /**
   * @brief  Disable I2C interface.[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of i2c_dis in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -2147,7 +2147,7 @@ LPS22HB_Error_et LPS22HB_I2C_Interface_Set(uint8_t B_Addr, LPS22HB_i2c_dis_t val
 /**
   * @brief  Disable I2C interface.[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Get the values of i2c_dis in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -2181,7 +2181,7 @@ LPS22HB_Error_et LPS22HB_I2C_Interface_Get(uint8_t B_Addr, LPS22HB_i2c_dis_t *va
   * @brief  Register address automatically incremented during a
   *         multiple byte access with a serial interface (I2C or SPI).[set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of if_add_inc in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -2206,7 +2206,7 @@ LPS22HB_Error_et LPS22HB_AutoAddInc_Set(uint8_t B_Addr, uint8_t val)
   * @brief  Register address automatically incremented during a
   *         multiple byte access with a serial interface (I2C or SPI).[get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of if_add_inc in reg CTRL_REG2
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *

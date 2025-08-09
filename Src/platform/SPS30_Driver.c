@@ -32,9 +32,9 @@
 #include "platform/SPS30_Driver.h"
 
 /*************************************************************************/
-/*                          sensirion_common.c							 */
+/*                          SPS30_common.c							 */
 /*************************************************************************/
-uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count)
+uint8_t SPS30_common_generate_crc(uint8_t *data, uint16_t count)
 {
 	uint16_t current_byte;
 	uint8_t crc = CRC8_INIT;
@@ -54,16 +54,16 @@ uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count)
 	return crc;
 }
 
-SPS30_Error_et sensirion_common_check_crc(uint8_t *data, uint16_t count,
+SPS30_Error_et SPS30_common_check_crc(uint8_t *data, uint16_t count,
                                   	  	  uint8_t checksum)
 {
-	if (sensirion_common_generate_crc(data, count) != checksum)
+	if (SPS30_common_generate_crc(data, count) != checksum)
 		return SPS30_ERROR;
 	
 	return SPS30_OK;
 }
 
-uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,
+uint16_t SPS30_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,
                                      const uint16_t *args, uint8_t num_args)
 {
 	uint8_t crc;
@@ -77,14 +77,14 @@ uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,
 		buf[idx++] = (uint8_t)((args[i] & 0xFF00) >> 8);
 		buf[idx++] = (uint8_t)((args[i] & 0x00FF) >> 0);
 	
-		crc = sensirion_common_generate_crc((uint8_t *)&buf[idx - 2], SENSIRION_WORD_SIZE);
+		crc = SPS30_common_generate_crc((uint8_t *)&buf[idx - 2], SENSIRION_WORD_SIZE);
 		buf[idx++] = crc;
 	}
 	
 	return idx;
 }
 
-SPS30_Error_et sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data, uint16_t num_words)
+SPS30_Error_et SPS30_i2c_read_words_as_bytes(uint8_t address, uint8_t *data, uint16_t num_words)
 {
 	int16_t ret;
 	uint16_t i, j;
@@ -92,7 +92,7 @@ SPS30_Error_et sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,
 	uint16_t word_buf[SENSIRION_MAX_BUFFER_WORDS];
 	uint8_t *const buf8 = (uint8_t *)word_buf;
 	
-	ret = sensirion_i2c_read(address, buf8, size);
+	ret = SPS30_i2c_read(address, buf8, size);
 	if (ret != SPS30_OK)
 		return ret;
 	
@@ -100,7 +100,7 @@ SPS30_Error_et sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,
 	for (i = 0, j = 0; i < size; i += SENSIRION_WORD_SIZE + CRC8_LEN)
 	{
 	
-		ret = sensirion_common_check_crc(&buf8[i], SENSIRION_WORD_SIZE,
+		ret = SPS30_common_check_crc(&buf8[i], SENSIRION_WORD_SIZE,
 										buf8[i + SENSIRION_WORD_SIZE]);
 		if (ret != SPS30_OK)
 			return ret;
@@ -112,12 +112,12 @@ SPS30_Error_et sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,
 	return SPS30_OK;
 }
 
-SPS30_Error_et sensirion_i2c_read_words(uint8_t address, uint16_t *data_words, uint16_t num_words)
+SPS30_Error_et SPS30_i2c_read_words(uint8_t address, uint16_t *data_words, uint16_t num_words)
 {
 	int16_t ret;
 	uint8_t i;
 	
-	ret = sensirion_i2c_read_words_as_bytes(address, (uint8_t *)data_words,	num_words);
+	ret = SPS30_i2c_read_words_as_bytes(address, (uint8_t *)data_words,	num_words);
 	if (ret != SPS30_OK)
 		return ret;
 	
@@ -127,57 +127,57 @@ SPS30_Error_et sensirion_i2c_read_words(uint8_t address, uint16_t *data_words, u
 	return SPS30_OK;
 }
 
-SPS30_Error_et sensirion_i2c_write_cmd(uint8_t address, uint16_t command)
+SPS30_Error_et SPS30_i2c_write_cmd(uint8_t address, uint16_t command)
 {
 	uint8_t buf[SENSIRION_COMMAND_SIZE];
 	
-	sensirion_fill_cmd_send_buf(buf, command, NULL, 0);
+	SPS30_fill_cmd_send_buf(buf, command, NULL, 0);
 	
-	return sensirion_i2c_write(address, buf, SENSIRION_COMMAND_SIZE);
+	return SPS30_i2c_write(address, buf, SENSIRION_COMMAND_SIZE);
 }
 
-SPS30_Error_et sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,
+SPS30_Error_et SPS30_i2c_write_cmd_with_args(uint8_t address, uint16_t command,
                                           const uint16_t *data_words,
                                           uint16_t num_words)
 {
 	uint8_t buf[SENSIRION_MAX_BUFFER_WORDS];
 	uint16_t buf_size;
 	
-	buf_size = sensirion_fill_cmd_send_buf(buf, command, data_words, num_words);
+	buf_size = SPS30_fill_cmd_send_buf(buf, command, data_words, num_words);
 	
-	return sensirion_i2c_write(address, buf, buf_size);
+	return SPS30_i2c_write(address, buf, buf_size);
 }
 
-SPS30_Error_et sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,
+SPS30_Error_et SPS30_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,
                                        	   	  uint32_t delay_us, uint16_t *data_words,
 											  uint16_t num_words)
 {
 	int16_t ret;
 	uint8_t buf[SENSIRION_COMMAND_SIZE];
 	
-	sensirion_fill_cmd_send_buf(buf, cmd, NULL, 0);
-	ret = sensirion_i2c_write(address, buf, SENSIRION_COMMAND_SIZE);
+	SPS30_fill_cmd_send_buf(buf, cmd, NULL, 0);
+	ret = SPS30_i2c_write(address, buf, SENSIRION_COMMAND_SIZE);
 	if (ret != SPS30_OK)
 		return ret;
 	
 	if (delay_us)
 		usleep(delay_us);
 	
-	return sensirion_i2c_read_words(address, data_words, num_words);
+	return SPS30_i2c_read_words(address, data_words, num_words);
 }
 
-SPS30_Error_et sensirion_i2c_read_cmd(uint8_t address, uint16_t cmd, uint16_t *data_words, uint16_t num_words)
+SPS30_Error_et SPS30_i2c_read_cmd(uint8_t address, uint16_t cmd, uint16_t *data_words, uint16_t num_words)
 {
-	return sensirion_i2c_delayed_read_cmd(address, cmd, 0, data_words, num_words);
+	return SPS30_i2c_delayed_read_cmd(address, cmd, 0, data_words, num_words);
 }
 
 /*************************************************************************/
-/*                          sensirion_i2c.c								 */
+/*                          SPS30_i2c.c								 */
 /*************************************************************************/
 /**
- * Release all resources initialized by sensirion_i2c_init().
+ * Release all resources initialized by SPS30_i2c_init().
  */
-void sensirion_i2c_release(void) 
+void SPS30_i2c_release(void) 
 {
 
 }
@@ -192,7 +192,7 @@ void sensirion_i2c_release(void)
  * @param count   number of bytes to read from I2C and store in the buffer
  * @returns 0 on success, error code otherwise
  */
-SPS30_Error_et sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count)
+SPS30_Error_et SPS30_i2c_read(uint8_t address, uint8_t *data, uint16_t count)
 {
 	return (int8_t)HAL_I2C_Master_Receive(&hi2c2, (uint16_t)(address << 1), data, count, 100);
 }
@@ -208,7 +208,7 @@ SPS30_Error_et sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count
  * @param count   number of bytes to read from the buffer and send over I2C
  * @returns 0 on success, error code otherwise
  */
-SPS30_Error_et sensirion_i2c_write(uint8_t address, const uint8_t *data, uint16_t count)
+SPS30_Error_et SPS30_i2c_write(uint8_t address, const uint8_t *data, uint16_t count)
 {
 	return (int8_t)HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)(address << 1), (uint8_t *)data, count, 100);
 }
@@ -238,7 +238,7 @@ SPS30_Error_et sps30_read_product_type(char *product_type)
 		uint16_t __enforce_alignment;
 	} buffer;
 
-	ret = sensirion_i2c_read_cmd(SPS30_I2C_ADDRESS, SPS_CMD_GET_PRODUCT_TYPE,
+	ret = SPS30_i2c_read_cmd(SPS30_I2C_ADDRESS, SPS_CMD_GET_PRODUCT_TYPE,
 								(uint16_t *)buffer.product_type,
 								SENSIRION_NUM_WORDS(buffer.product_type));
 	if (ret != SPS30_OK)
@@ -260,7 +260,7 @@ SPS30_Error_et sps30_read_firmware_version(uint8_t *major, uint8_t *minor)
 	uint16_t version;
 	int16_t ret;
 	
-	ret = sensirion_i2c_read_cmd(SPS30_I2C_ADDRESS,	SPS_CMD_GET_FIRMWARE_VERSION, &version, 1);
+	ret = SPS30_i2c_read_cmd(SPS30_I2C_ADDRESS,	SPS_CMD_GET_FIRMWARE_VERSION, &version, 1);
 	*major = (version & 0xff00) >> 8;
 	*minor = (version & 0x00ff);
 	
@@ -277,7 +277,7 @@ SPS30_Error_et sps30_get_serial(char *serial)
 		uint16_t __enforce_alignment;
 	} buffer;
 	
-	ret = sensirion_i2c_read_cmd(SPS30_I2C_ADDRESS, SPS_CMD_GET_SERIAL,
+	ret = SPS30_i2c_read_cmd(SPS30_I2C_ADDRESS, SPS_CMD_GET_SERIAL,
 								(uint16_t *)buffer.serial,
 								SENSIRION_NUM_WORDS(buffer.serial));
 	if (ret != SPS30_OK)
@@ -298,7 +298,7 @@ SPS30_Error_et sps30_start_measurement()
 {
 	const uint16_t arg = SPS_CMD_START_MEASUREMENT_ARG;
 	
-	int16_t ret = sensirion_i2c_write_cmd_with_args(
+	int16_t ret = SPS30_i2c_write_cmd_with_args(
 		SPS30_I2C_ADDRESS, SPS_CMD_START_MEASUREMENT, &arg,
 		SENSIRION_NUM_WORDS(arg));
 	
@@ -309,7 +309,7 @@ SPS30_Error_et sps30_start_measurement()
 
 SPS30_Error_et sps30_stop_measurement()
 {
-	int16_t ret = sensirion_i2c_write_cmd(SPS30_I2C_ADDRESS, SPS_CMD_STOP_MEASUREMENT);
+	int16_t ret = SPS30_i2c_write_cmd(SPS30_I2C_ADDRESS, SPS_CMD_STOP_MEASUREMENT);
 	Sleep(SPS_CMD_DELAY_mSEC);
 
 	return ret;
@@ -317,7 +317,7 @@ SPS30_Error_et sps30_stop_measurement()
 
 SPS30_Error_et sps30_read_data_ready(uint16_t *data_ready)
 {
-	return sensirion_i2c_read_cmd(SPS30_I2C_ADDRESS, SPS_CMD_GET_DATA_READY,
+	return SPS30_i2c_read_cmd(SPS30_I2C_ADDRESS, SPS_CMD_GET_DATA_READY,
 								  data_ready, SENSIRION_NUM_WORDS(*data_ready));
 }
 
@@ -332,7 +332,7 @@ SPS30_Error_et sps30_read_measurement(SPS30_MeasureTypeDef_st *measurement)
 		float32_t f32_value;
 	} val, data[10];
 	
-	ret = sensirion_i2c_read_cmd(SPS30_I2C_ADDRESS, SPS_CMD_READ_MEASUREMENT,
+	ret = SPS30_i2c_read_cmd(SPS30_I2C_ADDRESS, SPS_CMD_READ_MEASUREMENT,
 								data->u16_value, SENSIRION_NUM_WORDS(data));
 	if (ret != SPS30_OK)
 		return ret;
@@ -380,7 +380,7 @@ SPS30_Error_et sps30_get_fan_auto_cleaning_interval(uint32_t *interval_seconds)
 		uint16_t u16_value[2];
 		uint32_t u32_value;
 	} data;
-	int16_t ret = sensirion_i2c_delayed_read_cmd(
+	int16_t ret = SPS30_i2c_delayed_read_cmd(
 		SPS30_I2C_ADDRESS, SPS_CMD_AUTOCLEAN_INTERVAL, SPS_CMD_DELAY_mSEC,
 		data.u16_value, SENSIRION_NUM_WORDS(data.u16_value));
 	if (ret != SPS30_OK)
@@ -399,7 +399,7 @@ SPS30_Error_et sps30_set_fan_auto_cleaning_interval(uint32_t interval_seconds)
 	const uint16_t data[] = {(uint16_t)((interval_seconds & 0xFFFF0000) >> 16),
 							(uint16_t)(interval_seconds & 0x0000FFFF)};
 	
-	ret = sensirion_i2c_write_cmd_with_args(SPS30_I2C_ADDRESS,
+	ret = SPS30_i2c_write_cmd_with_args(SPS30_I2C_ADDRESS,
 											SPS_CMD_AUTOCLEAN_INTERVAL, data,
 											SENSIRION_NUM_WORDS(data));
 	Sleep(SPS_WRITE_DELAY_mSEC);
@@ -430,7 +430,7 @@ SPS30_Error_et sps30_start_manual_fan_cleaning()
 {
 	int16_t ret;
 	
-	ret = sensirion_i2c_write_cmd(SPS30_I2C_ADDRESS,
+	ret = SPS30_i2c_write_cmd(SPS30_I2C_ADDRESS,
 								SPS_CMD_START_MANUAL_FAN_CLEANING);
 	if (ret)
 		return ret;
@@ -442,7 +442,7 @@ SPS30_Error_et sps30_start_manual_fan_cleaning()
 
 SPS30_Error_et sps30_reset()
 {
-	return sensirion_i2c_write_cmd(SPS30_I2C_ADDRESS, SPS_CMD_RESET);
+	return SPS30_i2c_write_cmd(SPS30_I2C_ADDRESS, SPS_CMD_RESET);
 }
 
 SPS30_Error_et SPS30_Get_Measurement(SPS30_MeasureTypeDef_st *Measurement_Values)

@@ -8,8 +8,20 @@
 #include "platform/ANLG_Driver.h"
 #include "compiler/compiler.h"
 
+/*
+ * When the MiCS-6814_BreakOut_Board is installed (only compatible with the Gas_Sensor_Board V1.0)
+ * then the analog input C2_1 (NH3) must be more filtered.
+ */
 float32_t filter1_Value[16] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-const float32_t scale1_Factor[16] = {0.01, 0.01, 0.01, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05};
+#if (GSB_HW_VER == 10)				   //CH2O   O3     NO2    NH3    CO     SO2    C6H6   08    09    10    11    12    13    14    15    16
+	const float32_t scale1_Factor[16] = {0.007, 0.005, 0.007, 0.007, 0.007, 0.007, 0.007, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05};
+#elif (GSB_HW_VER == 20)			   //CH2O   O3     03    NH3    05    SO2    07    08    C6H6   10    NO2    12    CO     14    15    3.3V/2
+	const float32_t scale1_Factor[16] = {0.007, 0.005, 0.05, 0.007, 0.05, 0.007, 0.05, 0.05, 0.007, 0.05, 0.007, 0.05, 0.007, 0.05, 0.05, 0.05};
+#elif (GSB_HW_VER > 20)			   	   //CH2O   O3     03    NH3    05    SO2    NO2    08    09    C6H6   CO     12    13     14    15    3.3V/2
+	const float32_t scale1_Factor[16] = {0.007, 0.005, 0.05, 0.007, 0.05, 0.007, 0.007, 0.05, 0.05, 0.007, 0.007, 0.05, 0.05, 0.05, 0.05, 0.05};
+#else
+	const float32_t scale1_Factor[16] = {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05};
+#endif
 float32_t filter2_Value[16] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 const float32_t scale2_Factor[16] = {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05};
 const float32_t R1 = 1500.0; const float32_t R2 = 56000.0; float32_t Vref = 3.32;
@@ -268,10 +280,14 @@ void Ain2_Check(uint8_t* b, uint8_t* a, AIN2_FUNCTION An_Func)
 					HAL_ADC_DeInit(&hadc1);
 					MX_ADC1_Init();
 					ADC_Config(&hadc1);
-					//Increments the second nibble of the ADC restart event counter modulo 16...
-					ADCRestartCounter++; ADCRestartCounter = (ADCRestartCounter << 4) & 0xF0;
-					//...and copies the value to the status register second nibble
+
+					//Restore and increment the second nibble of the ADC restart event counter modulo 16...
+					ADCRestartCounter = BakUpRTC_Data[70];
+					ADCRestartCounter = (ADCRestartCounter << 4) & 0xF0;
+					ADCRestartCounter = ADCRestartCounter + 4;	//Increment by one the second nibble of the first byte of ADCRestartCounter
+					//...and copies the value to the status register first byte, second nibble
 					StatusReg &= 0xFFFFFF0F; StatusReg |= (uint32_t)(ADCRestartCounter);
+					HOST_TO_BKPR_LE_32(BakUpRTC_Data+70, StatusReg);
 				}
 			} else
 			{
@@ -309,19 +325,19 @@ void read_analogs(void)
 	extern void DisplayAnalogValues(void);
 	uint8_t i, j, k, n;
 	const uint8_t mask1_shift = 4;
-	uint16_t mask1 = 0xFFC;	//4092: Filter for 3mV sensitivity
+	uint16_t mask1 = 0xFFE;	//4094: Filter for 2mV sensitivity
+//	uint16_t mask1 = 0xFFC;	//4092: Filter for 3mV sensitivity
 //	uint16_t mask1 = 0xFF8;	//4088: Filter for 7mV sensitivity
 //	uint16_t mask1 = 0xFF0;	//4080: Filter for 13mV sensitivity
 //	uint16_t mask1 = 0xF80;	//3968: Filter for 100mV sensitivity
 	uint16_t mask2 = 0xFF0;	//4080: Filter for 13mV sensitivity
-//	uint16_t mask2 = 0xF80;	//3968: Filter for 100mV sensitivity
 //	uint16_t mask2 = 0xFC0;	//4032: Filter for 52mV sensitivity
+//	uint16_t mask2 = 0xF80;	//3968: Filter for 100mV sensitivity
 //	uint16_t mask3 = 0xFE0;	//4064: Filter for 26mV sensitivity
 	const uint8_t mask2_shift = 4;
 	static uint32_t Ovfl_Time0 = 0;
 	static uint32_t Ovfl_Time1 = 0;
 
-	conversion_ended = false;
 	for (i = 0 ; i < num_anlg_mux_in; i++)
 	{
 		conversion_ended = false;
@@ -333,7 +349,7 @@ void read_analogs(void)
 		//Wait for signal stabilization
 		Sleep(1);
 		//Start Conversion
-		if(HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADCxConvertedValue, num_ad_chs) != HAL_OK)
+		if(HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADCxConvertedValue, num_ad_chs) == HAL_ERROR)
 		{
 			//Start Conversion Error
 			Error_Handler();
@@ -427,6 +443,8 @@ void read_analogs(void)
 	//If in test-mode then display values.
 	if (Test_Mode)
 	{
+		sprintf((char*)&L50_menu_items_C14_2[0], "%4.3f", mux2_inputs[14]);	//In mux2_inputs[14]: > 0 = ADC Fault Detection
+		sprintf((char*)&L50_menu_items_C15_2[0], "%4.3f", mux2_inputs[15]); //In mux2_inputs[15]: 0 = Gas Sensor Board mounted
 		for (k = 0 ; k < num_anlg_mux_in; k++)
 		{
 			n = sprintf((char*)&dec_values[k][0], "Canale %u ...: %4.3f Volts", k, mux1_inputs[k]);
@@ -506,12 +524,16 @@ void read_ZE_sensors(void)
 	ppm_CH2O = (float32_t)ZE08_CH2O(V0);
 	if (ppm_CH2O < 0)
 		ppm_CH2O = 0;
+//	if (ppm_CH2O < ZE08_CH2O_RESOLUTION)	//ZE08 resolution = 0.01ppm
+//		ppm_CH2O = ZE08_CH2O_RESOLUTION;
 #endif
 	//Calculate O3 ppm
 //	ppm_O3 = (float32_t)fabs((double)ZE08_CH2O(V1));
 	ppm_O3 = (float32_t)ZE25_O3(V1);
-	if (ppm_O3 < 0)
-		ppm_O3 = 0;
+//	if (ppm_O3 < 0)
+//		ppm_O3 = 0;
+	if (ppm_O3 < ZE25_O3_RESOLUTION)		//ZE25 resolution = 0.01ppm
+		ppm_O3 = ZE25_O3_RESOLUTION;
 }
 
 /*
@@ -533,7 +555,7 @@ void read_SMO_sensors(void)
 //	const float32_t VRef = 0.318;
 	const float32_t VRef = 0.293;
 	const float32_t AD_Sensitivity = 0.003;
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+#elif (GSB_HW_VER >= 20)
 	const float32_t VRef = 3.3;
 #endif
 #if !(CH2O_FROM_EC)
@@ -541,23 +563,30 @@ void read_SMO_sensors(void)
 //	extern uint32_t SMD1001_CH2O_Rf;	//The load resistance of the IDM SMD1001 formaldehyde sensor is set at 10Kohm on the board
 	extern uint32_t SMD1001_CH2O_Vo;	//In mVolts
 	extern float32_t SMD1001_CH2O_Vs;
+	extern float32_t SMD1001_CH2O_Vs_AD;
 #endif
 #if !(NO2_FROM_EC)
 	extern uint32_t MiCS_6814_NO2_Rf;
 	float32_t a_NO2;
 	extern uint32_t MiCS_6814_NO2_Ro;	//In ohm
 	extern float32_t MiCS_6814_NO2_Rs;	//In ohm
+	extern float32_t MiCS_6814_NO2_Rs_AD;	//In ohm
 	extern int8_t NO2_Corr;		//In mVolts/10: 1 = 10mV Correction
 #endif
-	extern uint32_t MiCS_6814_NH3_Rf;
+#if !(CO_FROM_EC)
 	extern uint32_t MiCS_6814_CO_Rf;
-	float32_t a_NH3, a_CO;
-	extern int8_t NH3_Corr;		//In mVolts/10: 1 = 10mV Correction
-	extern int8_t CO_Corr;		//In mVolts/10: 1 = 10mV Correction
+	float32_t a_CO;
 	extern uint32_t MiCS_6814_CO_Ro;	//In ohm
-	extern uint32_t MiCS_6814_NH3_Ro;	//In ohm
 	extern float32_t MiCS_6814_CO_Rs;	//In ohm
+	extern float32_t MiCS_6814_CO_Rs_AD;	//In ohm
+	extern int8_t CO_Corr;		//In mVolts/10: 1 = 10mV Correction
+#endif
+	extern uint32_t MiCS_6814_NH3_Rf;
+	float32_t a_NH3;
+	extern int8_t NH3_Corr;		//In mVolts/10: 1 = 10mV Correction
+	extern uint32_t MiCS_6814_NH3_Ro;	//In ohm
 	extern float32_t MiCS_6814_NH3_Rs;	//In ohm
+	extern float32_t MiCS_6814_NH3_Rs_AD;	//In ohm
 #if (SMO_SENSOR_TC)
 	extern double_t Temperature;
 	extern uint8_t Humidity;
@@ -582,8 +611,10 @@ void read_SMO_sensors(void)
 #endif
 	//Read and correct the voltage across NH3 Rs
 	float32_t V3 = mux1_inputs[3] + ((float32_t)NH3_Corr/100.0);
+#if !(CO_FROM_EC)
 	//Read and correct the voltage across CO Rs
 	float32_t V4 = mux1_inputs[4] + ((float32_t)CO_Corr/100.0);
+#endif
 
 #if (GSB_HW_VER == 10)
 	//Check the voltage across NO2 Rs
@@ -592,24 +623,24 @@ void read_SMO_sensors(void)
 	//Calculate NO2 Rs
 #if !(NO2_FROM_EC)
 	a_NO2 = (float32_t)fabs((double)((V2/VRef) - 1.0));
-	MiCS_6814_NO2_Rs = (float32_t)(MiCS_6814_NO2_Rf)/a_NO2;
+	MiCS_6814_NO2_Rs = MiCS_6814_NO2_Rs_AD = (float32_t)(MiCS_6814_NO2_Rf)/a_NO2;
 #endif
 	//Check the voltage across NH3 Rs
 	if (V3 < VRef)		//The minimum value of V3 so that MiCS_6814_NH3_Rs is a real value
 		V3 = VRef + AD_Sensitivity;
 	//Calculate NH3 Rs
 	a_NH3 = (float32_t)fabs((double)((V3/VRef) - 1.0));
-	MiCS_6814_NH3_Rs = (float32_t)(MiCS_6814_NH3_Rf)/a_NH3;
+	MiCS_6814_NH3_Rs = MiCS_6814_NH3_Rs_AD = (float32_t)(MiCS_6814_NH3_Rf)/a_NH3;
 	//Check the voltage across CO Rs
 	if (V4 < VRef)		//The minimum value of V4 so that MiCS_6814_CO_Rs is a real value
 		V4 = VRef + AD_Sensitivity;
 	//Calculate CO Rs
 	a_CO  = (float32_t)fabs((double)((V4/VRef) - 1.0));
-	MiCS_6814_CO_Rs = (float32_t)(MiCS_6814_CO_Rf)/a_CO;
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+	MiCS_6814_CO_Rs = MiCS_6814_CO_Rs_AD = (float32_t)(MiCS_6814_CO_Rf)/a_CO;
+#elif (GSB_HW_VER >= 20)
 #if !(CH2O_FROM_EC)
-	//Calculate CH2O Vs
-	SMD1001_CH2O_Vs = V0;
+	//Calculate CH2O Vs.
+	SMD1001_CH2O_Vs = SMD1001_CH2O_Vs_AD = V0;
 	if (SMD1001_CH2O_Vs < (SMD1001_CH2O_Vo/1000.0))	//The voltage value detected (Vs) cannot be less
 		SMD1001_CH2O_Vs = (SMD1001_CH2O_Vo/1000.0);	//than that in pure air (Vo) (See SMD1001 data sheet)
 #if (SMO_SENSOR_TC)
@@ -620,39 +651,53 @@ void read_SMO_sensors(void)
 		SMD1001_CH2O_TC = SMD1001_CH2O_TC2(TOut);
 	//Calculate the SMD1001 humidity correction
 	SMD1001_CH2O_RHC = SMD1001_CH2O_RHC(HOut);
-	//Apply the SMD1001 temperature correction
-	SMD1001_CH2O_Vs = SMD1001_CH2O_Vs/SMD1001_CH2O_TC;
-	//Apply the SMD1001 humidity correction
-	SMD1001_CH2O_Vs = SMD1001_CH2O_Vs/SMD1001_CH2O_RHC;
 #endif	//SMO_SENSOR_TC
 #endif	//!(CH2O_FROM_EC)
 #if !(NO2_FROM_EC)
 	//Calculate NO2 Rs
 	a_NO2 = VRef - V2;
-	MiCS_6814_NO2_Rs = (V2 * (float32_t)MiCS_6814_NO2_Rf)/a_NO2;
+	MiCS_6814_NO2_Rs = MiCS_6814_NO2_Rs_AD = (V2 * (float32_t)MiCS_6814_NO2_Rf)/a_NO2;
 #endif
 	//Calculate NH3 Rs
 	a_NH3 = VRef - V3;
-	MiCS_6814_NH3_Rs =  (V3 * (float32_t)MiCS_6814_NH3_Rf)/a_NH3;
+	MiCS_6814_NH3_Rs =  MiCS_6814_NH3_Rs_AD = (V3 * (float32_t)MiCS_6814_NH3_Rf)/a_NH3;
+#if !(CO_FROM_EC)
 	//Calculate CO Rs
 	a_CO  = VRef - V4;
-	MiCS_6814_CO_Rs = (V4 * (float32_t)MiCS_6814_CO_Rf)/a_CO;
+	MiCS_6814_CO_Rs = MiCS_6814_CO_Rs_AD = (V4 * (float32_t)MiCS_6814_CO_Rf)/a_CO;
+#endif
 #endif	//((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
 
 #if (SMO_SENSOR_TC)
 	//Apply the MiCS_6814 temperature/humidity correction
+#if !(NO2_FROM_EC)
 	MiCS_6814_NO2_Rs = MiCS_6814_TC(MiCS_6814_NO2_Rs,TOut,HOut);
+#endif
 	MiCS_6814_NH3_Rs = MiCS_6814_TC(MiCS_6814_NH3_Rs,TOut,HOut);
+#if !(CO_FROM_EC)
 	MiCS_6814_CO_Rs = MiCS_6814_TC(MiCS_6814_CO_Rs,TOut,HOut);
+#endif
 #endif
 
 #if !(CH2O_FROM_EC)
 	//Calculate CH2O ppm
-	float32_t Arg_CH2O = SMD1001_CH2O_Vs/((float32_t)(SMD1001_CH2O_Vo/1000));	//SMD1001_CH2O_Vo is stored in mVolts!
-	if (Arg_CH2O <= 1.83)
+	float32_t Arg_CH2O = SMD1001_CH2O_Vs/((float32_t)(SMD1001_CH2O_Vo/1000.0));	//SMD1001_CH2O_Vo is stored in mVolts!
+	//Apply the SMD1001 temperature correction
+	Arg_CH2O = Arg_CH2O/SMD1001_CH2O_TC;
+	//Apply the SMD1001 humidity correction
+	Arg_CH2O = Arg_CH2O/SMD1001_CH2O_RHC;
+	if (Arg_CH2O <= 1.45)
+	{
 		ppm_CH2O = SMD1001_CH2O_1(Arg_CH2O);
-	else
+	} else
+	if ((Arg_CH2O <= 1.83) && (Arg_CH2O > 1.45))
+	{
 		ppm_CH2O = SMD1001_CH2O_2(Arg_CH2O);
+	} else
+	{
+		ppm_CH2O = SMD1001_CH2O_3(Arg_CH2O);
+	}
+
 	if (ppm_CH2O < 0)
 		ppm_CH2O = 0;
 #endif
@@ -664,11 +709,14 @@ void read_SMO_sensors(void)
 	//Calculate NH3 ppm
 	float32_t Arg_NH3 = MiCS_6814_NH3_Rs/((float32_t)MiCS_6814_NH3_Ro);
 	ppm_NH3 = MiCS_6814_NH3((double)(Arg_NH3));
+#if !(CO_FROM_EC)
 	//Calculate CO ppm
 	float32_t Arg_CO = MiCS_6814_CO_Rs/((float32_t)MiCS_6814_CO_Ro);
 	ppm_CO = MiCS_6814_CO((double)(Arg_CO));
+#endif
 }
 
+#if (OUTDOOR_MODE)
 /*
  * @fn      read_EC_sensors() - (ElectroChemical Sensors)
  * @brief   Read the voltage values from the Electrochemical Sensors
@@ -678,45 +726,73 @@ void read_SMO_sensors(void)
 void read_EC_sensors(void)
 {
 	extern int8_t SO2_Corr;		//In mVolts: 1 = 1mV Correction
-#if (GSB_HW_VER == 10)
-	extern int8_t C6H6_Corr;	//In mVolts: 1 = 1mV Correction
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
 	extern int8_t NO2_Corr;		//In mVolts: 1 = 1mV Correction
-#endif
+	extern int8_t C6H6_Corr;	//In mVolts: 1 = 1mV Correction
+	extern int8_t CO_Corr;		//In mVolts: 1 = 1mV Correction
 #if (EC_SENSOR_TC)
 	extern double_t Temperature;
-	float32_t SO2_TC, TOut;
-#if (GSB_HW_VER == 10)
-	float32_t C6H6_TC;
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
-	float32_t NO2_TC;
-#endif
+	float32_t SO2_TC, C6H6_TC, TOut;
+	#if (NO2_FROM_EC)
+		float32_t NO2_TC;
+	#endif
+	#if (CO_FROM_EC)
+		float32_t CO_TC;
+	#endif
 
+	// Compute the temperature compensation coefficients
 	TOut = (float32_t)Temperature;
 	SO2_TC = ME4_SO2_TC(TOut);		//ME4_SO2 sensor Temperature Compensation
-#if (GSB_HW_VER == 10)
+	#if (NO2_FROM_EC)
+		NO2_TC = ME4_NO2_TC(TOut);	//ME4_NO2 sensor Temperature Compensation
+	#endif
 	C6H6_TC = ME4_C6H6_TC(TOut);	//ME4_C6H6 sensor Temperature Compensation
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
-	NO2_TC = ME4_NO2_TC(TOut);		//ME4_NO2 sensor Temperature Compensation
-#endif
+	#if (CO_FROM_EC)
+		CO_TC = ME4_CO_TC(TOut);	//ME4_CO sensor Temperature Compensation
+	#endif
 #endif	//EC_SENSOR_TC
 
 	float32_t V5 = mux1_inputs[5] + ((float32_t)SO2_Corr/1000.0);
 #if (GSB_HW_VER == 10)
 	float32_t V6 = mux1_inputs[6] + ((float32_t)C6H6_Corr/1000.0);
 #elif (GSB_HW_VER == 20)
-	float32_t V6 = mux1_inputs[10] + ((float32_t)NO2_Corr/1000.0);
+	float32_t V8 = mux1_inputs[8] + ((float32_t)C6H6_Corr/1000.0);
+	#if (NO2_FROM_EC)
+		float32_t V10 = mux1_inputs[10] + ((float32_t)NO2_Corr/1000.0);
+	#endif
+	#if (CO_FROM_EC)
+		float32_t V12 = mux1_inputs[12] + ((float32_t)CO_Corr/1000.0);
+	#endif
 #elif (GSB_HW_VER == 21)
-	float32_t V6 = mux1_inputs[6] + ((float32_t)NO2_Corr/1000.0);
+	#if (NO2_FROM_EC)
+		float32_t V6 = mux1_inputs[6] + ((float32_t)NO2_Corr/1000.0);
+	#endif
+	float32_t V9 = mux1_inputs[9] + ((float32_t)C6H6_Corr/1000.0);
+	#if (CO_FROM_EC)
+		float32_t V10 = mux1_inputs[10] + ((float32_t)CO_Corr/1000.0);
+	#endif
 #endif
 
 #if (EC_SENSOR_TC)
 	V5 = V5/SO2_TC;
-#if (GSB_HW_VER == 10)
-	V6 = V6/C6H6_TC;
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
-	V6 = V6/NO2_TC;
-#endif
+	#if (GSB_HW_VER == 10)
+		V6 = V6/C6H6_TC;
+	#elif (GSB_HW_VER == 20)
+		V8 = V8/C6H6_TC;
+		#if (NO2_FROM_EC)
+			V10 = V10/NO2_TC;
+		#endif
+		#if (CO_FROM_EC)
+			V12 = V12/CO_TC;
+		#endif
+	#elif (GSB_HW_VER == 21)
+		#if (NO2_FROM_EC)
+			V6 = V6/NO2_TC;
+		#endif
+		V9 = V9/C6H6_TC;
+		#if (CO_FROM_EC)
+			V10 = V10/CO_TC;
+		#endif
+	#endif
 #endif
 
 	//Calculate SO2 ppm
@@ -730,16 +806,50 @@ void read_EC_sensors(void)
 	ppm_C6H6 = (float32_t)ME4_C6H6(V6);
 	if (ppm_C6H6 < 0)
 		ppm_C6H6 = 0;
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+#elif (GSB_HW_VER == 20)
+	//Calculate C6H6 ppm
+	//	ppm_C6H6 = (float32_t)fabs((double)ME4_C6H6(V8));
+	ppm_C6H6 = (float32_t)ME4_C6H6(V8);
+	if (ppm_C6H6 < 0)
+		ppm_C6H6 = 0;
 	//Calculate NO2 ppm
-#if (NO2_FROM_EC)
-//	ppm_NO2 = (float32_t)fabs((double)ME4_NO2(V6));
+	#if (NO2_FROM_EC)
+	//	ppm_NO2 = (float32_t)fabs((double)ME4_NO2(V10));
+	ppm_NO2 = (float32_t)ME4_NO2(V10);
+	if (ppm_NO2 < 0)
+		ppm_NO2 = 0;
+	#endif
+	#if (CO_FROM_EC)
+	//Calculate CO ppm
+	//	ppm_CO = (float32_t)fabs((double)ME4_CO(V6));
+	ppm_CO = (float32_t)ME4_CO(V12);
+	if (ppm_CO < 0)
+		ppm_CO = 0;
+	#endif
+#elif (GSB_HW_VER == 21)
+	#if (NO2_FROM_EC)
+	//Calculate NO2 ppm
+	//	ppm_NO2 = (float32_t)fabs((double)ME4_NO2(V6));
 	ppm_NO2 = (float32_t)ME4_NO2(V6);
 	if (ppm_NO2 < 0)
 		ppm_NO2 = 0;
-#endif
+	#endif
+	//Calculate C6H6 ppm
+//	ppm_C6H6 = (float32_t)fabs((double)ME4_C6H6(V9));
+	ppm_C6H6 = (float32_t)ME4_C6H6(V9);
+	if (ppm_C6H6 < 0)
+		ppm_C6H6 = 0;
+	//Calculate CO ppm
+	#if (CO_FROM_EC)
+	//Calculate CO ppm
+	//	ppm_CO = (float32_t)fabs((double)ME4_CO(V10));
+	ppm_CO = (float32_t)ME4_CO(V10);
+	if (ppm_CO < 0)
+		ppm_CO = 0;
+	#endif
 #endif
 }
+#endif
 
 /*
   * @brief  Updates the total analog values read from gas sensors.
@@ -748,7 +858,8 @@ void read_EC_sensors(void)
  */
 ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 {
-	/* The integration window of the analog sensors is set at 5 minutes (300/5),
+	/* The integration window of the CH2O, O3, NO2, NH3 analog sensors is set at 10 minutes (300/5)
+	 * and the integration window of the CO, SO2 analog sensors is set at 5 minutes (300/5)
 	 * to prevent intense but short-term polluting events from distorting the
 	 * calculation of the air quality in the long term.
 	 * (Eg: the housewife who throws the white wine into the roast or use
@@ -760,16 +871,21 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 	 * The second (used when the current value is less than or equal to the average
 	 * value calculated up to then) is given by the value of the "AverageWindow_1m" constant.
 	 */
-	static const uint32_t AverageWindow_5m = 60;	//Analog sensors integration window of the is fixed at 5 minutes
-	static const uint32_t AverageWindow_1m = 12;	//Analog sensors integration window1 of the is fixed at 1 minutes
-	static float32_t ch2o_avg = 0; static float32_t o3_avg = 0;
-	static float32_t no2_avg = 0; static float32_t nh3_avg = 0;
-	static float32_t co_avg = 0; static float32_t so2_avg = 0;
-	static float32_t ch2o_avg1 = 0; static float32_t o3_avg1 = 0;
-	static float32_t no2_avg1 = 0; static float32_t nh3_avg1 = 0;
-	static float32_t co_avg1 = 0; static float32_t so2_avg1 = 0;
-	static float32_t ch2o_new_sample, o3_new_sample, no2_new_sample, nh3_new_sample;
-	static float32_t co_new_sample, so2_new_sample;
+	static const uint32_t AverageWindow_10m = 120;	//Analog sensors integration window is fixed at 10 minutes
+	static const uint32_t AverageWindow_5m = 60;	//Analog sensors integration window is fixed at 5 minutes
+	static const uint32_t AverageWindow_1m = 12;	//Analog sensors integration window1 is fixed at 1 minutes
+	static float32_t ch2o_avg = 0.0;
+	static float32_t no2_avg = 0.0; static float32_t nh3_avg = 0.0;
+	static float32_t co_avg = 0.0;
+	static float32_t ch2o_avg1 = 0.0;
+	static float32_t no2_avg1 = 0.0; static float32_t nh3_avg1 = 0.0;
+	static float32_t co_avg1 = 0.0;
+	static float32_t ch2o_new_sample, no2_new_sample, nh3_new_sample, co_new_sample;
+#if (OUTDOOR_MODE)
+	static float32_t o3_avg = 0.0; static float32_t o3_avg1 = 0.0;
+	static float32_t so2_avg = 0.0; static float32_t so2_avg1 = 0.0;
+	static float32_t o3_new_sample, so2_new_sample;
+#endif
 	ANLG_Error_et ret = 0;
 
 	if(!Test_Mode)
@@ -777,30 +893,34 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 		read_analogs();
 		read_ZE_sensors();
 		read_SMO_sensors();
+#if (OUTDOOR_MODE)
 		read_EC_sensors();
+#endif
 	}
 
 	Measurement_Value->CH2O = CH2O_ppm2ugm3(ppm_CH2O);	//Calculate the CH2O concentration in ug/m3
 	ch2o_new_sample = Measurement_Value->CH2O;
-	ch2o_avg = approxMovingAverage(ch2o_avg, ch2o_new_sample, AverageWindow_5m);
+	ch2o_avg = approxMovingAverage(ch2o_avg, ch2o_new_sample, AverageWindow_10m);
 	ch2o_avg1 = approxMovingAverage(ch2o_avg1, ch2o_new_sample, AverageWindow_1m);
 	if (ch2o_avg1 > ch2o_avg)
 		Measurement_Value->CH2O = ch2o_avg;
 	else
 		Measurement_Value->CH2O = ch2o_avg1;
 
+#if (OUTDOOR_MODE)
 	Measurement_Value->O3 = O3_ppm2ugm3(ppm_O3);		//Calculate the O3 concentration in ug/m3
 	o3_new_sample = Measurement_Value->O3;
-	o3_avg = approxMovingAverage(o3_avg, o3_new_sample, AverageWindow_5m);
+	o3_avg = approxMovingAverage(o3_avg, o3_new_sample, AverageWindow_10m);
 	o3_avg1 = approxMovingAverage(o3_avg1, o3_new_sample, AverageWindow_1m);
 	if (o3_avg1 > o3_avg)
 		Measurement_Value->O3 = o3_avg;
 	else
 		Measurement_Value->O3 = o3_avg1;
+#endif
 
 	Measurement_Value->NO2 = NO2_ppm2ugm3(ppm_NO2);		//Calculate the NO2 concentration in ug/m3
 	no2_new_sample = Measurement_Value->NO2;
-	no2_avg = approxMovingAverage(no2_avg, no2_new_sample, AverageWindow_5m);
+	no2_avg = approxMovingAverage(no2_avg, no2_new_sample, AverageWindow_10m);
 	no2_avg1 = approxMovingAverage(no2_avg1, no2_new_sample, AverageWindow_1m);
 	if (no2_avg1 > no2_avg)
 		Measurement_Value->NO2 = no2_avg;
@@ -809,14 +929,14 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 
 	Measurement_Value->NH3 = NH3_ppm2ugm3(ppm_NH3);		//Calculate the NH3 concentration in ug/m3
 	nh3_new_sample = Measurement_Value->NH3;
-	nh3_avg = approxMovingAverage(nh3_avg, nh3_new_sample, AverageWindow_5m);
+	nh3_avg = approxMovingAverage(nh3_avg, nh3_new_sample, AverageWindow_10m);
 	nh3_avg1 = approxMovingAverage(nh3_avg1, nh3_new_sample, AverageWindow_1m);
 	if (nh3_avg1 > nh3_avg)
 		Measurement_Value->NH3 = nh3_avg;
 	else
 		Measurement_Value->NH3 = nh3_avg1;
 
-	Measurement_Value->CO = CO_ppm2ugm3(ppm_CO);		//Calculate the CO concentration in mg/m3
+	Measurement_Value->CO = CO_ppm2mgm3(ppm_CO);		//Calculate the CO concentration in mg/m3
 	co_new_sample = Measurement_Value->CO;
 	co_avg = approxMovingAverage(co_avg, co_new_sample, AverageWindow_5m);
 	co_avg1 = approxMovingAverage(co_avg1, co_new_sample, AverageWindow_1m);
@@ -825,6 +945,7 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 	else
 		Measurement_Value->CO = co_avg1;
 
+#if (OUTDOOR_MODE)
 	Measurement_Value->SO2 = SO2_ppm2ugm3(ppm_SO2);		//Calculate the SO2 concentration in ug/m3
 	so2_new_sample = Measurement_Value->SO2;
 	so2_avg = approxMovingAverage(so2_avg, so2_new_sample, AverageWindow_5m);
@@ -836,6 +957,7 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 
 	Measurement_Value->C6H6  = 0;						//Calculate the C6H6 concentration in ug/m3
 //	Measurement_Value->C6H6  = C6H6_ppm2ugm3(ppm_C6H6);	//Calculate the C6H6 concentration in ug/m3
+#endif
 	Measurement_Value->AIN8  = ain1_buf[7];
 	Measurement_Value->AIN9  = ain1_buf[8];
 	Measurement_Value->AIN10 = ain1_buf[9];

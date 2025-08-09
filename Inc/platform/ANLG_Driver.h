@@ -12,66 +12,82 @@
 /**
 * @}brief Gases Sensors Board HW Version definess.
 */
-#define GSB_HW_VER				(10)		//Gas Sensor Board HW Version 1.0
-//#define GSB_HW_VER			(20)		//Gas Sensor Board HW Version 2.0
-//#define GSB_HW_VER			(21)		//Gas Sensor Board HW Version 2.1
+//#define GSB_HW_VER			(1U)		//Gas Sensor Board HW Version 0.1
+#define GSB_HW_VER				(10U)		//Gas Sensor Board HW Version 1.0
+//#define GSB_HW_VER			(20U)		//Gas Sensor Board HW Version 2.0
+//#define GSB_HW_VER			(21U)		//Gas Sensor Board HW Version 2.1
 
-#define SMD1001_CH2O_1(x)	((0.6011F * x) - 0.6396F)	//y(ppm) = 0.6011(Vs/Vo) - 0.6396 -> when Vs/Vo <= 1.83
-#define SMD1001_CH2O_2(x)	((0.7859F * x) - 0.9001F)	//y(ppm) = 0.7859(Vs/Vo) - 0.9001 -> when Vs/Vo > 1.83
-#define SMD1001_CH2O_TC1(x)	((-0.0215F * x) + 1.2650F)	//T < 10°C SMD1001_CH2O sensor temperature compensation (0.4ppm Vs/Vo - °C relationship, see data sheet)
+#define SMD1001_CH2O_1(x)	((0.4377F * x) - 0.4399F)	//y(ppm) = 0.4377(Vs/Vo) - 0.4399 -> when Vs/Vo <= 1.45
+#define SMD1001_CH2O_2(x)	((0.8111F * x) - 0.9918F)	//y(ppm) = 0.8111(Vs/Vo) - 0.9918 -> when 1,45 < Vs/Vo <= 1.83
+#define SMD1001_CH2O_3(x)	((0.8164F * x) - 0.9584F)	//y(ppm) = 0.7859(Vs/Vo) - 0.9001 -> when Vs/Vo > 1.83
+#define SMD1001_CH2O_TC1(x)	((-0.0210F * x) + 1.2650F)	//T < 10°C SMD1001_CH2O sensor temperature compensation (0.4ppm Vs/Vo - °C relationship, see data sheet)
 #define SMD1001_CH2O_TC2(x)	((-0.0088F * x) + 1.1855F)	//T >= 10°C SMD1001_CH2O sensor temperature compensation (0.4ppm Vs/Vo - °C relationship, see data sheet)
 #define SMD1001_CH2O_RHC(x)	((-0.0047F * x) + 1.2795F)	//SMD1001_CH2O sensor humidity compensation (0.4ppm Vs/Vo - RH relationship, see data sheet)
 #define ZE08_CH2O(x)	((3.125F * x) - 1.25F)	//y(ppm) = 3.125(Vadc) - 1.25
-//#define ZE08_CH2O(x)	(((5.0F/124.0F) * x) - 1.25F)	//y(ppm) = 0.04F(Vadc_bin) - 1.25
 #define CH2O_MOL_WEIGHT	30.026F //Formaldehyde Molecular weight, g/mol
 #define CH2O_ppm2ugm3(x)	((CH2O_MOL_WEIGHT * x * 1000.0F)/24.45F)	//ppm to ug/m3 CH2O conversion
 #define ZE08_CH2O_TC1(x)	((0.0225F * x) + 0.7F)		//T < 0°C ZE08_CH2O sensor temperature compensation
 #define ZE08_CH2O_TC2(x)	((0.012F * x) + 0.7F)		//T < 50°C, T > 0°C ZE08_CH2O sensor temperature compensation
+#define ZE08_CH2O_RESOLUTION	0.01F		//The ZEH8 CH2O sensor resolution is 0.01ppm
 
-#define ZE25_O3(x)		((6.25F * x) - 2.5F)	//y(ppm) = 6.25(Vadc) - 2.5
-//#define ZE25_O3(x)	(((5.0F/124.0F) * x) - 1.25F)	//y(ppm) = 0.04F(Vadc_bin) - 1.25
+#define ZE25_O3(x)		((6.2375F * x) - 2.475F)	//y(ppm) = 6.25(Vadc) - 2.5
 #define O3_MOL_WEIGHT	48.0F	//Ozone Molecular weight, g/mol
 #define O3_ppm2ugm3(x)	((O3_MOL_WEIGHT * x * 1000.0F)/24.45F)	//ppm to ug/m3 O3 conversion
 #define ZE25_O3_TC1(x)	((0.012F * x) + 0.94F)		//T > -20°C, T < 5°C ZE25_O3 sensor temperature compensation
 #define ZE25_O3_TC2(x)	((0.0F * x) + 1.0F)			//T > 5°C, T < 20°C ZE25_O3 sensor temperature compensation
 #define ZE25_O3_TC3(x)	((-0.0025F * x) + 1.05F)	//T > 20°C ZE25_O3 sensor temperature compensation
-
+#define ZE25_O3_RESOLUTION	0.01F		//The ZE25 O3 sensor data sheet resolution is 0.02ppm, but the circuit implemented
+										//in Sensus191 extends the resolution to 0.01ppm.
 #if (GSB_HW_VER == 10)
 	#define SO2_RGAIN		392000.0F
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
-	#define SO2_RGAIN		(47000.0F * 15.0F)
+#elif (GSB_HW_VER >= 20)
+	#define SO2_RGAIN		(47000.0F * 10.0F)
 #endif
 #define ME4_SO2_SENSITIVITY	8e-7F	// 0.8uA/ppm
 #define ME4_SO2(x)		(x / (ME4_SO2_SENSITIVITY * SO2_RGAIN))	//y(ppm) = x(Vadc) / (ME4_SO2_Sensitivity * SO2_RGAIN)
 #define SO2_MOL_WEIGHT	64.06F	//Sulfur Dioxide Molecular weight, g/mol
 #define SO2_ppm2ugm3(x)	((SO2_MOL_WEIGHT * x * 1000.0F)/24.45F)	//ppm to ug/m3 SO2 conversion
 #define ME4_SO2_TC(x)	((0.005F * x) + 0.9F)		//ME4_SO2 sensor temperature compensation
-
+#define ME4_SO2_RESOLUTION	0.01F		//The ME4_SO2 sensor data sheet resolution is 0.1ppm, but the circuit implemented
+										//in Sensus191 extends the resolution to 0.01ppm.
 #if (GSB_HW_VER == 10)
 	#define SO2_RGAIN		392000.0F
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
-	#define NO2_RGAIN		(47000.0F * 15.0F)
+#elif (GSB_HW_VER >= 20)
+	#define NO2_RGAIN		(47000.0F * 10.0F)
 #endif
 #define ME4_NO2_SENSITIVITY	12e-7F	// 12uA/ppm
-#define ME4_NO2(x)		(x / (ME4_NO2_SENSITIVITY * NO2_RGAIN))	//y(ppm) = x(Vadc) / (ME4_SO2_Sensitivity * SO2_RGAIN)
+#define ME4_NO2(x)		(x / (ME4_NO2_SENSITIVITY * NO2_RGAIN))	//y(ppm) = x(Vadc) / (ME4_NO2_Sensitivity * NO2_RGAIN)
 #define NO2_MOL_WEIGHT	46.01F	//Nitrogen Dioxide Molecular weight, g/mol
 #define NO2_ppm2ugm3(x)	((NO2_MOL_WEIGHT * x * 1000.0F)/24.45F)	//ppm to ug/m3 SO2 conversion
 #define ME4_NO2_TC(x)	((0.0045F * x) + 0.91F)		//ME4_NO2 sensor temperature compensation
-
-#define C6H6_RGAIN		1e8F
+#define ME4_NO2_RESOLUTION	0.01F		//The ME4_NO2 sensor data sheet resolution is 0.1ppm, the circuit implemented
+										//in Sensus191 extends the resolution to 0.01ppm
+#if (GSB_HW_VER == 10)
+	#define C6H6_RGAIN		1e8F
+#elif (GSB_HW_VER >= 20)
+	#define C6H6_RGAIN		(47000.0F * 10.0F)
+#endif
 #define ME4_C6H6_SENSITIVITY	3e-10F	// 0.3nA/ppm
 #define ME4_C6H6(x)		(x / (ME4_C6H6_SENSITIVITY * C6H6_RGAIN))	//y(ppm) = x(Vadc) / (ME4_C6H6_Sensitivity * C6H6_RGAIN)
 #define C6H6_MOL_WEIGHT	78.11F	//Benzene Molecular weight, g/mol
 #define C6H6_ppm2ugm3(x)	((C6H6_MOL_WEIGHT * x * 1000.0F)/24.45F)	//ppm to ug/m3 C6H6 conversion
 #define ME4_C6H6_TC(x)	((0.0048F * x) + 0.88F)		//ME4_C6H6 sensor temperature compensation
 
-#define CO_RGAIN		47000.0F
+#define CO_RGAIN		(47000.0F * 10.0F)
 #define ME4_CO_SENSITIVITY	8e-8F	// 0.08 uA/ppm
 #define ME4_CO(x)		(x / (ME4_CO_SENSITIVITY * CO_RGAIN))	//y(ppm) = x(Vadc) / (ME4_CO_Sensitivity * CO_RGAIN)
-//#define CO_MOL_WEIGHT	24.01F	//Carbon monoxide Molecular weight, g/mol
-//#define CO_ppm2ugm3(x)	((CO_MOL_WEIGHT * x)/24.45F)		//ppm to ug/m3 CO conversion
+#define CO_MOL_WEIGHT	28.01F	//Carbon monoxide Molecular weight, g/mol
+#define CO_ppm2mgm3(x)	((CO_MOL_WEIGHT * x)/24.45F)			//ppm to mg/m3 CO conversion
+#define ME4_CO_TC(x)	((0.005F * x) + 0.9F)		//ME4_CO sensor temperature compensation. At the moment == to SO2_TC (!!!)
+#define ME4_CO_RESOLUTION	1.0F		//The ME4_CO sensor data sheet resolution is 1ppm
 
-#define MiCS_6814_TC(Rs,t,h) 	(10.2243F + (0.7495F * Rs) - (0.1953F * t) + (0.0672F * h) + (0.0016F * Rs * t) + (0.0081F * Rs * h))
+/*
+ * Correction Model for Metal Oxide Sensor Drift Caused by Ambient Temperature and Humidity
+ * (MDPI Sensor Article: https://www.mdpi.com/1424-8220/22/9/3301)
+ * Modified by me to make Rs*=Rs at test temperature and humidity. (T=23°C, RH=50%, MiCS-6814 Data Sheet, page 2)
+ */
+//#define MiCS_6814_TC(Rs,t,h) 	(10.2243F + (0.7495F * Rs) - (0.1953F * t) + (0.0672F * h) + (0.0016F * Rs * t) + (0.0081F * Rs * h))
+#define MiCS_6814_TC(Rs,t,h) 	(10.2243F + (0.5582F * Rs) - (0.1953F * t) + (0.0672F * h) + (0.0016F * Rs * t) + (0.0081F * Rs * h))
 
 //#define MiCS_6814_NO2_TC(Rs,t,h) 	(10.2243F + (0.7495F * Rs) - (0.1953F * t) + (0.0672F * h) + (0.0016F * Rs * t) + (0.0081F * Rs * h))
 //#define MiCS_6814_NO2(x)	((0.1499F * x) + 0.0042F)			//y(ppm) = 0.1499(Rs/Ro) + 0.0042
@@ -86,8 +102,6 @@
 //#define MiCS_6814_CO_TC(Rs,t,h)		(10.2243F + (0.7495F * Rs) - (0.1953F * t) + (0.0672F * h) + (0.0016F * Rs * t) + (0.0081F * Rs * h))
 //#define MiCS_6814_CO(x)	(4.4922F * (pow(x, -1.182F)))		//y(ppm) = 4.4922((Rs/Ro)*E(-1.1182))
 #define MiCS_6814_CO(x)	(4.385F * (pow(x, -1.179F)))			//y(ppm) = 4.385((Rs/Ro)*E(-1.179))
-#define CO_MOL_WEIGHT	28.01F	//Carbon monoxide Molecular weight, g/mol
-#define CO_ppm2ugm3(x)	((CO_MOL_WEIGHT * x)/24.45F)			//ppm to mg/m3 CO conversion
 
 //#define OVFL_TIMEOUT (4000U)	//Time that an analog channel can overflow before being notified
 #define OVFL_TIMEOUT (0)		//Time that an analog channel can overflow before being notified
@@ -98,6 +112,10 @@
 								//the value detected by the Electrochemical sensor, instead of the Metal Oxide sensor.
 #define CH2O_FROM_EC ((OUTDOOR_MODE && (GSB_HW_VER==20 || GSB_HW_VER==21)) || GSB_HW_VER==10)	//If 1 the formaldehyde concentration is
 								//calculated from the value detected by the Electrochemical sensor, instead of the Metal Oxide sensor.
+//#define CO_FROM_EC	 (OUTDOOR_MODE && (GSB_HW_VER==20 || GSB_HW_VER==21))	//If 1 the carbon monoxide concentration is calculated from
+								//the value detected by the Electrochemical sensor, instead of the Metal Oxide sensor.
+#define CO_FROM_EC	(0)		//Only for test!!!
+
 /**
 * @}brief Analog Board Gases Sensors Min Max Init Values.
 */
@@ -125,9 +143,9 @@
 uint8_t ain1_values[num_anlg_mux_in], prev_ain1_values[num_anlg_mux_in];
 uint8_t ain2_values[num_anlg_mux_in], prev_ain2_values[num_anlg_mux_in];
 uint16_t adc_values[num_ad_chs];
-float converted_values[num_ad_chs], converted_value;
-float mux1_inputs[num_anlg_mux_in], mux2_inputs[num_anlg_mux_in];
-float CPU_Temp, Vsense, Vrsense;
+float32_t converted_values[num_ad_chs], converted_value;
+float32_t mux1_inputs[num_anlg_mux_in], mux2_inputs[num_anlg_mux_in];
+float32_t CPU_Temp, Vsense, Vrsense;
 uint8_t dec_values[num_anlg_mux_in][64];
 uint8_t ovfl_1[num_anlg_mux_in][8], ovfl_2[num_anlg_mux_in][8];
 
@@ -223,6 +241,8 @@ extern uint8_t L50_menu_items_row7a[];
 extern uint8_t L50_menu_items_row7b[];
 extern uint8_t L50_menu_items_row4a[];
 extern uint8_t L50_menu_items_row4b[];
+extern uint8_t L50_menu_items_C14_2[];
+extern uint8_t L50_menu_items_C15_2[];
 
 /** @defgroup Function_Prototypes
 * @{

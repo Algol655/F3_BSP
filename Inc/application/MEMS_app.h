@@ -227,11 +227,23 @@ bool SendCntrlMsg;
 						 C8*(((y)*(y))*(x)) + C9*(((x)*(x))*((y)*(y))))
 	// Sinner Index Formula
 	#define SSI(x,y)	(1.98F * ((x) - (0.5555F - 0.0055F * (y)) * ((x) - 58.0F)) - 56.83F)
+	// Relative humidity to absolute humidity conversion formula coefficients
+	#define D1	6.112F
+	#define D2	17.67F
+	#define D3	243.5F
+	#define D4	2.1674F
+	#define D5	273.15F
+	// Relative humidity to absolute humidity formula
+	// D6 = (e((D2*t)/(t+D3)))
+	// D7 = (D5+t)
+	#define ABH(t,rh)	((D1 * (exp((D2*t)/(t+D3))) * rh * D4) / (D5+t))
 	uint16_t Hum_Out, HMin, HMax, H_Min, H_Max;
+	uint16_t Hum2_Out, AHMin, AHMax, AH_Min, AH_Max;
 	int16_t T_Out, TMin, TMax, T_Min, T_Max;
 	uint16_t T2_Out, T3_Out;	//Used by BLE in app_bluenrg_2.c User_Process() function
-	uint8_t	Humidity;
-	float32_t TemperatureD, hum_value, temp_value, SI, HI;
+	uint8_t	Humidity;			//Humidity: Relative HUmidity (RH,%)
+	float32_t TemperatureD, hum_value, temp_value, SI, HI, AH;
+	uint32_t Up_Time_H;						//Used by BLE in app_bluenrg_2.c User_Process() function
 	#if (GUI_SUPPORT==1)
 		float Humidity_percent_1_data[1];	//Used in UnicleoGUI
 	#endif
@@ -241,10 +253,14 @@ bool SendCntrlMsg;
 		#include "platform/VEML6075_Driver.h"
 		VEML6075_MeasureTypeDef_st UVx_Values;
 		float32_t UVa, UVb, UV_Index;
+		uint32_t UV_IndexMin, UV_IndexMax, UV_Index_Min, UV_Index_Max;
+		uint32_t UV_Index_Out;				//Used by BLE in app_bluenrg_2.c User_Process() function
 	#elif (LTR390UV)
 		#include "platform/LTR390UV_Driver.h"
 		LTR390UV_MeasureTypeDef_st UVx_Values;
 		float32_t Lux, UV_Index;
+		uint32_t LuxMin, LuxMax, Lux_Min, Lux_Max, UV_IndexMin, UV_IndexMax, UV_Index_Min, UV_Index_Max;
+		uint32_t Lux_Out, UV_Index_Out;		//Used by BLE in app_bluenrg_2.c User_Process() function
 	#endif
 	#if (GUI_SUPPORT==1)
 		float UVA_1_data[1], UVB_1_data[1];	//Used in UnicleoGUI
@@ -269,7 +285,6 @@ bool SendCntrlMsg;
 	uint16_t eq_TVOC, eq_CO2;
 	uint16_t eq_TVOC_1h_Mean, eq_CO2_1h_Mean;
 	uint16_t eq_TVOC_1h_MeanMax, eq_CO2_1h_MeanMax, eq_TVOC_1h_Mean_Max, eq_CO2_1h_Mean_Max;
-	uint32_t CO_Out;	//Used by BLE in app_bluenrg_2.c User_Process() function
 	#if (GUI_SUPPORT==1)
 		int32_t eTVOC_1_data[1], eCO2_1_data[1];
 	#endif
@@ -293,7 +308,7 @@ bool SendCntrlMsg;
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	#include "platform/ANLG_Driver.h"
 	ANLG_MeasureTypeDef_st GAS_Values;
-	uint16_t CH2O, CH2O_8h_Mean, CO, CO_8h_Mean;
+	uint16_t CH2O, CH2O_8h_Mean, CO, CO_8h_Mean, CO_8h_Mean_t, CO_Out;	//CO_Out Used by BLE in app_bluenrg_2.c User_Process() function
 	uint16_t CH2O_8h_MeanMax, CO_8h_MeanMax, CH2O_8h_Mean_Max, CO_8h_Mean_Max;
 	uint16_t NO2, NH3, NO2_1h_Mean, NH3_8h_Mean;
 	uint16_t NO2_1h_MeanMax, NH3_8h_MeanMax;
@@ -305,13 +320,10 @@ bool SendCntrlMsg;
 		uint16_t O3_1h_Mean_Max, SO2_1h_Mean_Max, C6H6_24h_Mean_Max;
 	#endif
 	#if (GUI_SUPPORT==1)
-		int32_t CO_data[1]; int32_t CH2O_data[1]; int32_t NO2_data[1]; int32_t NH3_data[1]	//For UnicleoGUI
+		int32_t CO_data[1]; int32_t CH2O_data[1]; int32_t NO2_data[1]; int32_t NH3_data[1];	//For UnicleoGUI
 		#if (OUTDOOR_MODE)
 			int32_t O3_data[1]; int32_t SO2_data[1]; int32_t C6H6_data[1];					//For UnicleoGUI
 		#endif
-	#endif
-	#if (VOC_SENSOR_PRESENT==0)
-		uint32_t CO_Out;	//Used by BLE in app_bluenrg_2.c User_Process() function
 	#endif
 #endif
 #if (IMU_PRESENT==1)
@@ -392,9 +404,9 @@ void Input_Value_Init(void *source, sDISPLAY_INFO *header);
  * @retval None
  */
 	#if (LPS25HB)
-	void Pressure_Sensor_Handler(LPS25HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff);
+		void Pressure_Sensor_Handler(LPS25HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff);
 	#elif (LPS22HB)
-	void Pressure_Sensor_Handler(LPS22HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff);
+		void Pressure_Sensor_Handler(LPS22HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff);
 	#endif
 #endif
 
@@ -408,9 +420,9 @@ void Input_Value_Init(void *source, sDISPLAY_INFO *header);
  * @retval None
  */
 	#if (HTS221)
-	void Humidity_Sensor_Handler(HTS221_MeasureTypeDef_st *HumTemp, uint8_t* Buff);
+		void Humidity_Sensor_Handler(HTS221_MeasureTypeDef_st *HumTemp, uint8_t* Buff);
 	#elif (SHT4x)
-	void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff);
+		void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff);
 	#endif
 #endif
 
@@ -424,9 +436,9 @@ void Input_Value_Init(void *source, sDISPLAY_INFO *header);
  * @retval None
  */
 	#if (VEML6075)
-	void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff);
+		void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff);
 	#elif (LTR390UV)
-	void UVx_Sensor_Handler(LTR390UV_MeasureTypeDef_st *UVx, uint8_t* Buff);
+		void UVx_Sensor_Handler(LTR390UV_MeasureTypeDef_st *UVx, uint8_t* Buff);
 	#endif
 #endif
 
@@ -441,9 +453,9 @@ void Input_Value_Init(void *source, sDISPLAY_INFO *header);
  * @retval None
  */
 	#if (CCS811)
-	void VOC_Sensor_Handler(CCS811_MeasureTypeDef_st *voc, uint8_t* Buff);
+		void VOC_Sensor_Handler(CCS811_MeasureTypeDef_st *voc, uint8_t* Buff);
 	#elif (ENS160)
-	void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff);
+		void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff);
 	#endif
 #endif
 
@@ -476,17 +488,17 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff);
 void Refresh_AQI(void);
 
 #if (USE_BKUP_SRAM)
-void Store_MeanValues_BackupRTC(void);
-void ReStore_MeanValues_BackupRTC(void);
+	void Store_MeanValues_BackupRTC(void);
+	void ReStore_MeanValues_BackupRTC(void);
 #endif
 
 #if ((BLE_SUPPORT) && (BEACON_APP))
 	#if (CCS811)
 	void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
-					 CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate);
+					 CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, VEML6075_MeasureTypeDef_st *LuxUVI);
 	#elif(ENS160)
-	void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
-					 ENS160_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate);
+	void StoreMinMax(LPS22HB_MeasureTypeDef_st *PressTemp, SHT4x_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
+					 ENS160_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, LTR390UV_MeasureTypeDef_st *LuxUVI);
 	#endif
 #endif
 

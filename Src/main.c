@@ -93,15 +93,29 @@ uint8_t Version[] = "\r\nHW Version: X.X - FW Version: X.X.xx";
 //int64_t MEMS_LclData;
 
 FLASH_DATA_ORG FlashDataOrg = {.b_date_offset = 0x00, .b_time_offset = 0x04,
-.b_mdata.DeviceName_offset = 0x08, .b_mdata.HW_Version_offset = 0x0C, .b_mdata.SW_Version_offset = 0x10,
-.b_mdata.Vendor_ID_offset = 0x14, .b_mdata.Prdct_Code_offset = 0x18, .b_mdata.Rev_Number_offset = 0x1C, .b_mdata.Ser_Number_offset = 0x20,
-.b_status.s0_offset = 0x24, .b_status.s1_offset = 0x28, .b_status.s2_offset = 0x2C, .b_status.s3_offset = 0x30,
-.b_status.s4_offset = 0x34, .b_status.s5_offset = 0x38, .b_status.s6_offset = 0x3C, .b_status.s7_offset = 0x40,
-.b_status.s8_offset = 0x44, .b_status.s9_offset = 0x48, .b_status.sa_offset = 0x4C, .b_status.sb_offset = 0x50,
-.b_status.sc_offset = 0x54, .b_status.sd_offset = 0x58, .b_status.se_offset = 0x5C, .b_status.sf_offset = 0x60,
-.b_status.s10_offset = 0x64, .b_status.s11_offset = 0x68, .b_status.s12_offset = 0x6C, .b_status.s13_offset = 0x70,
-.b_status.s14_offset = 0x74, .b_status.s15_offset = 0x78, .b_status.s16_offset = 0x7C, .b_status.s17_offset = 0x80,
-.b_status.s12 = 0xF50000};
+.b_mdata.DeviceName_offset = 0x08, .b_mdata.HW_Version_offset = 0x0C,
+.b_mdata.SW_Version_offset = 0x10, .b_mdata.Vendor_ID_offset = 0x14, .b_mdata.Prdct_Code_offset = 0x18, .b_mdata.Rev_Number_offset = 0x1C,
+.b_mdata.Ser_Number_offset = 0x20, .b_status.s0_offset = 0x24, .b_status.s1_offset = 0x28, .b_status.s2_offset = 0x2C,
+.b_status.s3_offset = 0x30, .b_status.s4_offset = 0x34, .b_status.s5_offset = 0x38, .b_status.s6_offset = 0x3C,
+.b_status.s7_offset = 0x40, .b_status.s8_offset = 0x44, .b_status.s9_offset = 0x48, .b_status.sa_offset = 0x4C,
+.b_status.sb_offset = 0x50, .b_status.sc_offset = 0x54, .b_status.sd_offset = 0x58, .b_status.se_offset = 0x5C,
+.b_status.sf_offset = 0x60, .b_status.s10_offset = 0x64, .b_status.s11_offset = 0x68, .b_status.s12_offset = 0x6C, .b_status.s12 = 0xF50000,
+.b_status.s13_offset = 0x70, .b_status.s14_offset = 0x74, .b_status.s15_offset = 0x78, .b_status.s16_offset = 0x7C
+#if (POLINOMIAL_REGRESSION)
+,
+.b_status.s17_offset = 0x80, .b_status.s18_offset = 0x84, .b_status.s19_offset = 0x88, .b_status.s20_offset = 0x8C,
+.b_status.s21_offset = 0x90, .b_status.s22_offset = 0x94, .b_status.s23_offset = 0x98, .b_status.s24_offset = 0x9C,
+.b_status.s25_offset = 0xA0, .b_status.s26_offset = 0xA4, .b_status.s27_offset = 0xA8, .b_status.s28_offset = 0xAC,
+.b_status.s29_offset = 0xB0, .b_status.s30_offset = 0xB4, .b_status.s31_offset = 0xB8, .b_status.s32_offset = 0xBC,
+.b_status.s33_offset = 0xC0, .b_status.s34_offset = 0xC4, .b_status.s35_offset = 0xC8, .b_status.s36_offset = 0xCC,
+.b_status.s37_offset = 0xD0, .b_status.s38_offset = 0xD4, .b_status.s39_offset = 0xD8, .b_status.s40_offset = 0xDC,
+.b_status.s41_offset = 0xE0, .b_status.s42_offset = 0xE4, .b_status.s43_offset = 0xE8, .b_status.s44_offset = 0xEC,
+.b_status.s45_offset = 0xF0, .b_status.s46_offset = 0xF4, .b_status.s47_offset = 0xF8, .b_status.s48_offset = 0xFC,
+.b_status.s49_offset = 0x100, .b_status.s50_offset = 0x104, .b_status.s51_offset = 0x108, .b_status.s52_offset = 0x10C,
+.b_status.s53_offset = 0x110, .b_status.s54_offset = 0x114, .b_status.s55_offset = 0x118, .b_status.s56_offset = 0x11C,
+.b_status.s57_offset = 0x120, .b_status.s58_offset = 0x124, .b_status.s59_offset = 0x128, .b_status.s60_offset = 0x12C
+#endif
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -130,6 +144,7 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -206,7 +221,8 @@ int main(void)
   lcl_als_data_rdy = false; send_lcl_als_data = false; display_als_data = false;
   lcl_voc_data_rdy = false; send_lcl_voc_data = false; display_voc_data = false;
   lcl_pms_data_rdy = false; send_lcl_pms_data = false; display_pms_data = false;
-  MidNight = false; MinMaxStored = false; Restart_Reverved = false;
+  lcl_gas_data_rdy = false; send_lcl_gas_data = false; display_gas_data = false;
+  MidNight = false; MinMaxStored = false; Restart_Reserved = false;
   stby_timer = 0; service_timer3 = 0;
   service_timer0_expired = false; timer5s_expired = false;
   WarmUpPeriod_expired = false; ColdRestart = false; BakUpSRamWiped = false; BLE_DataReady = false;
@@ -239,6 +255,8 @@ int main(void)
 	  {
 		  WarmUpPeriod_expired = true;
 		  ColdRestart = true;
+		  //Restore Global Status Register
+		  memcpy(&StatusReg, &BakUpRTC_Data[70], 4);
 		  //Restore and increment the restart counter modulo 16...
 		  RestartCounter = BakUpRTC_Data[70];
 		  RestartCounter++; RestartCounter &= 0x0F;
@@ -251,7 +269,13 @@ int main(void)
 		  //But.....
 		  //Resetting the average and Min_Max values means conditioning the "ApproxMovingAverage()" function with
 		  //the "BakUpSRamWiped" flag. This has caused problems. To be investigated further!
-		  memset(&BakUpRTC_Data[6], 0x00, 68);
+#if defined(STM32F405xx)
+		  memset(&BakUpSRam_Data[6], 0x00, 68);		//Save Up_Time_H register
+		  memset(&BakUpSRam_Data[78], 0x00, 50);
+#elif defined(STM32F105xC)
+		  memset(&BakUpRTC_Data[6], 0x00, 67);		//Save Up_Time_H register & DayLight status byte (bit 31..24)
+		  memset(&BakUpRTC_Data[78], 0x00, 6);
+#endif
 	  }
 	  if (BakUpRTC_Data[36] == 0)	//If P_Max location is zero then it means that the backup SRam has been deleted
 	  {

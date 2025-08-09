@@ -29,36 +29,36 @@ typedef struct
 	uint8_t PM2p5_AQ;
 	// Overall Air Quality Index from gaseous pollutants
 	uint8_t GasAirQualityIndex;		//GAS Air quality index calculated on current values
-	uint8_t AvgGasAirQualityIndex;	//GAS Air quality index calculated on 1h average values
+	uint8_t AvgGasAirQualityIndex;	//GAS Air quality index calculated on the average values
 	// Overall Air Quality Index from PMx pollutants
 	uint8_t PMxAirQualityIndex;		//PMx Air quality index calculated on current values
-	uint8_t AvgPMxAirQualityIndex;	//PMx Air quality index calculated on 1h average values
+	uint8_t AvgPMxAirQualityIndex;	//PMx Air quality index calculated on the average values
 	// AQI Classification
-	char GasAirQualityClass[16];	//Current GAS Air quality classification
-	char AvgGasAirQualityClass[16];	//1 hour average GAS Air quality classification
-	char PMxAirQualityClass[16];	//Current PMx Air quality classification
-	char AvgPMxAirQualityClass[16];	//1 hour average PMx Air quality classification
+	char GasAirQualityClass[16];	//GAS Air classification calculated on current values
+	char AvgGasAirQualityClass[16];	//GAS Air classification calculated on the average values
+	char PMxAirQualityClass[16];	//PMx Air classification calculated on current values
+	char AvgPMxAirQualityClass[16];	//PMx Air classification calculated on the average values
 } AirQualityParameters_st;
 
 typedef enum
 {
-	eTVOC_Exellent = 65,	//ppb
-	eTVOC_Good = 220,		//ppb
-	eTVOC_Moderate = 660,	//ppb
-	eTVOC_Poor = 2200,		//ppb
-	eTVOC_Unhealty = 5500,	//ppb
+	eTVOC_Exellent = 65,	//ppb 0..65: Excellent
+	eTVOC_Good = 220,		//ppb 65..220: Good
+	eTVOC_Moderate = 660,	//ppb 220..660: Moderate
+	eTVOC_Poor = 2200,		//ppb 660..2200: Poor
+	eTVOC_Unhealty = 5500,	//ppb 2200..5500: VeryPoor. > 5500: Severe
 	//
-	eCO2_FreshAir = 600,	//ppm Excellent
-	eCO2_Normal = 1000,		//ppm Good
-	eCO2_Acceptable = 1500,	//ppm Moderate
-	eCO2_Drowsiness = 2500, //ppm Poor
-	eCO2_Harmful = 5000,	//ppm VeryPoor
+	eCO2_FreshAir = 600,	//ppm 0..600: Excellent
+	eCO2_Normal = 1000,		//ppm 600..1000: Good
+	eCO2_Acceptable = 1500,	//ppm 1000..1500: Moderate
+	eCO2_Drowsiness = 2500, //ppm 1500..2500: Poor
+	eCO2_Harmful = 5000,	//ppm 2500..5000: VeryPoor. > 5000: Severe
 	//
 	CH2O_Exellent = 20,		//ug/m3
 	CH2O_Fine = 40,			//ug/m3
 	CH2O_Moderate = 50,		//ug/m3
-	CH2O_Poor = 120,		//ug/m3
-	CH2O_VeryPoor = 140,	//ug/m3
+	CH2O_Poor = 123,		//ug/m3
+	CH2O_VeryPoor = 200,	//ug/m3
 	//
 	CO_Exellent = 2,		//mg/m3
 	CO_Fine = 4,			//mg/m3

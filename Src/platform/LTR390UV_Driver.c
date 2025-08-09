@@ -29,8 +29,8 @@ uint8_t LTR390UV_3[8] =	{
 						};
 
 uint8_t a_gain[5]  = {1,3,6,9,18};
-float32_t a_int[6] = {0.03125,0.25,0.5,1.0,2.0,4.0};
-//float32_t a_int[6] = {4.,2.,1.,0.5,0.25,0.03125};
+//float32_t a_int[6] = {0.03125,0.25,0.5,1.0,2.0,4.0};
+float32_t a_int[6] = {4.0,2.0,1.0,0.5,0.25,0.03125};
 float32_t W_Fac = 1.0;	//W_Fac = 1 for NO window or clear window glass.
 						//W_Fac > 1 device under tinted window glass. Calibrate under white LED
 
@@ -93,7 +93,7 @@ LTR390UV_Error_et LTR390UV_WriteReg_DMA(uint8_t B_Addr, uint8_t RegAddr, uint8_t
 /**
   * @brief  Device ID [get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -110,7 +110,7 @@ LTR390UV_Error_et LTR390UV_DeviceId_Get(uint8_t B_Addr, uint8_t *buff)
 /**
   * @brief  Software reset. Restore the default values in user registers [set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of swreset in reg LTR390UV_MAIN_CTRL
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -132,9 +132,59 @@ LTR390UV_Error_et LTR390UV_SwRst_Set(uint8_t B_Addr, uint8_t val)
 }
 
 /**
+  * @brief  ALS/UVS Measurement Rate, ALS/UVS Resolution [set]
+  *
+  * @param  B_Addr I2C Address
+  * @param  rate   Change the values of als_uvs_meas_rate in reg ALS_UVS_MEAS_RATE
+  * @param  res    Change the values of als_uvs_resolution in reg ALS_UVS_MEAS_RATE
+  * @retval        Interface status (MANDATORY: return 0 -> no Error).
+  *
+  */
+LTR390UV_Error_et LTR390UV_ALS_UVS_Rate_Res_Set(uint8_t B_Addr, uint8_t rate, uint8_t res)
+{
+	LTR390UV_MeasRate_t meas_rate_reg;
+	LTR390UV_Error_et ret;
+
+	ret = LTR390UV_ReadReg(B_Addr, LTR390UV_MEAS_RATE, (uint8_t *)&meas_rate_reg, 1);
+
+	if (ret == 0)
+	{
+		meas_rate_reg.als_uvs_meas_rate = rate;
+		meas_rate_reg.als_uvs_resolution = res;
+		ret = LTR390UV_WriteReg(B_Addr, LTR390UV_MEAS_RATE, (uint8_t *)&meas_rate_reg, 1);
+	}
+
+	return ret;
+}
+
+/**
+  * @brief  ALS/UVS Gain [set]
+  *
+  * @param  B_Addr I2C Address
+  * @param  rate   Change the values of als_uvs_gain in reg LTR390UV_GAIN
+  * @retval        Interface status (MANDATORY: return 0 -> no Error).
+  *
+  */
+LTR390UV_Error_et LTR390UV_ALS_UVS_Gain_Set(uint8_t B_Addr, uint8_t gain)
+{
+	LTR390UV_Gain_t gain_reg;
+	LTR390UV_Error_et ret;
+
+	ret = LTR390UV_ReadReg(B_Addr, LTR390UV_GAIN, (uint8_t *)&gain_reg, 1);
+
+	if (ret == 0)
+	{
+		gain_reg.als_uvs_gain = gain;
+		ret = LTR390UV_WriteReg(B_Addr, LTR390UV_GAIN, (uint8_t *)&gain_reg, 1);
+	}
+
+	return ret;
+}
+
+/**
   * @brief  UVS Mode: 0 -> ALS Mode. 1 -> UVS Mode [set]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  val    Change the values of als_uvs_en in reg LTR390UV_MAIN_CTRL
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -158,7 +208,7 @@ LTR390UV_Error_et LTR390UV_ALS_UVS_Set(uint8_t B_Addr, uint8_t val)
 /**
   * @brief  Ultraviolet Light Sensor (UVS) output value [get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -184,7 +234,7 @@ LTR390UV_Error_et LTR390UV_RawUVS_Get(uint8_t B_Addr, uint32_t *buff)
 /**
   * @brief  Ambient Light Sensor (ALS) output value [get]
   *
-  * @param  ctx    Read / write interface definitions
+  * @param  B_Addr I2C Address
   * @param  buff   Buffer that stores data read
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
@@ -226,7 +276,7 @@ LTR390UV_Error_et LTR390UV_Lux_Get(uint8_t B_Addr, float32_t *buff)
 	if(LTR390UV_ReadReg(B_Addr, LTR390UV_GAIN, (uint8_t *)&gain_reg, 1))
 		return LTR390UV_ERROR;
 
-    *buff = ((0.6*raw_als)/(a_gain[gain_reg.als_uvs_gain]*a_int[meas_rate_reg.als_uvs_meas_rate])*W_Fac);
+    *buff = ((0.6*raw_als)/(a_gain[gain_reg.als_uvs_gain]*a_int[meas_rate_reg.als_uvs_resolution])*W_Fac);
 
 	return LTR390UV_OK;
 }
@@ -262,36 +312,84 @@ LTR390UV_Error_et LTR390UV_Get_Measurement(uint8_t B_Addr, LTR390UV_MeasureTypeD
 	float32_t UVIout;
 	float32_t LUXout;
 	static bool toggle = false;
-
-	if(LTR390UV_RawUVS_Get(B_Addr, &UVSout))
-		return LTR390UV_ERROR;
-
-	Measurement_Value->UVS_RawOut=UVSout;
-
-	if(LTR390UV_UVI_Get(B_Addr, &UVIout))
-		return LTR390UV_ERROR;
-
-	Measurement_Value->UVI=UVIout;
-
-	if(LTR390UV_RawALS_Get(B_Addr, &ALSout))
-		return LTR390UV_ERROR;
-
-	Measurement_Value->ALS_RawOut=ALSout;
-
-	if(LTR390UV_Lux_Get(B_Addr, &LUXout))
-		return LTR390UV_ERROR;
-
-	Measurement_Value->Lux=LUXout;
+	static bool high_gain = true;
 
 	toggle = !toggle;
-	if (toggle)
+	if (toggle)		//ALS measurement
 	{
-		if (LTR390UV_ALS_UVS_Set(B_Addr, 0))	//Set in ALS Mode
+		if(LTR390UV_RawALS_Get(B_Addr, &ALSout))
 			return LTR390UV_ERROR;
-	} else
+		Measurement_Value->ALS_RawOut=ALSout;
+
+		if(LTR390UV_Lux_Get(B_Addr, &LUXout))
+			return LTR390UV_ERROR;
+		/*
+		 * The ALS is initially programmed for maximum sensitivity (ALS Gain=18, Resolution=20bit).
+		 * In this case the maximum measurable illuminance is 8738.125 lux. To avoid overflow problems,
+		 * when the illuminance exceeds 8465 lux, the low sensitivity mode is set (ALS Gain=3, Resolution=18bit).
+		 */
+		if (LUXout > 8465.0)
+		{	//Set Low Gain Mode
+			if (high_gain)
+			{
+				if(LTR390UV_ALS_UVS_Rate_Res_Set(B_Addr, 5, 2))
+					return LTR390UV_ERROR;
+				if(LTR390UV_ALS_UVS_Gain_Set(B_Addr, 1))
+					return LTR390UV_ERROR;
+				high_gain = false;
+			}
+		} else
+		{	//Set High Gain Mode
+			if (!high_gain)
+			{
+				if(LTR390UV_ALS_UVS_Rate_Res_Set(B_Addr, 5, 0))
+					return LTR390UV_ERROR;
+				if(LTR390UV_ALS_UVS_Gain_Set(B_Addr, 4))
+					return LTR390UV_ERROR;
+				high_gain = true;
+			}
+		}
+
+		Measurement_Value->Lux=LUXout;
+
+		if (LTR390UV_ALS_UVS_Set(B_Addr, 1))	//Set in UVS Mode for the next cycle
+			return LTR390UV_ERROR;
+		/*
+		 * The formula for calculating the UV index (UVI) is specified in the data sheet only for maximum sensitivity.
+		 * Therefore, in UVS mode, the maximum sensitivity is always set ((ALS Gain=18, Resolution=20bit).
+		 */
+		if (!high_gain)
+		{	//Set High Gain Mode
+			if(LTR390UV_ALS_UVS_Rate_Res_Set(B_Addr, 5, 0))
+				return LTR390UV_ERROR;
+			if(LTR390UV_ALS_UVS_Gain_Set(B_Addr, 4))
+				return LTR390UV_ERROR;
+		}
+
+	} else	//UVS measurement
 	{
-		if (LTR390UV_ALS_UVS_Set(B_Addr, 1))	//Set in UVS Mode
+		if(LTR390UV_RawUVS_Get(B_Addr, &UVSout))
 			return LTR390UV_ERROR;
+		Measurement_Value->UVS_RawOut=UVSout;
+
+		if(LTR390UV_UVI_Get(B_Addr, &UVIout))
+			return LTR390UV_ERROR;
+		Measurement_Value->UVI=UVIout;
+
+		if (LTR390UV_ALS_UVS_Set(B_Addr, 0))	//Set in ALS Mode for the next cycle
+			return LTR390UV_ERROR;
+		/*
+		 * If the low gain configuration was set in the ALS configuration then restore the initial settings
+		 */
+		if (!high_gain)
+		{	//Set Low Gain Mode
+			if(LTR390UV_ALS_UVS_Rate_Res_Set(B_Addr, 5, 2))
+				return LTR390UV_ERROR;
+			if(LTR390UV_ALS_UVS_Gain_Set(B_Addr, 1))
+				return LTR390UV_ERROR;
+			Sleep(i2c_delay);
+		}
+
 	}
 
 	return LTR390UV_OK;

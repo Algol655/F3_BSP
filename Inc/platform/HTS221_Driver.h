@@ -181,6 +181,8 @@ typedef struct
   uint16_t Hout;
   uint16_t Hout_DailyMin;
   uint16_t Hout_DailyMax;
+  uint16_t AHout_DailyMin;
+  uint16_t AHout_DailyMax;
 } HTS221_MeasureTypeDef_st;
 
 /**
@@ -462,7 +464,7 @@ typedef struct
 */
 //HTS221 Register Addresses Values					bit 7 -----> bit 0    | bit functions |
 #define HTS221_WHO_AM_I_VAL			(uint8_t)0xBC	// 1 - 0 - 1 - 1 - 1 - 1 - 0 - 0 (Read Only)
-#define HTS221_AV_CONF_VAL			(uint8_t)0x35	// Res - Res - AVGT2 - AVGT1 - AVGT0 - AVGH2 - AVGH1 - AVGH0
+#define HTS221_AV_CONF_VAL			(uint8_t)0x3F	// Res - Res - AVGT2 - AVGT1 - AVGT0 - AVGH2 - AVGH1 - AVGH0
 #define HTS221_CTRL_VAL1			(uint8_t)0x82	// PD - Res - Res - Res - Res - BDU - ODR1 - ODR0
 #define HTS221_CTRL_VAL2			(uint8_t)0x00	// BOOT - Res - Res - Res - Res - Res - HEATER - ONE_SHOT
 #define HTS221_CTRL_VAL3			(uint8_t)0x00	// DRDY_H_L - PP_OD - Res - Res - Res - DRDY - Res
@@ -489,7 +491,7 @@ typedef struct
 * @}brief HTS221 Humidity & Temperature Min Max Init Values.	//Added By Me!!!
 */
 #define HTS221_UPPER_H_LIMIT	(100*10)
-#define HTS221_LOWER_H_LIMIT	(10*10)
+#define HTS221_LOWER_H_LIMIT	(1*10)
 #define HTS221_UPPER_T_LIMIT	(80*10)
 #define HTS221_LOWER_T_LIMIT	(-40*10)
 

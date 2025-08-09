@@ -35,7 +35,11 @@ void MX_IWDG_Init(void)
   /* USER CODE END IWDG_Init 0 */
 
   /* USER CODE BEGIN IWDG_Init 1 */
-
+	// Since its clock is an independent 32-kHz low-speed internal RC oscillator (LSI),
+	// it remains active even if the main clock fails
+	// PR = 6 for hiwdg.Init.Reload = 4095
+	//
+	// Tiwdg = (1/32000) * 4 * 2*exp(PR) * (hiwdg.Init.Reload + 1) = 32.768 seconds
   /* USER CODE END IWDG_Init 1 */
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_256;

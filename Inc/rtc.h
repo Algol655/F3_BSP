@@ -44,6 +44,7 @@ extern RTC_HandleTypeDef hrtc;
 #define RTC_SMOOTHCALIB_PERIOD_32SEC		0x00000000U	//smooth calibration period 2^20 RTCCLK pulses */
 #define RTC_SMOOTHCALIB_PLUSPULSES_SET		0x00000000U
 #define RTC_SMOOTHCALIB_PLUSPULSES_RESET	0x00000000U
+#define RTC_LSB_MASK	((uint32_t)0x0000FFFF)  		//!< RTC LSB Mask */
 //static int RtcSynchPrediv;
 int RtcSynchPrediv;
 typedef struct

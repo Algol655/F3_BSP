@@ -57,7 +57,7 @@ extern "C" {
 * brief SHT4x Humidity & Temperature Min Max Init Values.	//Added By Me!!!
 */
 #define SHT4x_UPPER_H_LIMIT	(100*10)
-#define SHT4x_LOWER_H_LIMIT	(10*10)
+#define SHT4x_LOWER_H_LIMIT	(1*10)
 #define SHT4x_UPPER_T_LIMIT	(80*10)
 #define SHT4x_LOWER_T_LIMIT	(-40*10)
 
@@ -72,6 +72,8 @@ typedef struct
   uint16_t Hout;
   uint16_t Hout_DailyMin;
   uint16_t Hout_DailyMax;
+  uint16_t AHout_DailyMin;
+  uint16_t AHout_DailyMax;
 } SHT4x_MeasureTypeDef_st;
 
 /**
@@ -115,6 +117,8 @@ typedef enum
 //SHT4x_Error_et SHT4x_i2c_select_bus(uint8_t bus_idx);
 SHT4x_Error_et SHT4x_i2c_read(uint8_t address, uint8_t* data, uint16_t count);
 SHT4x_Error_et SHT4x_i2c_write(uint8_t address, const uint8_t* data, uint16_t count);
+void SHT4x_T_MovingAverage(int16_t *in, int16_t *out, uint16_t length);
+void SHT4x_RH_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length);
 void SHT4x_sleep_usec(uint32_t useconds);
 
 /** SHT4x_Common_Functions_Prototypes

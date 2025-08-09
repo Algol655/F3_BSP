@@ -8,6 +8,9 @@
 #ifndef APPLICATION_TESTENV_H_
 #define APPLICATION_TESTENV_H_
 
+#define FACTORY_DATA	(1)
+#define CHG_HW_VER		(1)
+#define CHG_FW_VER		(0)
 #define INPUT_TEST		(1)
 #define OUTPUT_TEST		(1)
 #define ANALOG_TEST		(1)
@@ -22,6 +25,8 @@
 #define RTLS_FW			(0)
 #define RANGING_FW		(0)
 #define WRITE_FLASH		(1)
+
+#define CmdLineMaxLen 	(10U)
 
 extern const uint8_t CDC_delay;
 extern bool conversion_ended;
@@ -39,6 +44,7 @@ extern void send_usbmessage(uint8_t *string, int len);
 
 void DisplayAnalogValues(void);
 void top_menu(void);
+void L00_menu(void);
 void L10_menu(void);
 void L11_menu(void);
 void L12_menu(void);

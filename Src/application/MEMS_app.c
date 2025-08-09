@@ -8,13 +8,14 @@
 
 #include "application/MEMS_app.h"
 
-const uint8_t DeviceName[4] ="S191";
-const uint8_t HW_Version[4] ="1000";
-const uint8_t SW_Version[4] ="2500";
-const uint32_t Vendor_ID  = 0x2316F;
-const uint32_t Prdct_Code = 10000324;
-const uint32_t Rev_Number = 0;
-const uint32_t Ser_Number = 1;
+uint8_t DeviceName[5] ="S191";
+uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
+uint8_t SW_Version[5] ="2711";
+uint32_t Vendor_ID  = 0x2316F;
+uint32_t Prdct_Code = 10000324;
+uint32_t Rev_Number = 0;
+uint32_t Ser_Number = 1;
+
 #if (PRESSURE_SENSOR_PRESENT==1)
 	#if (CALC_ALTITUDE==1)
 		static const double_t H_Correction = 15.0;
@@ -37,13 +38,13 @@ const uint32_t Ser_Number = 1;
 	uint8_t VOC_Correction = 0;			//In units*100
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
-	int8_t CH2O_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
-	int8_t O3_Corr = 0;					//In mVolts/10: 1 = 10mV Correction
-	int8_t NO2_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
+	int8_t CH2O_Corr = 0;				//In mVolts for the EC CH2O sensor. In mVolts/10 for the SMO CH2O: 1 = 10mV Correction
+	int8_t O3_Corr = 0;					//In mVolts: 1 = 1mV Correction
+	int8_t NO2_Corr = 0;				//In mVolts for the EC NO2 sensor. In mVolts/10 for the SMO NO2: 1 = 10mV Correction
 	int8_t NH3_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
-	int8_t CO_Corr = 0;					//In mVolts/10: 1 = 10mV Correction
-	int8_t SO2_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
-	int8_t C6H6_Corr = 0;				//In mVolts/10: 1 = 10mV Correction
+	int8_t CO_Corr = 0;					//In mVolts for the EC CO sensor. In mVolts/10 for the SMO CO: 1 = 10mV Correction
+	int8_t SO2_Corr = 0;				//In mVolts: 1 = 1mV Correction
+	int8_t C6H6_Corr = 0;				//In mVolts: 1 = 1mV Correction
 	uint32_t SMD1001_CH2O_Vo = 0;		//In mVolts
 	uint32_t MiCS_6814_CO_Ro = 0;		//In ohm
 	uint32_t MiCS_6814_NH3_Ro = 0;		//In ohm
@@ -53,9 +54,13 @@ const uint32_t Ser_Number = 1;
 	uint32_t MiCS_6814_NH3_Rf = 0;		//In ohm
 	uint32_t MiCS_6814_NO2_Rf = 0;		//In ohm
 	float32_t SMD1001_CH2O_Vs;			//In Volt
+	float32_t SMD1001_CH2O_Vs_AD;		//In Volt
 	float32_t MiCS_6814_CO_Rs;			//In ohm
 	float32_t MiCS_6814_NO2_Rs;			//In ohm
 	float32_t MiCS_6814_NH3_Rs;			//In ohm
+	float32_t MiCS_6814_CO_Rs_AD;		//In ohm
+	float32_t MiCS_6814_NO2_Rs_AD;		//In ohm
+	float32_t MiCS_6814_NH3_Rs_AD;		//In ohm
 #endif
 #if (GUI_SUPPORT==1)
 #if (IMU_PRESENT==1)
@@ -162,10 +167,10 @@ void AB_Init(void)
 		FlashDataOrg.b_status.sf = 806000;	//MiCS6814 Rf CO default value
 		FlashDataOrg.b_status.s10 = 80600;	//MiCS6814 Rf NH3 default value
 		FlashDataOrg.b_status.s11 = 6340;	//MiCS6814 Rf NO2 default value
-#elif ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+#elif (GSB_HW_VER >= 20)
 		FlashDataOrg.b_status.sf = 27000;	//MiCS6814 Rf CO default value
 		FlashDataOrg.b_status.s10 = 27000;	//MiCS6814 Rf NH3 default value
-		FlashDataOrg.b_status.s11 = 2700;	//MiCS6814 Rf NO2 default value
+		FlashDataOrg.b_status.s11 = 47000;	//MiCS6814 Rf NO2 default value
 		FlashDataOrg.b_status.s14 = 2500;	//SMD1001 Vo CH2O default value (2.5V)
 		FlashDataOrg.b_status.s15 = 10000;	//SMD1001 Rf CH2O default value
 #endif
@@ -176,6 +181,8 @@ void AB_Init(void)
 	Version[34] = SW_Version[1];
 	Version[36] = SW_Version[2];
 	Version[37] = SW_Version[3];
+	write_port(0x3431, 0x31);		//Button Blue Led On
+
 #if (PRESSURE_SENSOR_PRESENT==1)
 	/* Pressure_Init(), Temperature_Init() */
 	BIT_SET(SensorStatusReg,16);	//Set pressure sensor presence in SensorStatusRegister
@@ -207,7 +214,7 @@ void AB_Init(void)
 		BIT_SET(SensorStatusReg,0);	//Set pressure sensor status in SensorStatusRegister
 	}
 #endif
-    HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after LPS52HB Init
+    HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after LPS2xHB Init
     //Set the calibration values
 	T_Correction = (int16_t)((FlashDataOrg.b_status.s3) & 0x0000FFFF);	//Add Temperature calibration to sensor value
 	P_Correction = (int32_t)FlashDataOrg.b_status.s4;	//Add Pressure calibration to sensor value;
@@ -221,8 +228,8 @@ void AB_Init(void)
 	BIT_SET(SensorStatusReg,17);	//Set humidity sensor presence in SensorStatusRegister
 	NumberOfDevices++;				//Increment number of sensors mounted
 #if (HTS221)
-	HMin = HTS221_UPPER_H_LIMIT;	//Initialize Min Max values variables
-	HMax = HTS221_LOWER_H_LIMIT;
+	HMin = AHMin = HTS221_UPPER_H_LIMIT;	//Initialize Min Max values variables
+	HMax = AHMax = HTS221_LOWER_H_LIMIT;
 	TMin = HTS221_UPPER_T_LIMIT;
 	TMax = HTS221_LOWER_T_LIMIT;
 	HTS221_status = MX_HTS221_Init();		//Initialize (disabled) Sensor
@@ -232,8 +239,8 @@ void AB_Init(void)
 		BIT_SET(SensorStatusReg,1);	//Set humidity sensor status in SensorStatusRegister
 	}
 #elif (SHT4x)
-	HMin = SHT4x_UPPER_H_LIMIT;	//Initialize Min Max values variables
-	HMax = SHT4x_LOWER_H_LIMIT;
+	HMin = AHMin = SHT4x_UPPER_H_LIMIT;	//Initialize Min Max values variables
+	HMax = AHMax = SHT4x_LOWER_H_LIMIT;
 	TMin = SHT4x_UPPER_T_LIMIT;
 	TMax = SHT4x_LOWER_T_LIMIT;
 	SHT4x_status = MX_SHT4x_Init();		//Initialize (disabled) Sensor
@@ -319,9 +326,6 @@ void AB_Init(void)
 		BIT_SET(SensorStatusReg,3);	//Set VOC sensor status in SensorStatusRegister
 	}
 	CCS811_VOC_Ro_Stored = FlashDataOrg.b_status.s0;
-//	VOC_Correction = (uint8_t)(((FlashDataOrg.b_status.sx) & 0x000000FF) / 100);
-//	if ((VOC_Correction == 0xFF) || (VOC_Correction == 0x0))
-		VOC_Correction = 1;			//If no value has been programmed then set with the default value
 #elif (ENS160)
     ENS160_status = MX_ENS160_Init();		//Initialize (disabled) Sensor
 	//Initialize EN160 eTVOC, eCO2 Max values variables
@@ -339,7 +343,10 @@ void AB_Init(void)
 	}
 	VOC_Correction = 1;
 #endif	// CCS811
-    HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after CCS811 Init
+    HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after VOC Sensor Init
+//	VOC_Correction = (uint8_t)(((FlashDataOrg.b_status.sx) & 0x000000FF) / 100);
+//	if ((VOC_Correction == 0xFF) || (VOC_Correction == 0x0))
+    	VOC_Correction = 1;			//If no value has been programmed then set with the default value
 #endif	// VOC_SENSOR_PRESENT
 
 #if (PARTICULATE_SENSOR_PRESENT==1)
@@ -364,6 +371,7 @@ void AB_Init(void)
 
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	/* AnlgSensorUnit_Init() */
+    write_port(0x3332, 0x31);		//Gas Sensor Board Power-On
 	BIT_SET(SensorStatusReg,21);	//Set Gas Sensor Module presence in SensorStatusRegister
 	NumberOfDevices++;				//Increment number of sensors mounted
 	//Initialize Gases sensors Max values variables
@@ -404,7 +412,7 @@ void AB_Init(void)
 	MiCS_6814_CO_Rf = FlashDataOrg.b_status.sf;
 	MiCS_6814_NH3_Rf = FlashDataOrg.b_status.s10;
 	MiCS_6814_NO2_Rf = FlashDataOrg.b_status.s11;
-	#if ((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+	#if (GSB_HW_VER >= 20)
 		SMD1001_CH2O_Vo = FlashDataOrg.b_status.s14;
 		SMD1001_CH2O_Rf = FlashDataOrg.b_status.s15;
 	#endif
@@ -847,9 +855,9 @@ void Input_Value_Init(void *source, sDISPLAY_INFO *header)
  * @retval None
  */
 #if (LPS25HB)
-void Pressure_Sensor_Handler(LPS25HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff)
+	void Pressure_Sensor_Handler(LPS25HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff)
 #elif (LPS22HB)
-void Pressure_Sensor_Handler(LPS22HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff)
+	void Pressure_Sensor_Handler(LPS22HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff)
 #endif
 {
 //	const double_t R = 287.05;				//R is the general gas constant
@@ -893,10 +901,11 @@ void Pressure_Sensor_Handler(LPS22HB_MeasureTypeDef_st *PressTemp, uint8_t* Buff
 #endif
 #if (LPS25HB)
 	(void)memcpy((void *)&Buff[7], PressTemp, sizeof(LPS25HB_MeasureTypeDef_st));
+	/* sizeof(LPS25HB_MeasureTypeDef_st) == 20 (+1)*/
 #elif (LPS22HB)
 	(void)memcpy((void *)&Buff[7], PressTemp, sizeof(LPS22HB_MeasureTypeDef_st));
+	/* sizeof(LPS22HB_MeasureTypeDef_st) == 20 (+1)*/
 #endif
-	/* sizeof(LPS25HB_MeasureTypeDef_st) == 8 */
 }
 #endif
 
@@ -919,23 +928,35 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 	static const double_t c1 = 0.00135;
 	static const double_t c2 = 0.35;
 	static const double_t c3 = 84.0;
-	static const double_t K = 273.25;	//K is the conversion value °C to °K
+	static const double_t K = 273.15;	//K is the conversion value °C to °K
 	static double_t val1, val2, val3;
 #endif
+	extern FLASH_DATA_ORG FlashDataOrg;
 	static uint16_t p_T_Out = 0; static double p_Temp = 0; static float32_t p_TempD = 0;
 	static uint8_t p_Hum = 0; 	static uint16_t p_Hum_Out = 0;
-	static float32_t p_temp_value = 0; static float32_t p_hum_value = 0;
-	static float32_t TemperatureP = 0;
+	static float32_t p_temp_value = 0.0; static float32_t p_hum_value = 0.0;
+	static float32_t TemperatureP = 0.0;
 
-	//When the RH*10 reaches 800 (80%) then it applies the correction in proportion
+	//When the RH*10 reaches 750 (75%) then it applies the correction in proportion
 	//to the 1000 - RH*10 difference. This prevents RH% from exceeding 100%
-	if (HumTemp->Hout > 790)
-		RH_Correction = (int32_t)(lrintf(((float32_t)((1000 - HumTemp->Hout) * ((RH_Correction)/200)))));
+	if (HumTemp->Hout > 750)
+		RH_Correction = (int32_t)(lrintf((float32_t)RH_Correction * (1000.0 - (float32_t)(HumTemp->Hout))/250.0));
+//		RH_Correction = (int32_t)(lrintf(((float32_t)((1000 - HumTemp->Hout) * ((RH_Correction)/250.0)))));
+	else	//Restore the original value
+		RH_Correction = (int32_t)FlashDataOrg.b_status.s5;
 	T_Out = HumTemp->Tout + T_Correction;	//Use HTS221 if present. T_Out is used by BLE in app_bluenrg_2.c User_Process() function
-	temp_value = (float)T_Out;
+	temp_value = (float32_t)T_Out;
 
 	Hum_Out = HumTemp->Hout + (uint16_t)RH_Correction;
-	hum_value = (float)Hum_Out;
+#if (HTS221)
+	//When the RH*10 reaches 700 (70%) then it applies the following correction:
+	//RH*10_Corrected = RH*10_Read * 0.8621 + 96.5517
+	if (HumTemp->Hout > 700)
+	{
+		Hum_Out = (uint16_t)(lrintf((float32_t)(0.8621 * Hum_Out + 96.5517)));
+	}
+#endif
+	hum_value = (float32_t)Hum_Out;
 	temp_value = temp_value/10.0;
 	hum_value = hum_value/10.0;
 
@@ -972,19 +993,29 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 #endif
 	}
 	//Calculate the perceived temperature using the Heat Index (HI)
-	if (temp_value > 26)	//The HI is valid only for temperatures above 26 °C
+	if (temp_value >= 26.0)	//The HI is valid only for temperatures above 26 °C
+	{
 		TemperatureP = F2C(HI(C2F(temp_value), hum_value));
-	else
-		TemperatureP = temp_value;
-	HI = TemperatureP;
-	T3_Out = (uint16_t)(lrintf((float)(HI*10)));	//Use HI as T3_Out
-	//Calculate the perceived temperature using the Summer Simmer Index (SSI)
-	if (temp_value > 22)	//The SSI is valid only for temperatures above 22 °C
+		HI = TemperatureP;
+		T3_Out = (uint16_t)(lrintf((float)(HI*10)));	//Use HI as T3_Out
+	} else
+	//Calculate the perceived temperature using the Simmer Index (SSI)
+	if ((temp_value >= 22.0) && (temp_value < 26.0))	//The SSI is valid only for temperatures above 22 °C
+	{
 		TemperatureP = F2C(SSI(C2F(temp_value), hum_value));
-	else
+		SI = TemperatureP;
+		T3_Out = (uint16_t)(lrintf((float)(SI*10)));	//Use HI as T3_Out
+	} else
+	{
 		TemperatureP = temp_value;
-	SI = TemperatureP;
-//	T2_Out = (uint16_t)(lrintf((float)(SI*10)));	//Use HI as T2_Out
+		HI = SI = TemperatureP;
+		T3_Out = (uint16_t)(lrintf((float)(HI*10)));	//Use HI as T3_Out
+	}
+	//Calculate the Absolute Humidity in grams/m3 (AH)
+	AH = ABH(temp_value,hum_value);
+	Hum2_Out = (uint16_t)(lrintf((float)(AH*10)));
+	AHMin = (Hum2_Out < AHMin) ? Hum2_Out : AHMin;
+	AHMax = (Hum2_Out > AHMax) ? Hum2_Out : AHMax;
 	//Activates the heater if RH is greater than 99% and has not already been activated
 	//and if more than one hour has passed since the last activation
 	if ((Humidity > 99) && (!ServiceTimer3.Start))
@@ -1008,13 +1039,14 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 	#endif
 #endif
 #if (HTS221)
-	(void)memcpy((void *)&Buff[15], HumTemp, sizeof(HTS221_MeasureTypeDef_st));
+	(void)memcpy((void *)&Buff[28], HumTemp, sizeof(HTS221_MeasureTypeDef_st));
+	/* sizeof(HTS221_MeasureTypeDef_st) == 16 (+1)*/
 #elif (SHT4x)
-	(void)memcpy((void *)&Buff[15], HumTemp, sizeof(SHT4x_MeasureTypeDef_st));
-#endif
-	/* sizeof(HTS221_MeasureTypeDef_st) == 4 */
+	(void)memcpy((void *)&Buff[28], HumTemp, sizeof(SHT4x_MeasureTypeDef_st));
+	/* sizeof(SHT4x_MeasureTypeDef_st) == 16 (+1)*/
+#endif	// HTS221==1
 }
-#endif
+#endif	// HUMIDITY_SENSOR_PRESENT==1
 
 #if (UVx_SENSOR_PRESENT==1)
 /**
@@ -1028,24 +1060,61 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 #if (VEML6075)
 void UVx_Sensor_Handler(VEML6075_MeasureTypeDef_st *UVx, uint8_t* Buff)
 {
+	static const uint32_t AverageWindow_5m = 60;	//ALS integration window of the is fixed at 5 minutes
+	static float32_t UV_Index_avg5m = 0.0;
+
 	UVa = (float32_t)(UVx->uva);
 	UVb = (float32_t)(UVx->uvb);
 #elif (LTR390UV)
 void UVx_Sensor_Handler(LTR390UV_MeasureTypeDef_st *UVx, uint8_t* Buff)
 {
+	static const uint32_t AverageWindow_5m = 60;	//ALS integration window of the is fixed at 5 minutes
+	static float32_t Lux_avg5m = 0.0; static float32_t UV_Index_avg5m = 0.0;
+
 	Lux = UVx->Lux;
+	/*
+	 * During the warm-up period, in which the timer3 counter is not active (see "port.c", function "process_timer3_irq(void)" line 1525),
+	 * the instantaneous value is used. This prevents the variable from increasing uncontrollably during the warm-up period
+	 * (see "port.c" function "float32_t approxMovingAverage(float32_t avg, float32_t new_sample, uint32_t N)", line 518).
+	 */
+	if (WarmUpPeriod_expired)
+	{
+		Lux_avg5m = approxMovingAverage(Lux_avg5m, Lux, AverageWindow_5m);
+		Lux = Lux_avg5m;
+	} else
+		Lux_avg5m = Lux;
+
+	Lux_Out = (uint32_t)lrintf((Lux * 1000.0));
+	LuxMin = (Lux_Out < LuxMin) ? Lux_Out : LuxMin;
+	LuxMax = (Lux_Out > LuxMax) ? Lux_Out : LuxMax;
 #endif
 	UV_Index = UVx->UVI;
+	/*
+	 * During the warm-up period, in which the timer3 counter is not active (see "port.c", function "process_timer3_irq(void)" line 1525),
+	 * the instantaneous value is used. This prevents the variable from increasing uncontrollably during the warm-up period
+	 * (see "port.c" function "float32_t approxMovingAverage(float32_t avg, float32_t new_sample, uint32_t N)", line 518).
+	 */
+	if (WarmUpPeriod_expired)
+	{
+		UV_Index_avg5m = approxMovingAverage(UV_Index_avg5m, UV_Index, AverageWindow_5m);
+		UV_Index = UV_Index_avg5m;
+	} else
+		UV_Index_avg5m = UV_Index;
+
+	UV_Index_Out = (uint32_t)lrintf((UV_Index * 1000.0));
+	UV_IndexMin = (UV_Index_Out < UV_IndexMin) ? UV_Index_Out : UV_IndexMin;
+	UV_IndexMax = (UV_Index_Out > UV_IndexMax) ? UV_Index_Out : UV_IndexMax;
 #if (GUI_SUPPORT==1)
 	UVA_1_data[0] = UVa;
 	UVB_1_data[0] = UVb;
 #endif
 #if (VEML6075)
-	(void)memcpy((void *)&Buff[19], UVx, sizeof(VEML6075_MeasureTypeDef_st));
+	(void)memcpy((void *)&Buff[45], UVx, sizeof(VEML6075_MeasureTypeDef_st));
+	/* sizeof(VEML6075_MeasureTypeDef_st) == 12  (+1)*/
 #elif (LTR390UV)
-	(void)memcpy((void *)&Buff[19], UVx, 12);
+	(void)memcpy((void *)&Buff[45], UVx, sizeof(LTR390UV_MeasureTypeDef_st));
+	/* sizeof(LTR390UV_MeasureTypeDef_st) == 32  (+1)*/
 #endif
-	/* sizeof(VEML6075_MeasureTypeDef_st) == 12 */
 }
 #endif
 
@@ -1069,9 +1138,9 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 	static const uint32_t AverageWindow_5m = 60;	//300/5: Number of readings in 5 minutes
 	static const uint32_t AverageWindow_1m = 12;	//60/5: Number of readings in 1 minutes
 //	static const uint32_t AverageWindow_8h = 5760;	//3600*8/5: Number of readings in 8 hour
-	static float32_t eTVOC_avg = 0; static float32_t eCO2_avg = 0;
-	static float32_t eTVOC_avg5m = 0; static float32_t eCO2_avg5m = 0;
-	static float32_t eTVOC_avg1m = 0; static float32_t eCO2_avg1m = 0;
+	static float32_t eTVOC_avg = 0.0; static float32_t eCO2_avg = 0.0;
+	static float32_t eTVOC_avg5m = 0.0; static float32_t eCO2_avg5m = 0.0;
+	static float32_t eTVOC_avg1m = 0.0; static float32_t eCO2_avg1m = 0.0;
 #if (USE_BKUP_SRAM)
 	static bool VOC_mean_init = true;
 #endif
@@ -1099,9 +1168,11 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 		eq_CO2 = eCO2_avg5m;
 	else
 		eq_CO2 = eCO2_avg1m;
+	if (eq_CO2 < 400)		//400 ppm is the minimum value measurable by the sensor
+		eq_CO2 = 400;
 
-#if (GAS_SENSOR_MODULE_PRESENT==0)
-	CO_Out = (uint32_t)(eq_CO2*100);	//Used by BLE in app_bluenrg_2.c User_Process() function
+#if ((GUI_SUPPORT) && (GAS_SENSOR_MODULE_PRESENT==0))
+	CO_Out = eq_CO2*100;	//Used by Sensor BLE in app_bluenrg_2.c User_Process() function
 #endif
 //Calculate mean values in an hour
 #if (USE_BKUP_SRAM)						//Restores the average values if a watch-dog event has occurred
@@ -1115,6 +1186,11 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 	eTVOC_avg = approxMovingAverage(eTVOC_avg, (float32_t)eq_TVOC, AverageWindow_1h);
 	voc->eTVOC_mean = (uint16_t)lrintf(eTVOC_avg);
 	eCO2_avg = approxMovingAverage(eCO2_avg, (float32_t)eq_CO2, AverageWindow_1h);
+	if (WarmUpPeriod_expired)
+	{
+		if (eCO2_avg < 400)
+			eCO2_avg = 400;	//400 ppm is the minimum value measurable by the sensor
+	}
 	voc->eCO2_mean = (uint16_t)lrintf(eCO2_avg);
 
 	eq_TVOC_1h_Mean = voc->eTVOC_mean;
@@ -1140,11 +1216,12 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 	eCO2_1_data[0] = (float)eq_TVOC;	//For UnicleoGUI
 #endif
 #if (CCS811)
-	(void)memcpy((void *)&Buff[31], voc, sizeof(CCS811_MeasureTypeDef_st));
+	(void)memcpy((void *)&Buff[78], voc, sizeof(CCS811_MeasureTypeDef_st));
+	/* sizeof(CCS811_MeasureTypeDef_st) == 16 (+1)*/
 #elif (ENS160)
-	(void)memcpy((void *)&Buff[31], voc, 12);
+	(void)memcpy((void *)&Buff[78], voc, sizeof(ENS160_MeasureTypeDef_st));
+	/* sizeof(ENS160_MeasureTypeDef_st) == 38 (+1)*/
 #endif
-	/* sizeof(CCS811_MeasureTypeDef_st) == 12 */
 }
 #endif
 
@@ -1161,10 +1238,10 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* Buff)
 {
 	static const uint32_t AverageWindow_24h = 17280;	//3600*24/5: Number of readings in 24 hour
-	static float32_t mc_1p0_avg = 0;
-	static float32_t mc_2p5_avg = 0;
-	static float32_t mc_4p0_avg = 0;
-	static float32_t mc_10p0_avg = 0;
+	static float32_t mc_1p0_avg = 0.0;
+	static float32_t mc_2p5_avg = 0.0;
+	static float32_t mc_4p0_avg = 0.0;
+	static float32_t mc_10p0_avg = 0.0;
 	static float32_t MC_1p0_f, MC_2p5_f, MC_4p0_f, MC_10p0_f;
 #if (USE_BKUP_SRAM)
 	static bool PMx_mean_init = true;
@@ -1208,7 +1285,7 @@ void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* B
 	TypicalParticleSize = Particulate->typical_particle_size;
 
 	//Moving Average on AverageWindow_24h readings for Air quality values estimation.
-	//PM1.0: ??; PM2.5: 25 μg/mc 24-hour mean; PM4.0: ??; PM10: 50 μg/mm 24-hour mean.
+	//PM1.0: ??; PM2.5: 25 μg/m3 24-hour mean; PM4.0: ??; PM10: 50 μg/mm 24-hour mean.
 	//From World Health Organization Ambient (outdoor) air pollution Fact Sheet.
 	//https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
 #if (USE_BKUP_SRAM)						//Restores the average values if a watch-dog event has occurred
@@ -1246,8 +1323,8 @@ void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* B
 	PM10_1_data[0] = (int32_t)MC_10p0;		//For UnicleoGUI
 	PM10_2_data[0] = (int32_t)NC_10p0;		//For UnicleoGUI
 #endif
-	(void)memcpy((void *)&Buff[43], Particulate, sizeof(SPS30_MeasureTypeDef_st));
-	/* sizeof(SPS30_MeasureTypeDef_st) == 56 */
+	(void)memcpy((void *)&Buff[117], Particulate, sizeof(SPS30_MeasureTypeDef_st));
+	/* sizeof(SPS30_MeasureTypeDef_st) == 72 (+1)*/
 }
 #endif
 
@@ -1268,14 +1345,14 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 #if (OUTDOOR_MODE)
 	static const uint32_t AverageWindow_24h = 17280;	//3600*24/5: Number of readings in 24 hour
 #endif
-	static float32_t co_8h_avg = 0;
-	static float32_t ch2o_8h_avg = 0;
-	static float32_t no2_1h_avg = 0;
-	static float32_t nh3_8h_avg = 0;
+	static float32_t co_8h_avg = 0.0;
+	static float32_t ch2o_8h_avg = 0.0;
+	static float32_t no2_1h_avg = 0.0;
+	static float32_t nh3_8h_avg = 0.0;
 #if (OUTDOOR_MODE)
-	static float32_t o3_1h_avg = 0;
-	static float32_t so2_1h_avg = 0;
-	static float32_t c6h6_24h_avg = 0;
+	static float32_t o3_1h_avg = 0.0;
+	static float32_t so2_1h_avg = 0.0;
+	static float32_t c6h6_24h_avg = 0.0;
 #endif
 #if (USE_BKUP_SRAM)
 	static bool Gases_mean_init = true;
@@ -1285,6 +1362,7 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	// it is possible to apply the correction here!!
 	// For non-linear relations the correction is applied in the "read_SMO_sensors ()" function
 	CO = (uint16_t)lrintf(anlg->CO);
+	CO_Out = (uint16_t)lrintf(anlg->CO * 100);	//Used by BLE in app_bluenrg_2.c User_Process() function
 	CH2O = (uint16_t)lrintf(anlg->CH2O);
 //	CH2O = (uint16_t)(lrintf(anlg->CH2O) + CH2O_Corr);
 	NO2 = (uint16_t)lrintf(anlg->NO2);
@@ -1297,9 +1375,6 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 //	SO2 = (uint16_t)(lrintf(anlg->SO2) + SO2_Corr);
 //	C6H6 = (uint16_t)(lrintf(anlg->C6H6) + C6H6_Corr);
 #endif
-#if (VOC_SENSOR_PRESENT==0)
-	CO_Out = (uint32_t)(CO*100);	//Used by BLE in app_bluenrg_2.c User_Process() function
-#endif
 
 	//Moving Average on AverageWindow readings for Air quality values estimation.
 	//From World Health Organization Ambient (outdoor) air pollution Fact Sheet.
@@ -1309,9 +1384,9 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	{
 		co_8h_avg = (float32_t)CO_8h_Mean;
 		ch2o_8h_avg = (float32_t)CH2O_8h_Mean;
-	#if (OUTDOOR_MODE)
 		no2_1h_avg = (float32_t)NO2_1h_Mean;
 		nh3_8h_avg = (float32_t)NH3_8h_Mean;
+	#if (OUTDOOR_MODE)
 		o3_1h_avg = (float32_t)O3_1h_Mean;
 		so2_1h_avg = (float32_t)SO2_1h_Mean;
 		c6h6_24h_avg = (float32_t)C6H6_24h_Mean;
@@ -1319,7 +1394,8 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 		Gases_mean_init = false;
 	}
 #endif
-	co_8h_avg = approxMovingAverage(co_8h_avg, anlg->CO, AverageWindow_8h);
+//	co_8h_avg = approxMovingAverage(co_8h_avg, anlg->CO, AverageWindow_8h);				//in mg/m3
+	co_8h_avg = approxMovingAverage(co_8h_avg, (anlg->CO * 100.0), AverageWindow_8h);	//in ug/m3*10
 	anlg->co_8h_mean = co_8h_avg;
 	ch2o_8h_avg = approxMovingAverage(ch2o_8h_avg, anlg->CH2O, AverageWindow_8h);
 	anlg->ch2o_8h_mean = ch2o_8h_avg;
@@ -1337,6 +1413,7 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 #endif
 
 	CO_8h_Mean = (uint16_t)lrintf(anlg->co_8h_mean);
+	CO_8h_Mean_t = (uint16_t)lrintf(anlg->co_8h_mean/100.0);	//Used only for AQI calculation
 	CO_8h_MeanMax = (CO_8h_Mean > CO_8h_MeanMax) ? CO_8h_Mean : CO_8h_MeanMax;
 	CH2O_8h_Mean = (uint16_t)lrintf(anlg->ch2o_8h_mean);
 	CH2O_8h_MeanMax = (CH2O_8h_Mean > CH2O_8h_MeanMax) ? CH2O_8h_Mean : CH2O_8h_MeanMax;
@@ -1364,8 +1441,8 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 		C6H6_data[0] = (int32_t)C6H6;	//For UnicleoGUI
 	#endif
 #endif
-	(void)memcpy((void *)&Buff[99], anlg, sizeof(ANLG_MeasureTypeDef_st));
-	/* sizeof(ANLG_MeasureTypeDef_st) == 92 */
+	(void)memcpy((void *)&Buff[190], anlg, sizeof(ANLG_MeasureTypeDef_st));
+	/* sizeof(ANLG_MeasureTypeDef_st) == 108 (+1)*/
 }
 #endif
 
@@ -1380,13 +1457,13 @@ void Refresh_AQI(void)
 #if (OUTDOOR_MODE)
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 						  CH2O, CO, NO2, NH3, O3, SO2, C6H6, MC_10p0, MC_2p5,
-						  CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean,
+						  CH2O_8h_Mean, CO_8h_Mean_t, NO2_1h_Mean, NH3_8h_Mean,
 						  O3_1h_Mean, SO2_1h_Mean, C6H6_24h_Mean,
 						  MC_10p0_24h_Mean, MC_2p5_24h_Mean);
 #else	//OUTDOOR_MODE==0
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 						  CH2O, CO, NO2, NH3, 0, 0, 0, MC_10p0, MC_2p5,
-						  CH2O_8h_Mean, CO_8h_Mean, NO2_1h_Mean, NH3_8h_Mean, 0, 0, 0,
+						  CH2O_8h_Mean, CO_8h_Mean_t, NO2_1h_Mean, NH3_8h_Mean, 0, 0, 0,
 						  MC_10p0_24h_Mean, MC_2p5_24h_Mean);
 #endif	//OUTDOOR_MODE
 #else	//GAS_SENSOR_MODULE_PRESENT==0
@@ -1396,10 +1473,12 @@ void Refresh_AQI(void)
 						  0, 0, 0, 0, 0, 0, 0,
 						  MC_10p0_24h_Mean, MC_2p5_24h_Mean);
 	#else
+	#if (VOC_SENSOR_PRESENT)
 	AQ_Level = AirQuality(eq_TVOC, eq_CO2, eq_TVOC_1h_Mean, eq_CO2_1h_Mean,
 						  0, 0, 0, 0, 0, 0, 0, 0, 0,
 						  0, 0, 0, 0, 0, 0, 0,
 						  0, 0);
+	#endif
 	#endif
 #endif //GAS_SENSOR_MODULE_PRESENT
 }
@@ -1464,12 +1543,25 @@ void Store_MeanValues_BackupRTC(void)
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+44, H_Min);
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+46, H_Max);
 #endif
+#if ((HUMIDITY_SENSOR_PRESENT) && (defined(STM32F405xx)))	//The size of the backup SRAM (BKPSRAM) in the STM32F1xx family is only 84 bytes.
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+90, AH_Min);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+92, AH_Max);
+#endif
 #if ((PRESSURE_SENSOR_PRESENT) || (HUMIDITY_SENSOR_PRESENT))
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+40, T_Min);
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+42, T_Max);
 #endif
+#if ((UVx_SENSOR_PRESENT) && (defined(STM32F405xx)))	//The size of the backup SRAM (BKPSRAM) in the STM32F1xx family is only 84 bytes.
+	#if (LTR390UV)
+		HOST_TO_BKPR_LE_32(BakUpRTC_Data+78, Lux_Min);
+		HOST_TO_BKPR_LE_32(BakUpRTC_Data+82, Lux_Max);
+	#endif
+	HOST_TO_BKPR_LE_32(BakUpRTC_Data+86, UV_Index_Min);
+	HOST_TO_BKPR_LE_32(BakUpRTC_Data+90, UV_Index_Max);
+#endif
 	//Store Global Status Register
 	HOST_TO_BKPR_LE_32(BakUpRTC_Data+70, StatusReg);
+	HOST_TO_BKPR_LE_32(BakUpRTC_Data+74, Up_Time_H);
 	//Write in the backup register domain
 	enable_backup_rtc();
 	writeBkpRTC((uint8_t *)BakUpRTC_Data, sizeof(BakUpRTC_Data), 0);
@@ -1484,6 +1576,9 @@ void Store_MeanValues_BackupRTC(void)
  */
 void ReStore_MeanValues_BackupRTC(void)
 {
+	uint32_t Up_Time_s;
+	extern FLASH_DATA_ORG FlashDataOrg;
+
 #if (VOC_SENSOR_PRESENT)
 	//Restore Air Quality Data. Averaged values
 	memcpy(&eq_TVOC_1h_Mean, &BakUpRTC_Data[6], 2);
@@ -1533,14 +1628,39 @@ void ReStore_MeanValues_BackupRTC(void)
 	memcpy(&H_Min, &BakUpRTC_Data[44], 2);
 	memcpy(&H_Max, &BakUpRTC_Data[46], 2);
 #endif
+#if ((HUMIDITY_SENSOR_PRESENT) && (defined(STM32F405xx)))	//The size of the backup SRAM (BKPSRAM) in the STM32F1xx family is only 84 bytes.
+	memcpy(&AH_Min, &BakUpRTC_Data[90], 2);
+	memcpy(&AH_Max, &BakUpRTC_Data[92], 2);
+#endif
 #if ((PRESSURE_SENSOR_PRESENT) || (HUMIDITY_SENSOR_PRESENT))
 	memcpy(&T_Min, &BakUpRTC_Data[40], 2);
 	memcpy(&T_Max, &BakUpRTC_Data[42], 2);
 #endif
+#if ((UVx_SENSOR_PRESENT) && (defined(STM32F405xx)))	//The size of the backup SRAM (BKPSRAM) in the STM32F1xx family is only 84 bytes.
+	#if (LTR390UV)
+		memcpy(&Lux_Min, &BakUpRTC_Data[78], 4);
+		memcpy(&Lux_Max, &BakUpRTC_Data[82], 4);
+	#endif
+	memcpy(&UV_Index_Min, &BakUpRTC_Data[86], 4);
+	memcpy(&UV_Index_Max, &BakUpRTC_Data[90], 4);
+#endif
 	//Restore Global Status Register
 	memcpy(&StatusReg, &BakUpRTC_Data[70], 4);
+	//Restore the UpTime Register
+	memcpy(&Up_Time_H, &BakUpRTC_Data[74], 4);
+/*
+ * If the BKSRAM has been erased then restore the value of the uptime timer from the flash.
+ * Note that this value is updated every 24 hours, so the restored value of Up_Time_H
+ * may be up to 24 hours less than the true value.
+ */
+	if (Up_Time_H == 0)
+		Up_Time_H = (uint32_t)ceil(FlashDataOrg.b_status.s1/3600.0);
+	else
+	{
+		Up_Time_s = FlashDataOrg.b_status.s1 % 3600;	//Add seconds
+		FlashDataOrg.b_status.s1 = (Up_Time_H * 3600) + Up_Time_s;
+	}
 }
-#endif	//USE_BKUP_SRAM
 
 /*
  * This function stores the daily minimum and maximum values
@@ -1549,39 +1669,65 @@ void ReStore_MeanValues_BackupRTC(void)
  * @retval None
  */
 #if ((BLE_SUPPORT) && (BEACON_APP))
-#if (CCS811)
-void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
-                 CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate)
-#elif(ENS160)
-void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
-                 ENS160_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate)
-#endif
+	#if (CCS811)
+	void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
+					 CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, VEML6075_MeasureTypeDef_st *LuxUVI)
+	#elif(ENS160)
+	void StoreMinMax(LPS22HB_MeasureTypeDef_st *PressTemp, SHT4x_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
+					 ENS160_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, LTR390UV_MeasureTypeDef_st *LuxUVI)
+	#endif
 {
 #if (PRESSURE_SENSOR_PRESENT)
 	PressTemp->Pout_DailyMax = P_Max = PMax;
 	PressTemp->Pout_DailyMin = P_Min = PMin;
-	//Re-Initialize LPS25HB Pressure Min Max values variables
-	PMin = LPS25HB_UPPER_P_LIMIT;
-	PMax = LPS25HB_LOWER_P_LIMIT;
-	#if (HUMIDITY_SENSOR_PRESENT==0)
-	PressTemp->Tout_DailyMax = T_Max = TMax;
-	PressTemp->Tout_DailyMin = T_Min = TMin;
-	//Re-Initialize LPS25HB Temperature Min Max values variables
-	TMin = LPS25HB_UPPER_T_LIMIT;
-	TMax = LPS25HB_LOWER_T_LIMIT;
+	#if (LPS25HB)
+		//Re-Initialize LPS25HB Pressure Min Max values variables
+		PMin = LPS25HB_UPPER_P_LIMIT;
+		PMax = LPS25HB_LOWER_P_LIMIT;
+		#if (HUMIDITY_SENSOR_PRESENT==0)
+		PressTemp->Tout_DailyMax = T_Max = TMax;
+		PressTemp->Tout_DailyMin = T_Min = TMin;
+		//Re-Initialize LPS25HB Temperature Min Max values variables
+		TMin = LPS25HB_UPPER_T_LIMIT;
+		TMax = LPS25HB_LOWER_T_LIMIT;
+		#endif
+	#elif (LPS22HB)
+		//Re-Initialize LPS22HB Pressure Min Max values variables
+		PMin = LPS22HB_UPPER_P_LIMIT;
+		PMax = LPS22HB_LOWER_P_LIMIT;
+		#if (HUMIDITY_SENSOR_PRESENT==0)
+		PressTemp->Tout_DailyMax = T_Max = TMax;
+		PressTemp->Tout_DailyMin = T_Min = TMin;
+		//Re-Initialize LPS25HB Temperature Min Max values variables
+		TMin = LPS22HB_UPPER_T_LIMIT;
+		TMax = LPS22HB_LOWER_T_LIMIT;
+		#endif
 	#endif
 #endif
 #if (HUMIDITY_SENSOR_PRESENT)
 	HumTemp->Hout_DailyMax = H_Max = HMax;
 	HumTemp->Hout_DailyMin = H_Min = HMin;
-	//Re-Initialize HTS221 Humidity Min Max values variables
-	HMin = HTS221_UPPER_H_LIMIT;
-	HMax = HTS221_LOWER_H_LIMIT;
-	HumTemp->Tout_DailyMax = T_Max = TMax;
-	HumTemp->Tout_DailyMin = T_Min = TMin;
-	//Re-Initialize HTS221 Temperature Min Max values variables
-	TMin = HTS221_UPPER_T_LIMIT;
-	TMax = HTS221_LOWER_T_LIMIT;
+	HumTemp->AHout_DailyMax = AH_Max = AHMax;
+	HumTemp->AHout_DailyMin = AH_Min = AHMin;
+	#if (HTS221)
+		//Re-Initialize HTS221 Humidity Min Max values variables
+		AHMin = HMin = HTS221_UPPER_H_LIMIT;
+		AHMax = HMax = HTS221_LOWER_H_LIMIT;
+		HumTemp->Tout_DailyMax = T_Max = TMax;
+		HumTemp->Tout_DailyMin = T_Min = TMin;
+		//Re-Initialize HTS221 Temperature Min Max values variables
+		TMin = HTS221_UPPER_T_LIMIT;
+		TMax = HTS221_LOWER_T_LIMIT;
+	#elif (SHT4x)
+		//Re-Initialize SHT4x Humidity Min Max values variables
+		AHMin = HMin = SHT4x_UPPER_H_LIMIT;
+		AHMax = HMax = SHT4x_LOWER_H_LIMIT;
+		HumTemp->Tout_DailyMax = T_Max = TMax;
+		HumTemp->Tout_DailyMin = T_Min = TMin;
+		//Re-Initialize SHT4x Temperature Min Max values variables
+		TMin = SHT4x_UPPER_T_LIMIT;
+		TMax = SHT4x_LOWER_T_LIMIT;
+	#endif
 #endif
 #if (VOC_SENSOR_PRESENT)
 	voc->eTVOC_mean_DailyMax = eq_TVOC_1h_Mean_Max = eq_TVOC_1h_MeanMax;
@@ -1593,6 +1739,24 @@ void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st 
 	#elif (ENS160)
 		eq_TVOC_1h_MeanMax = ENS160_LOWER_TVOC_LIMIT;
 		eq_CO2_1h_MeanMax = ENS160_LOWER_CO2_LIMIT;
+	#endif
+#endif
+#if (UVx_SENSOR_PRESENT)
+	#if (LTR390UV)
+		LuxUVI->Lux_DailyMax = Lux_Max = LuxMax;
+		LuxUVI->Lux_DailyMin = Lux_Min = LuxMin;
+	#endif
+	LuxUVI->UVI_DailyMax = UV_Index_Max = UV_IndexMax;
+	LuxUVI->UVI_DailyMin = UV_Index_Min = UV_IndexMin;
+	//Re-Initialize Lux, UV_Index Min Max values variables
+	#if (VEML6075)
+		UV_IndexMin = VEML6075_UPPER_U_LIMIT;
+		UV_IndexMax = VEML6075_LOWER_U_LIMIT;
+	#elif (LTR390UV)
+		LuxMin = LTR390UV_UPPER_L_LIMIT;
+		LuxMax = LTR390UV_LOWER_L_LIMIT;
+		UV_IndexMin = LTR390UV_UPPER_U_LIMIT;
+		UV_IndexMax = LTR390UV_LOWER_U_LIMIT;
 	#endif
 #endif
 #if (PARTICULATE_SENSOR_PRESENT)
@@ -1624,6 +1788,7 @@ void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st 
 #endif	//GAS_SENSOR_MODULE_PRESENT
 }
 #endif	//((BLE_SUPPORT) && (BEACON_APP))
+#endif	//USE_BKUP_SRAM
 
 #if (IMU_PRESENT==1)
 /**

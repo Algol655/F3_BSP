@@ -13,8 +13,8 @@
 #define REPORT_BUFSIZE	0x2000
 //VCP rx data buffers
 uint16_t local_buff_length = 0;
-uint8_t  local_buff[BUFFLEN];	/**< non circular local buffer, data received from VCP. */
-static 	uint8_t lbuf[BUFFLEN];	/**< circular local buffer, data to be transmitted in flush_report_buff() Thread. */
+uint8_t  local_buff[USBBUFFLEN];	/**< non circular local buffer, data received from VCP. */
+static 	uint8_t lbuf[USBBUFFLEN];	/**< circular local buffer, data to be transmitted in flush_report_buff() Thread. */
 
 static circBuf_t local_buf = {.buf = lbuf,
 							  .head= 0,
@@ -22,7 +22,7 @@ static circBuf_t local_buf = {.buf = lbuf,
 							  .maxLen=MSG_PAYLOAD_LEN_MAX-3};
 //VCP tx data buffers
 int 	tx_buff_length = 0;
-uint8_t tx_buff[BUFFLEN];
+uint8_t tx_buff[USBBUFFLEN];
 static int 	local_have_data = 0;
 static uint8_t 	rbuf[REPORT_BUFSIZE];	/**< circular report buffer, data to be transmitted in flush_report_buff() Thread. Modified By Me!!! */
 
@@ -137,7 +137,7 @@ HAL_StatusTypeDef flush_report_buff(void)
 HAL_StatusTypeDef flush_local_buff(void)		//Added & Modified By Me!!
 {
 #if ((DATA_MODE==1) && (NORMAL_MODE==0))
-	int i, head, tail, len, size = BUFFLEN;
+	int i, head, tail, len, size = USBBUFFLEN;
 
 	__HAL_LOCK(&rx1handle);
 	head = local_buf.head;
@@ -233,7 +233,7 @@ HAL_StatusTypeDef port_rx_msg(uint8_t *str, int16_t len)
 	head = local_buf.head;
 	tail = local_buf.tail;
 
-	size = BUFFLEN;
+	size = USBBUFFLEN;
 
 	if(CIRC_SPACE(head, tail, size) > (len))
 	{
@@ -297,7 +297,7 @@ USBD_StatusTypeDef DW_VCP_DataRx (uint8_t* Buf, uint32_t Len)
   //(local_buff).
   //This buffer will be used by the "process_usbmessage(local_buff)" function
   //for subsequent processing
-  if((local_buff_offset+Len) <= BUFFLEN)
+  if((local_buff_offset+Len) <= USBBUFFLEN)
   {
 	  memcpy(&local_buff[local_buff_offset], Buf, Len);
 	  local_buff_length = Len + local_buff_offset;
@@ -305,7 +305,7 @@ USBD_StatusTypeDef DW_VCP_DataRx (uint8_t* Buf, uint32_t Len)
 	  local_have_data = 1;
   } else
   {
-	  local_buff_length = BUFFLEN;
+	  local_buff_length = USBBUFFLEN;
 	  local_buff_offset = 0;
 	  app.usbcts = false;
 	  app.disabled = true;
@@ -320,7 +320,7 @@ USBD_StatusTypeDef DW_VCP_DataRx (uint8_t* Buf, uint32_t Len)
   //If in Data Mode use circular buffer to store CDC Rx Data.
   return port_rx_msg(Buf, Len);
 #else
-  if((local_buff_offset+Len) <= BUFFLEN)
+  if((local_buff_offset+Len) <= USBBUFFLEN)
   {
 	  memcpy(&local_buff[local_buff_offset], Buf, Len);
   }
@@ -394,7 +394,7 @@ USBD_StatusTypeDef process_usbmessage(uint8_t* Buf)
 	result = HandleUSB_MSG(&local_buff[0]);
 #elif (NORMAL_MODE==1)
 	result = HandleUSB_MSG(&local_buff[0]);
-	memset(local_buff, 0x0, BUFFLEN);
+	memset(local_buff, 0x0, USBBUFFLEN);
 	local_have_data = 0;
 #endif
 	return result;

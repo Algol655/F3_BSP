@@ -21,8 +21,11 @@ extern const uint8_t ROW_16[];
 extern const uint8_t ROW_20[];
 
 #define FAIL_MSG_W		7U
-#define TEMP_FRAME_W	7U
-#define HUM_FRAME_W		7U
+//#define TEMP_FRAME_W	7U
+#define TEMP_FRAME_W	5U
+//#define HUMr_FRAME_W	7U
+#define HUMr_FRAME_W	4U
+#define HUMa_FRAME_W	5U
 #define PRESS_FRAME_W	9U
 #define ALT_FRAME_W		9U
 #define TEMPd_FRAME_W	4U
@@ -48,7 +51,7 @@ extern const uint8_t ROW_20[];
 	#else
 		#define eTVOC_FRAME_W	7U
 		#define eCO2_FRAME_W	9U
-		#define CH2O_FRAME_W	8U
+		#define CH2O_FRAME_W	7U
 		#define CO_FRAME_W		8U
 		#define NO2_FRAME_W		8U
 		#define NH3_FRAME_W		8U
@@ -190,7 +193,7 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb);
 LCD_Error_et ReDrawPage_S1(uint8_t PageNumb);
 LCD_Error_et SendWelcomeMessage();
 LCD_Error_et SendReadyDevicesMessage();
-char *str_center(char str[], unsigned int new_length, char placeholder);
+char *str_center(char str[], uint8_t new_length, char placeholder);
 LCD_Error_et MX_GLCD_Init();
 //void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype);
 

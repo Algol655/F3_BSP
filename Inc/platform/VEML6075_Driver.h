@@ -94,6 +94,8 @@ typedef enum {VEML6075_OK = (uint8_t)0, VEML6075_ERROR = !VEML6075_OK} VEML6075_
 #define VEML6075_UVI_UVA_RESPONSE	(1.0/909.0)
 #define VEML6075_UVI_UVB_RESPONSE	(1.0/800.0)
 
+#define VEML6075_UPPER_U_LIMIT		(20*1000)		// Ultraviolet Index maximum value
+#define VEML6075_LOWER_U_LIMIT		(0*1000)		// Ultraviolet Index minimum value
 
 typedef enum
 {
@@ -109,6 +111,8 @@ typedef struct
 	float32_t uva;
 	float32_t uvb;
 	float32_t UVI;
+	float32_t UVI_DailyMin;
+	float32_t UVI_DailyMax;
 } VEML6075_MeasureTypeDef_st;
 
 VEML6075_Error_et VEML6075_WhoAmI( I2C_HandleTypeDef *hi2c, uint16_t *idval );

@@ -14,18 +14,18 @@
 //#define DELTA_T		(uint16_t)3*3600/5	//3 hours between reads. 5s tick timer
 #define DELTA_T		(uint16_t)6*3600/5	//6 hours between reads. 5s tick timer
 //#define DELTA_T	(uint16_t)1			//Only for debug purpose!
-#define Z_FALLING(p)	-0.12F*(p) + 127.0F	//P range: 985..1050 mBar
-#define Z_STEADY(p)		-0.13F*(p) + 144.0F	//P range: 960..1033 mBar
-#define Z_RISING(p)		-0.16F*(p) + 185.0F	//P range: 947..1030 mBar
+#define Z_FALLING(p)	((-0.12F * (p)) + 127.0F)	//P range: 985..1050 mBar
+#define Z_STEADY(p)		((-0.13F * (p)) + 144.0F)	//P range: 960..1033 mBar
+#define Z_RISING(p)		((-0.16F * (p)) + 185.0F)	//P range: 947..1030 mBar
 
 typedef struct
 {
-	float PreviousPressVal;
-	float CurrentPressVal;
-	float WeatherF_DeltaPressVal;
-	float PreviousTempVal;
-	float CurrentTempVal;
-	float DeltaTempVal;
+	float32_t PreviousPressVal;
+	float32_t CurrentPressVal;
+	float32_t WeatherF_DeltaPressVal;
+	float32_t PreviousTempVal;
+	float32_t CurrentTempVal;
+	float32_t DeltaTempVal;
 	uint8_t PreviousHumVal;
 	uint8_t CurrentHumVal;
 	uint8_t DeltaHumVal;
@@ -101,7 +101,7 @@ typedef enum
 } Z_WF_Values_st;
 
 //Exported Functions
-uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal);
+uint8_t Weather_Forecast(float32_t PressVal, float32_t TempVal, uint8_t HumVal);
 
 #endif /* WHEATHER_FORECAST_H_ */
 

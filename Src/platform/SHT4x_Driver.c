@@ -78,6 +78,48 @@ SHT4x_Error_et SHT4x_i2c_write(uint8_t address, const uint8_t* data, uint16_t co
 }
 
 /**
+ * @brief  Calculates temperature moving average
+ */
+void SHT4x_T_MovingAverage(int16_t *in, int16_t *out, uint16_t length)
+{
+	uint32_t sum = 0;
+	static uint32_t T_mem1[10] = {0};	//array dimension MUST be = length
+	static uint32_t T_mem2[1] = {0};
+
+	T_mem2[0] = (T_mem2[0] + 1) % length;
+
+	T_mem1[T_mem2[0]] = *in;
+
+	for (int32_t i = 0; i < length; i++)
+	{
+		sum += T_mem1[i];
+	}
+
+	*out = sum / length;
+}
+
+/**
+ * @brief  Calculates humidity moving average
+ */
+void SHT4x_RH_MovingAverage(uint16_t *in, uint16_t *out, uint16_t length)
+{
+	uint32_t sum = 0;
+	static uint32_t RH_mem1[10] = {0};	//array dimension MUST be = length
+	static uint32_t RH_mem2[1] = {0};
+
+	RH_mem2[0] = (RH_mem2[0] + 1) % length;
+
+	RH_mem1[RH_mem2[0]] = *in;
+
+	for (int32_t i = 0; i < length; i++)
+	{
+		sum += RH_mem1[i];
+	}
+
+	*out = sum / length;
+}
+
+/**
  * Sleep for a given number of microseconds. The function should delay the
  * execution for at least the given time, but may also sleep longer.
  *
@@ -517,6 +559,13 @@ SHT4x_Error_et SHT4x_Get_Measurement(uint8_t B_Addr, SHT4x_MeasureTypeDef_st *Me
 	return SHT4x_OK;
 }
 
+/**
+ * @brief  Initialize the configured peripheral
+ * @param  None
+ * @retval SHT4x_Error_et
+ *         - SHT4x_OK: Operation was successful.
+ *         - SHT4x_FAIL: Failed to send or receive data.
+ */
 SHT4x_Error_et MX_SHT4x_Init(void)
 {
 	uint32_t Serial;

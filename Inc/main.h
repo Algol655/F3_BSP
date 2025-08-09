@@ -137,7 +137,8 @@ void Error_Handler(void);
 #define DATA_MODE	(0)					//1 when the node is used as an end-point of a wireless data link (e.g. BLE, LORA, UWB ...)
 #define IO_EXP_PRESENT (1)
 //Sensors defines section				//When IMU_PRESENT = 1 UnicleoGUI graphics only the accelerometer, Gyroscope and Magnet. data.
-#define IMU_PRESENT (0)					//When IMU_PRESENT = 0 UnicleoGUI graphics only the environmental sensor data.
+#define OUTDOOR_MODE			(1)		//Set always to 1 when the Gases Sensor Board is mounted and GSB_HW_VER = 1.0 !!!
+#define IMU_PRESENT				(0)		//When IMU_PRESENT = 0 UnicleoGUI graphics only the environmental sensor data.
 #define PRESSURE_SENSOR_PRESENT (1)
 #define HUMIDITY_SENSOR_PRESENT (1)
 #define UVx_SENSOR_PRESENT		(0)
@@ -145,7 +146,6 @@ void Error_Handler(void);
 #define VOC_SENSOR_PRESENT		(1)
 #define PARTICULATE_SENSOR_PRESENT (1)
 #define GAS_SENSOR_MODULE_PRESENT  (1)	//Must be understood as "USE_ADC"
-#define OUTDOOR_MODE		(1)
 //Board defines section
 #define USE_STM32F4XX_NUCLEO	(0)
 #define USE_SENSUS191	(1)
@@ -158,6 +158,7 @@ void Error_Handler(void);
 /**************************/
 /*    Project Settings    */
 /**************************/
+#define POLINOMIAL_REGRESSION 	(0)
 #define CALC_DEWPOINT	(1)				//When at 1 the DewPoint is calculated and displayed. CALC_ALTITUDE must be 0
 #define CALC_ALTITUDE	(0)				//When at 1 the altitude calculated according to barometric formula
 										//to the atmospheric pressure will be displayed. CALC_DEWPOINT must be 0

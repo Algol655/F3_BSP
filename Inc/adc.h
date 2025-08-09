@@ -29,7 +29,7 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+//#include "platform/ANLG_Driver.h"
 /* USER CODE END Includes */
 
 extern ADC_HandleTypeDef hadc1;
@@ -57,7 +57,17 @@ typedef enum ADCD_status_typedef
 
 #define num_ad_chs  (3)			//Number of AD channels employed
 #define num_anlg_mux_in (16)	//Number of analog signal to be converted
-#define mux_channels_enabled (0b00000000000000000000000000111111)	//mux1 -> 0..15, mux2 -> 17..31
+#if (GSB_HW_VER == 1)
+	#define mux_channels_enabled (0b00000000000000000000000000111111)	//mux1 -> 0..15, mux2 -> 17..31
+#elif (GSB_HW_VER == 10)
+	#define mux_channels_enabled (0b11000000000000000000000001111111)	//mux1 -> 0..15, mux2 -> 17..31
+#elif (GSB_HW_VER == 20)
+	#define mux_channels_enabled (0b11000000000000001001010100101011)	//mux1 -> 0..15, mux2 -> 17..31
+#elif (GSB_HW_VER == 21)
+	#define mux_channels_enabled (0b11000000000000001000011001101011)	//mux1 -> 0..15, mux2 -> 17..31
+#else
+	#define mux_channels_enabled (0b00000000000000000000000000000000)	//mux1 -> 0..15, mux2 -> 17..31
+#endif
 uint16_t ADCxConvertedValue[num_ad_chs];
 
 /* USER CODE END Private defines */

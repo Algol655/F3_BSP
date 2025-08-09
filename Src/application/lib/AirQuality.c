@@ -13,7 +13,7 @@
 /*
  * Technical Assistance Document for the Reporting of Daily Air Quality
  * the Air Quality Index (AQI) (PDF) (Report). U.S.
- * https://www.airnow.gov/sites/default/files/2018-05/aqi-technical-assistance-document-may2016.pdf
+ * https://www.airnow.gov/sites/default/files/2020-05/aqi-technical-assistance-document-sept2018.pdf
  */
 uint8_t CalcAQI(uint16_t C_low, uint16_t C_high, uint16_t C, uint8_t I_low, uint8_t I_high)
 {
@@ -34,9 +34,9 @@ AirQualityParameters_st AirQuality(uint16_t eq_TVOC, uint16_t eq_CO2, uint16_t e
 	const char AQ_Class[6][16]={{"1: EXCELLENT \r\n"},{"   2: FINE   \r\n"},{" 3: MODERATE \r\n"},{"   4: POOR   \r\n"},
 						 	 	{"5: VERY POOR \r\n"},{"  6: SEVERE  \r\n"}};
 	static AirQualityParameters_st AirQuality_Level =
-								{.eTVOC_AQ=2, .eCO2_AQ=2, .PM10_AQ=2, .PM2p5_AQ=2, .CH2O_AQ=2, .CO_AQ=2, .NO2_AQ=2, .NH3_AQ=2,
-								 .O3_AQ=2, .SO2_AQ=2, .C6H6_AQ= 2, .GasAirQualityIndex=2, .AvgGasAirQualityIndex=2,
-								 .PMxAirQualityIndex=2, .AvgPMxAirQualityIndex=2, .AvgGasAirQualityClass={}, .AvgPMxAirQualityClass={}};
+								{.eTVOC_AQ=1, .eCO2_AQ=1, .PM10_AQ=1, .PM2p5_AQ=1, .CH2O_AQ=1, .CO_AQ=1, .NO2_AQ=1, .NH3_AQ=1,
+								 .O3_AQ=1, .SO2_AQ=1, .C6H6_AQ= 2, .GasAirQualityIndex=1, .AvgGasAirQualityIndex=1,
+								 .PMxAirQualityIndex=1, .AvgPMxAirQualityIndex=1, .AvgGasAirQualityClass={}, .AvgPMxAirQualityClass={}};
 
 /*
  * Gases current AirQuality level calculation

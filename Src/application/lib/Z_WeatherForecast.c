@@ -10,7 +10,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "application/Z_WeatherForecast.h"
 
-uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
+uint8_t Weather_Forecast(float32_t PressVal, float32_t TempVal, uint8_t HumVal)
 {
 	static Z_WheatherParameters_st Wheather_Values =
 					{.PreviousPressVal = 1023.0, .CurrentPressVal=1023.0, .WeatherF_DeltaPressVal=0.0,
@@ -19,7 +19,7 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 					 .ForecastEstimate=0, .PrevForecastEstimate=0, .Z_ForecastEstimate=0};
 	static int16_t WeatherF_DeltaP = 0;
 	static uint16_t CountTick = 0;
-	volatile static uint8_t Z_Value = 1;
+	static volatile uint8_t Z_Value = 1;
 	static int8_t SeasonAdjust = 0;
 	static int8_t WindDirAdjust = 0;
 	const uint8_t Z_Symbols[32] = {SunnyDWN,SunnyDWN,CloudyDWN,CloudyDWN,CloudyDWN,RainyDWN,RainyDWN,RainyDWN,RainyDWN,
@@ -36,8 +36,14 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 		//to restore here the weather values used by the WeatherForecast function
 		//Use the last Weather status after a reset or after a power cycle
 		WeatherF_DeltaP = (int16_t)(FlashDataOrg.b_status.s6 & 0x0000FFFF);
+		if (WeatherF_DeltaP > 0x7F)	//If the flash Data section has never been updated
+			WeatherF_DeltaP = 0;	//then use the default value.
 		forecast = Wheather_Values.ForecastEstimate = (uint8_t)((FlashDataOrg.b_status.s6 >> 16) & 0x000000FF);
+		if (forecast > 0x20)		//If the flash Data section has never been updated
+			forecast = 0x00;		//then use the default value.
 		Z_forecast = Wheather_Values.Z_ForecastEstimate = (uint8_t)((FlashDataOrg.b_status.s6 >> 24) & 0x000000FF);
+		if (Z_forecast > 0x20)		//If the flash Data section has never been updated
+			Z_forecast = 0x0B;		//then use the default value.
 		CountTick++;	//So we enter this branch only once
 	} else
 	if (++CountTick > DELTA_T)
@@ -78,14 +84,14 @@ uint8_t Weather_Forecast(float PressVal, float TempVal, uint8_t HumVal)
 			Z_Value = (uint8_t)(lrintf(Z_RISING(Wheather_Values.CurrentPressVal)) + SeasonAdjust + WindDirAdjust);
 		} else	//Steady Barometric pressure
 		{
-			Z_Value = (uint8_t)(lrintf(Z_STEADY(Wheather_Values.CurrentPressVal)) + SeasonAdjust + WindDirAdjust);
+			Z_Value = (uint8_t)(lrintf(Z_STEADY(Wheather_Values.CurrentPressVal)) + WindDirAdjust);
 		}
 		if (Z_Value == 0)
 			Z_Value = 1;
 		if (Z_Value > 32)
 			Z_Value = 32;
-		Z_forecast = Wheather_Values.Z_ForecastEstimate = Z_Value;
-		forecast = Wheather_Values.ForecastEstimate = Z_Symbols[Z_Value-1];
+		Z_forecast = Wheather_Values.Z_ForecastEstimate = Z_Value;			//Used by BLE in app_bluenrg_2.c User_Process() function
+		forecast = Wheather_Values.ForecastEstimate = Z_Symbols[Z_Value-1];	//Used by GUI in lcd.c ReDrawPage_S0(uint8_t PageNumb) function
 		//Stores the weather values in the board data structure.
 		//They will be flashed within one hour, when the timeout expires in the
 		//HAL_RTCEx_RTCEventCallback function in port.c
