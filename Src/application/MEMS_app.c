@@ -10,7 +10,7 @@
 
 uint8_t DeviceName[5] ="S191";
 uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
-uint8_t SW_Version[5] ="2711";
+uint8_t SW_Version[5] ="2712";
 uint32_t Vendor_ID  = 0x2316F;
 uint32_t Prdct_Code = 10000324;
 uint32_t Rev_Number = 0;
@@ -30,12 +30,13 @@ uint32_t Ser_Number = 1;
 	int16_t T_Correction = 0;			//In °C
 #endif
 #if (VOC_SENSOR_PRESENT==1)
-#if (CCS811)
-	uint32_t CCS811_VOC_Ro = 0;			//In ohm
-	uint32_t CCS811_VOC_Ro_Stored = 0;
-	bool CCS811_Save_Baseline_Reserved = false;
-#endif
-	uint8_t VOC_Correction = 0;			//In units*100
+	uint16_t VOC_Correction = 0;		//In ppb
+	uint16_t CO2_Correction = 0;		//In ppm
+	#if (CCS811)
+		uint32_t CCS811_VOC_Ro = 0;			//In ohm
+		uint32_t CCS811_VOC_Ro_Stored = 0;
+		bool CCS811_Save_Baseline_Reserved = false;
+	#endif
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	int8_t CH2O_Corr = 0;				//In mVolts for the EC CH2O sensor. In mVolts/10 for the SMO CH2O: 1 = 10mV Correction
@@ -170,7 +171,7 @@ void AB_Init(void)
 #elif (GSB_HW_VER >= 20)
 		FlashDataOrg.b_status.sf = 27000;	//MiCS6814 Rf CO default value
 		FlashDataOrg.b_status.s10 = 27000;	//MiCS6814 Rf NH3 default value
-		FlashDataOrg.b_status.s11 = 47000;	//MiCS6814 Rf NO2 default value
+		FlashDataOrg.b_status.s11 = 56000;	//MiCS6814 Rf NO2 default value
 		FlashDataOrg.b_status.s14 = 2500;	//SMD1001 Vo CH2O default value (2.5V)
 		FlashDataOrg.b_status.s15 = 10000;	//SMD1001 Rf CH2O default value
 #endif
@@ -341,12 +342,13 @@ void AB_Init(void)
 		}
 		BIT_SET(SensorStatusReg,3);	//Set VOC sensor status in SensorStatusRegister
 	}
-	VOC_Correction = 1;
 #endif	// CCS811
-    HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after VOC Sensor Init
-//	VOC_Correction = (uint8_t)(((FlashDataOrg.b_status.sx) & 0x000000FF) / 100);
-//	if ((VOC_Correction == 0xFF) || (VOC_Correction == 0x0))
+    VOC_Correction = (uint16_t)(FlashDataOrg.b_status.s0 & 0x0000FFFF);
+	if ((VOC_Correction == 0xFFFF) || (VOC_Correction == 0x0))
     	VOC_Correction = 1;			//If no value has been programmed then set with the default value
+	CO2_Correction = (uint16_t)((FlashDataOrg.b_status.s0 >> 16) & 0x0000FFFF);
+	if ((CO2_Correction == 0xFFFF) || (CO2_Correction == 0x0))
+    	CO2_Correction = 1;			//If no value has been programmed then set with the default value
 #endif	// VOC_SENSOR_PRESENT
 
 #if (PARTICULATE_SENSOR_PRESENT==1)
@@ -1153,7 +1155,9 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
  * "AverageWindow_5m" constant. The second (used when the present value is less than or equal
  * to the average value calculated up to then) is given by the value of the "AverageWindow_1m"constant.
  */
-	eq_TVOC = voc->eTVOC * VOC_Correction;
+	eq_TVOC = voc->eTVOC/VOC_Correction;
+//	if (eq_TVOC > 650)
+//		eq_TVOC = (uint16_t)lrintf(_TVOC(eq_TVOC));
 	eTVOC_avg5m = approxMovingAverage(eTVOC_avg5m, (float32_t)eq_TVOC, AverageWindow_5m);
 	eTVOC_avg1m = approxMovingAverage(eTVOC_avg1m, (float32_t)eq_TVOC, AverageWindow_1m);
 	if (eTVOC_avg1m > eTVOC_avg5m)
@@ -1161,13 +1165,19 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 	else
 		eq_TVOC = eTVOC_avg1m;
 
-	eq_CO2 = voc->eCO2 * VOC_Correction;
+	if (eq_TVOC < 1)		//1 ppb is the minimum value measurable by the sensor
+		eq_TVOC = 1;
+
+	eq_CO2 = voc->eCO2/CO2_Correction;
+//	if (eq_CO2 > 1400)
+//		eq_CO2 = (uint16_t)lrintf(_CO2(eq_CO2));
 	eCO2_avg5m = approxMovingAverage(eCO2_avg5m, (float32_t)eq_CO2, AverageWindow_5m);
 	eCO2_avg1m = approxMovingAverage(eCO2_avg1m, (float32_t)eq_CO2, AverageWindow_1m);
 	if ((float32_t)eq_CO2 > eCO2_avg5m)
 		eq_CO2 = eCO2_avg5m;
 	else
 		eq_CO2 = eCO2_avg1m;
+
 	if (eq_CO2 < 400)		//400 ppm is the minimum value measurable by the sensor
 		eq_CO2 = 400;
 

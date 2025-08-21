@@ -12,7 +12,17 @@
 #include "platform/port.h"
 #include "application/SerialProtocol.h"
 #include "main.h"
-#include <stdint.h>
+
+#define FAN_TEMP_THRESHOLD	45.0f	//Fan activation temperature room temperature,°C
+#define CPU_OVERTEMPERATURE	30.0f	//°C
+/* The CPU temperature is used to determine the fan activation temperature.
+ * Therefore the activation temperature of the fan is given by the sum of
+ * the two previous definitions
+ */
+#define TOTALFAN_TEMP_THRESHOLD		(CPU_OVERTEMPERATURE + FAN_TEMP_THRESHOLD)
+
+#define _TVOC(x)	((0.0374F * x) + 625.6684F)	//y(ppb) = (0.0374(ETVoc) + 625.6684 -> when ETVoc > 650
+#define _CO2(x)		((0.4186F * x) + 813.9535F)	//y(ppm) = (0.4186(ECO2) + 813.9535 -> when ECO2 > 1400
 
 #define STREAMING_MSG_LENGTH	115
 #define DataStreamingDest		(uint8_t)0x01U

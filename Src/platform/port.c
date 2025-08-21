@@ -237,6 +237,7 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 	FlashDataOrg.b_mdata.HW_Version = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_mdata.HW_Version_offset));
 	FlashDataOrg.b_mdata.SW_Version = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_mdata.SW_Version_offset));
 	FlashDataOrg.b_mdata.Vendor_ID = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_mdata.Vendor_ID_offset));
+	FlashDataOrg.b_mdata.Prdct_Code = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_mdata.Prdct_Code_offset));
 	FlashDataOrg.b_mdata.Rev_Number = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_mdata.Rev_Number_offset));
 	FlashDataOrg.b_mdata.Ser_Number = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_mdata.Ser_Number_offset));
 	FlashDataOrg.b_status.s0 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s0_offset));

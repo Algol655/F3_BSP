@@ -1,0 +1,62 @@
+V. 2.07.05	(Rilasciata)
+1) Il contatore degli errori dell'ADC conta solo fino ad 1. (Ok)
+2) Filtare con costante di tempo 0.007 anche il sensore della Formaldeide. (Ok)
+3) Eliminare il limiti inferiore su Formaldeide (0ppm) e portare quello dell'zono a 0.01ppm. (Ok)
+
+V. 2.07.06	(Rilasciata)
+1) Visualizzare in TestEnv (ANALOG_TEST) lo stato degli ingressi analogici C14_2 (> 0 = ADC Fault Detection) e C15_2 (0 = Gas Sensor Board mounted) (Ok)
+2) Prevedere l'assenza della Gas Sensors Board negli switch #if.. #endif (GSB_HW_VER > 20 al posto di #else...)	(Ok)
+
+V. 2.07.07	(Rilasciata 2025/04/20)
+1) Fixed il valore di default della variabile "forecast" in Z_WeatherForecast.c (Ok)
+2) Modificata la funzione "char *str_center(char str[], uint8_t new_length, char placeholder)" per eliminare il Warning (che potrebbe portare al blocco del display)
+   "pointer 'buffer' used after 'free' [-Wuse-after-free]" in lcd.c (da GCC 13, STM32CubeIDE v1.18.0) (Ok)
+3) Miglioramento della gestione di memorizzazione e di ripristino dei registri del tempo di funzionamento (Up_Time_H su BackupSRam[74] e FlashDataOrg.s1),
+   in modo da evitare le scritture in flash ad ogni ora. (Ok)
+4) Rimosso un possibile blocco del sistema quando vengono passati puntatori "NULL" alle funzioni USARTx_Tx(const uint8_t *Buffer, uint16_t Length) e CDCFS_Tx(const uint8_t *Buffer, uint16_t Length)
+   utilizzate dalle funzioni TestEnv.c Usartx_TestEnv.c (Ok)
+5) Variazione della sensibilità (fondo-scala) del sensore di illuminamento (LTR-390UV) in funzione dell'illuminamento ambientale (autoranging) (Ok)
+6) Correzione elenco UTC date entrata in vigore ora legale/ora solare (Ok)
+
+V. 2.07.08	(Rilasciata il 2025/05/12)
+1) Fixed l'errore dell'apertura del menù di settaggio della temperatura durante quella del settaggio della data/ora (Ok)
+2) Fixed l'errore di "rimpallo" (della durata di un'ora e con setting finale casuale) tra ora solare e ora legale quando si ritorna all'ora solare (Ok)
+3) Aggiunto il cambio automatico ora legale/ora solare nei sistemi basati su uController STM32F10x (Ok)
+
+V. 2.07.09	(Rilasciata il 2025/05/19)
+1) Fixed mancato aggiornamento del tempo di funzionamento (Up_Time_H) nella struttura dati di sistema (FlashDataOrg.b_status.s1) (Ok)
+
+V. 2.07.10	(Rilasciata il 2025/06/03)
+1) Aggiunta la parte frazionale alla misura del CO (Ok)
+2) Migliorato il centraggio dei valori dei sensori all'interno dei rispettivi campi (nella configurazione "GLCD_SUPPORT") (Ok)
+
+V. 2.07.11	(Rilasciata il 2025/08/08)
+1) Migliorato il filtraggio dei sensori O3, NH3 e CO (Ok)
+2) Fixed il calcolo della correzione dell'umidità relativa per valori superiori al 75% (Ok)
+   (Il problema era dovuto al fatto che la divisione "(RH_Correction)/250)" dava un risultato float, come voluto, fino all'ult1mo
+   aggiornamento a GCC 13, fatto in STM32CubeIDE v1.18.0. A partire da questa release il risultato della divisione "(RH_Correction)/250)" 
+   viene, correttamente, interpretato come divisione intera e fornisce valore "0" per risultati < 1)
+3) Corretta l'estensione delle aree di memoria della ram di back-up nelle funzioni di azzeramento (Ok)
+4) Corretta l'indicazione di CO come float (veniva visualizzato come valore intero) quando si entra in modalità setting (Ok)
+5) Corretta l'indicazione con cifra decimale di CO nella versione con GLCD (Ok)
+
+V. 2.07.12	(Rilasciata il 2025/08/20)
+1) Aggiunto il setting dei parametri di calibrazione del sensore TVOC/CO2 (ENS160) dall'ambiente di configurazione (Ok)
+2) Risolta la mancata memorizzazione del Product_Code dall'ambiente di configurazione (Ok)
+
+V. 2.08.00	(NON Rilasciata)
+1) Eliminato il passaggio brusco Heath Index<->Summer Simmer Index (Da fare!!!)
+2) Aggiungere tra i parametri di configurazione i coefficienti per regressione polinomiale fino al terzo ordine, al fine della calibrazione dei sensori. (Da fare!!!)
+
+V. 3.00.00	(NON Rilasciata)
+1) Operazioni propedeutiche su STM32:
+	a) Creare il banco di sviluppo/test con un Sensus192 V2.x (la versione con GLCD), un uC STM32F042 (???), una Env_Sensor_Board staccata dalla Sensus192
+	   ed il GW Mikroe UART<->I2C collegato al uC STM32F042. (Da fare!!!)
+	b) Sviluppare e testare il FW necessario per la comunicazione di Sensu191 con Env_Sensor_Board tramite GW UART<->I2C. (Da fare!!!)
+2) Operazioni propedeutiche su HomeAssistant:
+	a) Backup del VM con OpenMQTTGateway attuale (V1.6.1) (Da fare!!!)
+	b) aggiornare la VM all'ultima versione LTE di Ubuntu. (Da fare!!!)
+	c) aggiornare sulla VM OpenMQTTGateway all'ultima versione. (Da fare!!!)
+	d) Test (Da fare!!!)
+	e) Rilascio (Da fare!!!)
+3) Aggiungere interfaccia FW per LoRAWan su STM32 (Da fare!!!)

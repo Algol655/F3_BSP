@@ -641,8 +641,8 @@ void read_SMO_sensors(void)
 #if !(CH2O_FROM_EC)
 	//Calculate CH2O Vs.
 	SMD1001_CH2O_Vs = SMD1001_CH2O_Vs_AD = V0;
-	if (SMD1001_CH2O_Vs < (SMD1001_CH2O_Vo/1000.0))	//The voltage value detected (Vs) cannot be less
-		SMD1001_CH2O_Vs = (SMD1001_CH2O_Vo/1000.0);	//than that in pure air (Vo) (See SMD1001 data sheet)
+//	if (SMD1001_CH2O_Vs < (SMD1001_CH2O_Vo/1000.0))	//The voltage value detected (Vs) cannot be less
+//		SMD1001_CH2O_Vs = (SMD1001_CH2O_Vo/1000.0);	//than that in pure air (Vo) (See SMD1001 data sheet)
 #if (SMO_SENSOR_TC)
 	//Calculate the SMD1001 temperature correction
 	if (TOut < 10.0)

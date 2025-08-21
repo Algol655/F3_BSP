@@ -221,7 +221,7 @@ typedef struct board_master_data
 
 typedef struct board_status	// 3° order polynomial regression: y = β0 + β1*x + β2*x² + β3*x³ + ε
 {							// 1° order polynomial regression: y = β0 + β1*x + ε
-	uint32_t s0;		//In this application used to store the VOC Sensor BaseLine values
+	uint32_t s0;		//In this application used to store the VOC Sensor BaseLine or calibration values 
 	uint8_t s0_offset;	//offset from 0x0803F800: 0x24
 	uint32_t s1;		//In this application used to store the total uptime timer
 	uint8_t s1_offset;	//offset from 0x0803F800: 0x28

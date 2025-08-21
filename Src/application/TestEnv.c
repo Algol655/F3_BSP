@@ -48,12 +48,19 @@ const uint8_t mystring6[] = "\r\n\n  Close the terminal, connect the programming
 	const uint8_t mystring10b[] = "  Enter the reference hum. in % RH: ";
 #endif
 const uint8_t mystring8c[] = "\r\n\n  ** Restart the board to make the changes effective! **";
-#if ((VOC_SENSOR_PRESENT) && (CCS811))
-	const uint8_t mystring11a[] = "\r\n\n  The current CCS811 Ro is:";
-	const uint8_t mystring11b[] = "  The stored CCS811 Ro is:";
-	const uint8_t mystring11c[] = "";
-	const uint8_t mystring11d[] = "  Enter \"1\" to reserve the baseline save: ";
-	const uint8_t mystring11e[] = "\r\n\n  CCS811 current Ro will be saved after the 30 min. burn-in period";
+#if (VOC_SENSOR_PRESENT)
+	#if(CCS811)
+		const uint8_t mystring11a[] = "\r\n\n  The current CCS811 Ro is:";
+		const uint8_t mystring11b[] = "  The stored CCS811 Ro is:";
+		const uint8_t mystring11c[] = "";
+		const uint8_t mystring11d[] = "  Enter \"1\" to reserve the baseline save: ";
+		const uint8_t mystring11e[] = "\r\n\n  CCS811 current Ro will be saved after the 30 min. burn-in period";
+	#elif (ENS160)
+		const uint8_t mystring11a[] = "\r\n\n  The current eTVOC read by the ENS160 sensor is:";
+		const uint8_t mystring11b[] = "  Enter the reference eTVOC in ppb: ";
+		const uint8_t mystring11c[] = "\r\n\n  The current eCO2 read by the ENS160 sensor is:";
+		const uint8_t mystring11d[] = "  Enter the reference eCO2 in ppm: ";
+	#endif
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 #if !(CO_FROM_EC)
@@ -244,7 +251,7 @@ const uint8_t top_menu_items_row10[]="| FW UPDATE...: [6] |\r\n";
 	#if (HUMIDITY_SENSOR_PRESENT==1)
 		const uint8_t L80_menu_items_row7[]= "| RH SENSOR CALIB.: 4 |\r\n";
 	#endif
-	#if ((VOC_SENSOR_PRESENT) && (CCS811))
+	#if (VOC_SENSOR_PRESENT)
 		const uint8_t L80_menu_items_row8[]= "| VOC SENSOR CALIB: 5 |\r\n";
 	#endif
 	#if (GAS_SENSOR_MODULE_PRESENT==1)
@@ -1240,7 +1247,6 @@ void L70_menu_Strings()
 																		 bdaddr[0],bdaddr[1],bdaddr[2]);
 	CDC_Tx_FS((uint8_t*)ascii_val1,strlen((const char*)ascii_val1));
 	CDC_Tx_FS((uint8_t*)mystring21b,strlen((const char*)mystring21b));
-
 }
 
 #pragma GCC optimize ("Os")
@@ -1309,7 +1315,7 @@ void L80_menu_Strings()
 #if (HUMIDITY_SENSOR_PRESENT==1)
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row7,strlen((const char*)L80_menu_items_row7));
 #endif
-#if ((VOC_SENSOR_PRESENT) && (CCS811))
+#if (VOC_SENSOR_PRESENT)
 	CDC_Tx_FS((uint8_t*)L80_menu_items_row8,strlen((const char*)L80_menu_items_row8));
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
@@ -1373,9 +1379,16 @@ void L80_menu()
 	float32_t Tref = 0.0;
 	extern int16_t T_Correction;
 #endif
-#if (VOC_SENSOR_PRESENT==1) && (CCS811)
-	extern uint32_t CCS811_VOC_Ro;
-	extern uint32_t CCS811_VOC_Ro_Stored;
+#if (VOC_SENSOR_PRESENT==1)
+	#if (CCS811)
+		extern uint32_t CCS811_VOC_Ro;
+		extern uint32_t CCS811_VOC_Ro_Stored;
+	#elif (ENS160)
+		uint16_t eq_TVOCref, eq_CO2ref;
+		extern ENS160_MeasureTypeDef_st VOC_Values;
+		extern uint16_t VOC_Correction;
+		extern uint16_t CO2_Correction;
+	#endif
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	extern uint16_t CH2O, NO2, NH3; //CO
@@ -1523,13 +1536,12 @@ void L80_menu()
 				}
 				break;
 #endif
-#if ((VOC_SENSOR_PRESENT) && (CCS811))
+#if (VOC_SENSOR_PRESENT)
 			case 0x35:
 				app.usbbuf[len-1] = 0;
 				mystring3[0] = 0;
 	#if (CCS811)
 				CCS811_Save_Baseline(false);
-	#endif
 				PrintNumHeader((uint8_t*)mystring11a, (uint8_t*)mystring11c, CCS811_VOC_Ro, false, " ");
 				PrintNumHeader((uint8_t*)mystring11b, (uint8_t*)mystring11d, CCS811_VOC_Ro_Stored, false, " ");
 				GetNumericString(false, false);
@@ -1543,6 +1555,32 @@ void L80_menu()
 //					CCS811_Restore_Baseline(false);
 //					updated = true;
 				}
+	#elif (ENS160)
+				PrintNumHeader((uint8_t*)mystring11a, (uint8_t*)mystring11b, VOC_Values.eTVOC, false, "");
+				GetNumericString(false, false);
+				if ((strlen((const char*)(mystring3))) && (VOC_Values.eTVOC > 0))
+				{
+					eq_TVOCref = atoi((const char*)mystring3);
+					VOC_Correction = (uint32_t)(VOC_Values.eTVOC/eq_TVOCref);
+					if (VOC_Correction < 1)
+						VOC_Correction = 1;
+					updated = true;
+				}
+
+				app.usbbuf[app.usblen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring11c, (uint8_t*)mystring11d, VOC_Values.eCO2, false, "");
+				GetNumericString(false, false);
+				if ((strlen((const char*)(mystring3))) && (VOC_Values.eTVOC > 0))
+				{
+					eq_CO2ref = atoi((const char*)mystring3);
+					CO2_Correction = (uint32_t)(VOC_Values.eCO2/eq_CO2ref);
+					if (CO2_Correction < 1)
+						CO2_Correction = 1;
+					updated = true;
+				}
+				//Pack-> Bit 0..15: VOC_Correction; Bit 15..31: CO2_Correction
+				FlashDataOrg.b_status.s0 = ((uint32_t)(CO2_Correction & 0xFFFF) << 16) | (uint32_t)(VOC_Correction & 0xFFFF);
+	#endif
 				break;
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
