@@ -300,10 +300,10 @@ ENS160_Error_et ENS160_SetEnvironmentalData(float relativeHumidity, float temper
 	temp = (uint16_t)((lrintf((temperature + 273.15f) * 64.0f)));
 	rH = (uint16_t)((lrintf(relativeHumidity * 512.0f)));
 
-	envData[0] = temp & 0xFF;
-	envData[1] = (temp >> 8) & 0xFF;
-	envData[2] = rH & 0xff;;
-	envData[3] = (rH >> 8) & 0xFF;
+	envData[0] = (uint8_t)(temp & 0x00FF);
+	envData[1] = (uint8_t)((temp & 0xFF00) >> 8);
+	envData[2] = (uint8_t)(rH & 0x00FF);
+	envData[3] = (uint8_t)((rH & 0xFF00) >> 8);
 
 	if(ENS160_WriteReg(ENS160_BADDR, ENS160_TEMP_IN, 4, &envData[0]))
 		return ENS160_ERROR;

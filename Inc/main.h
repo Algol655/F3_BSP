@@ -158,9 +158,12 @@ void Error_Handler(void);
 /**************************/
 /*    Project Settings    */
 /**************************/
-#define POLINOMIAL_REGRESSION 	(0)
-#define CALC_DEWPOINT	(1)				//When at 1 the DewPoint is calculated and displayed. CALC_ALTITUDE must be 0
-#define CALC_ALTITUDE	(0)				//When at 1 the altitude calculated according to barometric formula
+#define ENV_POLINOMIAL_REGRESSION	(0)	//When 1 is applied the polynomial regression curve to the values ​​read by the environmental sensors
+										//according to the set coefficients
+#define AQ_POLINOMIAL_REGRESSION	(0)	//When 1 is applied the polynomial regression curve to the values ​​read by the Air Quality sensors
+										//according to the set coefficients
+#define CALC_DEWPOINT	(1)				//When 1 the DewPoint is calculated and displayed. CALC_ALTITUDE must be 0
+#define CALC_ALTITUDE	(0)				//When 1 the altitude calculated according to barometric formula
 										//to the atmospheric pressure will be displayed. CALC_DEWPOINT must be 0
 //GUI defines section
 #define TLCD_SUPPORT	(0)				//1 to support a Text LCD 24xN. GLCD_SUPPORT and TFT_SUPPORT must both be zero!

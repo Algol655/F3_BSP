@@ -10,7 +10,7 @@
 
 uint8_t DeviceName[5] ="S191";
 uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
-uint8_t SW_Version[5] ="2712";
+uint8_t SW_Version[5] ="2800";
 uint32_t Vendor_ID  = 0x2316F;
 uint32_t Prdct_Code = 10000324;
 uint32_t Rev_Number = 0;
@@ -28,6 +28,10 @@ uint32_t Ser_Number = 1;
 #endif
 #if ((HUMIDITY_SENSOR_PRESENT==1) || (PRESSURE_SENSOR_PRESENT==1))
 	int16_t T_Correction = 0;			//In °C
+	#if (ENV_POLINOMIAL_REGRESSION)
+		float32_t a0_Temp = 0.0; float32_t a1_Temp = 1.0;
+		float32_t a0_Hum = 0.0; float32_t a1_Hum = 1.0;
+	#endif
 #endif
 #if (VOC_SENSOR_PRESENT==1)
 	uint16_t VOC_Correction = 0;		//In ppb
@@ -62,6 +66,17 @@ uint32_t Ser_Number = 1;
 	float32_t MiCS_6814_CO_Rs_AD;		//In ohm
 	float32_t MiCS_6814_NO2_Rs_AD;		//In ohm
 	float32_t MiCS_6814_NH3_Rs_AD;		//In ohm
+	#if (AQ_POLINOMIAL_REGRESSION)
+		float32_t a0_CO = 0.0; float32_t a1_CO = 1.0; float32_t a2_CO = 0.0; float32_t a3_CO = 0.0;
+		float32_t a0_CH2O = 0.0; float32_t a1_CH2O = 1.0; float32_t a2_CH2O = 0.0; float32_t a3_CH2O = 0.0;
+		float32_t a0_NO2 = 0.0; float32_t a1_NO2 = 1.0; float32_t a2_NO2 = 0.0; float32_t a3_NO2 = 0.0;
+		float32_t a0_NH3 = 0.0; float32_t a1_NH3 = 1.0; float32_t a2_NH3 = 0.0; float32_t a3_NH3 = 0.0;
+		#if (OUTDOOR_MODE)
+			float32_t a0_O3 = 0.0; float32_t a1_O3 = 1.0; float32_t a2_O3 = 0.0; float32_t a3_O3 = 0.0;
+			float32_t a0_SO2 = 0.0; float32_t a1_SO2 = 1.0; float32_t a2_SO2 = 0.0; float32_t a3_SO2 = 0.0;
+			float32_t a0_C6H6 = 0.0; float32_t a1_C6H6 = 1.0; float32_t a2_C6H6 = 0.0; float32_t a3_C6H6 = 0.0;
+		#endif
+	#endif
 #endif
 #if (GUI_SUPPORT==1)
 #if (IMU_PRESENT==1)
@@ -176,6 +191,55 @@ void AB_Init(void)
 		FlashDataOrg.b_status.s15 = 10000;	//SMD1001 Rf CH2O default value
 #endif
 	}
+#if (ENV_POLINOMIAL_REGRESSION)
+	if (FlashDataOrg.b_status.s17 == 0xFFFFFFFF)
+	{
+		FlashDataOrg.b_status.s3 = *(uint32_t*)&a0_Temp;	//Temperature coeff. β0+ε of the 1° order polynomial regression
+		FlashDataOrg.b_status.s17 = *(uint32_t*)&a1_Temp;	//Temperature coeff. β1 of the 1° order polynomial regression
+		FlashDataOrg.b_status.s5 = *(uint32_t*)&a0_Hum;		//Humidity coeff. β0+ε of the 1° order polynomial regression
+		FlashDataOrg.b_status.s19 = *(uint32_t*)&a1_Hum;	//Humidity coeff. β1 of the 1° order polynomial regression
+	}
+#endif
+#if (AQ_POLINOMIAL_REGRESSION)
+	if (FlashDataOrg.b_status.s37 == 0xFFFFFFFF)
+	{
+		FlashDataOrg.b_status.s37 = *(uint32_t*)&a0_CO;		//Carbon Monoxide coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s38 = *(uint32_t*)&a1_CO;		//Carbon Monoxide coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s39 = *(uint32_t*)&a2_CO;		//Carbon Monoxide coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s40 = *(uint32_t*)&a3_CO;		//Carbon Monoxide coeff. β3 of the 3° order polynomial regression
+
+		FlashDataOrg.b_status.s21 = *(uint32_t*)&a0_CH2O;	//Formaldehyde coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s22 = *(uint32_t*)&a1_CH2O;	//Formaldehyde coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s23 = *(uint32_t*)&a2_CH2O;	//Formaldehyde coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s24 = *(uint32_t*)&a3_CH2O;	//Formaldehyde coeff. β3 of the 3° order polynomial regression
+
+		FlashDataOrg.b_status.s29 = *(uint32_t*)&a0_NO2;	//Nitrogen Dioxide coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s30 = *(uint32_t*)&a1_NO2;	//Nitrogen Dioxide coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s31 = *(uint32_t*)&a2_NO2;	//Nitrogen Dioxide coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s32 = *(uint32_t*)&a3_NO2;	//Nitrogen Dioxide coeff. β3 of the 3° order polynomial regression
+
+		FlashDataOrg.b_status.s33 = *(uint32_t*)&a0_NH3;	//Ammonia coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s34 = *(uint32_t*)&a1_NH3;	//Ammonia coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s35 = *(uint32_t*)&a2_NH3;	//Ammonia coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s36 = *(uint32_t*)&a3_NH3;	//Ammonia coeff. β3 of the 3° order polynomial regression
+	#if (OUTDOOR_MODE)
+		FlashDataOrg.b_status.s25 = *(uint32_t*)&a0_O3;		//Ozone coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s26 = *(uint32_t*)&a1_O3;		//Ozone coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s27 = *(uint32_t*)&a2_O3;		//Ozone coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s28 = *(uint32_t*)&a3_O3;		//Ozone coeff. β3 of the 3° order polynomial regression
+
+		FlashDataOrg.b_status.s41 = *(uint32_t*)&a0_SO2;	//Sulphur Dioxide coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s42 = *(uint32_t*)&a1_SO2;	//Sulphur Dioxide coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s43 = *(uint32_t*)&a2_SO2;	//Sulphur Dioxide coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s44 = *(uint32_t*)&a3_SO2;	//Sulphur Dioxide coeff. β3 of the 3° order polynomial regression
+
+		FlashDataOrg.b_status.s45 = *(uint32_t*)&a0_C6H6;	//Benzene coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s46 = *(uint32_t*)&a1_C6H6;	//Benzene coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s47 = *(uint32_t*)&a2_C6H6;	//Benzene coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s48 = *(uint32_t*)&a3_C6H6;	//Benzene coeff. β3 of the 3° order polynomial regression
+	#endif
+	}
+#endif
 	Version[14] = HW_Version[0];
 	Version[16] = HW_Version[1];
 	Version[32] = SW_Version[0];
@@ -216,12 +280,17 @@ void AB_Init(void)
 	}
 #endif
     HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after LPS2xHB Init
-    //Set the calibration values
-	T_Correction = (int16_t)((FlashDataOrg.b_status.s3) & 0x0000FFFF);	//Add Temperature calibration to sensor value
-	P_Correction = (int32_t)FlashDataOrg.b_status.s4;	//Add Pressure calibration to sensor value;
-	MSL = (uint16_t)((FlashDataOrg.b_status.se) & 0x0000FFFF);
-	if ((MSL == 0xFFFF) || (MSL == 0x0))	//If no value has been programmed then set with the default value
-		MSL = 10;
+	#if (ENV_POLINOMIAL_REGRESSION)
+    	a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s3);
+       	a1_Temp = *(float32_t*)&(FlashDataOrg.b_status.s17);
+		T_Correction = 0;
+	#else
+		T_Correction = (int16_t)((FlashDataOrg.b_status.s3) & 0x0000FFFF);	//Add Temperature offset to sensor value
+		P_Correction = (int32_t)FlashDataOrg.b_status.s4;					//Add Pressure offset to sensor value
+		MSL = (uint16_t)((FlashDataOrg.b_status.se) & 0x0000FFFF);
+		if ((MSL == 0xFFFF) || (MSL == 0x0))	//If no value has been programmed then set with the default value
+			MSL = 10;
+	#endif
 #endif
 
 #if (HUMIDITY_SENSOR_PRESENT==1)
@@ -253,8 +322,17 @@ void AB_Init(void)
 #endif
     HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after HTS221 Init
     //Set the calibration values
-	T_Correction = (int16_t)FlashDataOrg.b_status.s3;	//Add Temperature calibration to sensor value
-	RH_Correction = (int32_t)FlashDataOrg.b_status.s5;	//Add Humidity calibration to sensor value;
+	#if (ENV_POLINOMIAL_REGRESSION)
+		a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s3);
+		a1_Temp = *(float32_t*)&(FlashDataOrg.b_status.s17);
+		a0_Hum = *(float32_t*)&(FlashDataOrg.b_status.s5);
+		a1_Hum = *(float32_t*)&(FlashDataOrg.b_status.s19);
+		T_Correction = 0;
+		RH_Correction = 0;
+	#else
+		T_Correction = (int16_t)FlashDataOrg.b_status.s3;	//Add Temperature offset to sensor value
+		RH_Correction = (int32_t)FlashDataOrg.b_status.s5;	//Add Humidity offset to sensor value;
+	#endif
 #endif
 
 #if (UVx_SENSOR_PRESENT==1)
@@ -399,15 +477,48 @@ void AB_Init(void)
 	#endif
     HAL_TIM_Base_Start_IT(&htim3);		//Start Timer3 after Analog Module Init
     //Set the calibration values
-    CO_Corr = (int8_t)(FlashDataOrg.b_status.sa & 0x000000FF);
-    CH2O_Corr = (int8_t)(FlashDataOrg.b_status.s9 & 0x000000FF);
-	NO2_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 16) & 0x000000FF);
-	NH3_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 24) & 0x000000FF);
-	#if (OUTDOOR_MODE)
-		O3_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 8) & 0x000000FF);
-		SO2_Corr = (int8_t)((FlashDataOrg.b_status.sa >> 8) & 0x000000FF);
-		C6H6_Corr = (int8_t)((FlashDataOrg.b_status.sa >> 16) & 0x000000FF);
-	#endif //OUTDOOR_MODE
+	#if (AQ_POLINOMIAL_REGRESSION)
+		a0_CO = *(float32_t*)&(FlashDataOrg.b_status.s37);
+		a1_CO = *(float32_t*)&(FlashDataOrg.b_status.s38);
+		a2_CO = *(float32_t*)&(FlashDataOrg.b_status.s39);
+		a3_CO = *(float32_t*)&(FlashDataOrg.b_status.s40);
+		a0_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s21);
+		a1_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s22);
+		a2_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s23);
+		a3_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s24);
+		a0_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s29);
+		a1_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s30);
+		a2_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s31);
+		a3_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s32);
+		a0_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s33);
+		a1_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s34);
+		a2_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s35);
+		a3_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s36);
+		#if (OUTDOOR_MODE)
+			a0_O3 = *(float32_t*)&(FlashDataOrg.b_status.s25);
+			a1_O3 = *(float32_t*)&(FlashDataOrg.b_status.s26);
+			a2_O3 = *(float32_t*)&(FlashDataOrg.b_status.s27);
+			a3_O3 = *(float32_t*)&(FlashDataOrg.b_status.s28);
+			a0_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s41);
+			a1_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s42);
+			a2_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s43);
+			a3_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s44);
+			a0_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s45);
+			a1_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s46);
+			a2_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s47);
+			a3_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s48);
+		#endif
+	#else
+		CO_Corr = (int8_t)(FlashDataOrg.b_status.sa & 0x000000FF);
+		CH2O_Corr = (int8_t)(FlashDataOrg.b_status.s9 & 0x000000FF);
+		NO2_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 16) & 0x000000FF);
+		NH3_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 24) & 0x000000FF);
+		#if (OUTDOOR_MODE)
+			O3_Corr = (int8_t)((FlashDataOrg.b_status.s9 >> 8) & 0x000000FF);
+			SO2_Corr = (int8_t)((FlashDataOrg.b_status.sa >> 8) & 0x000000FF);
+			C6H6_Corr = (int8_t)((FlashDataOrg.b_status.sa >> 16) & 0x000000FF);
+		#endif //OUTDOOR_MODE
+	#endif
 	MiCS_6814_CO_Ro = FlashDataOrg.b_status.sb;
 	MiCS_6814_NH3_Ro = FlashDataOrg.b_status.sc;
 	MiCS_6814_NO2_Ro = FlashDataOrg.b_status.sd;
@@ -939,6 +1050,7 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 	static float32_t p_temp_value = 0.0; static float32_t p_hum_value = 0.0;
 	static float32_t TemperatureP = 0.0;
 
+#if (!ENV_POLINOMIAL_REGRESSION)
 	//When the RH*10 reaches 750 (75%) then it applies the correction in proportion
 	//to the 1000 - RH*10 difference. This prevents RH% from exceeding 100%
 	if (HumTemp->Hout > 750)
@@ -946,6 +1058,7 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 //		RH_Correction = (int32_t)(lrintf(((float32_t)((1000 - HumTemp->Hout) * ((RH_Correction)/250.0)))));
 	else	//Restore the original value
 		RH_Correction = (int32_t)FlashDataOrg.b_status.s5;
+#endif
 	T_Out = HumTemp->Tout + T_Correction;	//Use HTS221 if present. T_Out is used by BLE in app_bluenrg_2.c User_Process() function
 	temp_value = (float32_t)T_Out;
 

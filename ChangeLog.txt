@@ -45,8 +45,19 @@ V. 2.07.12	(Rilasciata il 2025/08/20)
 2) Risolta la mancata memorizzazione del Product_Code dall'ambiente di configurazione (Ok)
 
 V. 2.08.00	(NON Rilasciata)
+1) Aggiornamento CubeMX 6.15.0, CubeIDE 1.19.0 
+2) Risolta una possibile criticità sul settaggio dei paramemetri ambiental nella driver del sensore ENS160 (Ok)
+3) Corretta la gestione dello storage e del ripristino dei dati di fabbrica in formato stringa
+   (DeviceName[5], HW_Version[5], SW_Version[5] nelle funzioni ReadFlah, WriteFlash in port.c) (Ok)
+4) Aggiunti, tra i parametri di configurazione, i coefficienti della regressione polinomiale fino al terzo ordine,
+   per la calibrazione dei sensori degli inquinanti gassosi (CO, CH2O, NO2, NH3, O3, SO2, C6H6). (Ok)
+
+V. 2.08.01	(NON Rilasciata)
 1) Eliminato il passaggio brusco Heath Index<->Summer Simmer Index (Da fare!!!)
-2) Aggiungere tra i parametri di configurazione i coefficienti per regressione polinomiale fino al terzo ordine, al fine della calibrazione dei sensori. (Da fare!!!)
+2) Compattato lo storage dei valori di calibrazione della temperatura ed umidità in un'unica locazione di flash
+   (FlashDataOrg.b_status.s3[15..0]: val. di calib. temperatura; FlashDataOrg.b_status.s3[31..16]: val. di calib. umidità)
+   FlashDataOrg.b_status.s5 diventa il coeff. β0+ε della regressione polinomiale del 1° ordine della temperatura (Da fare!!!)
+   FlashDataOrg.b_status.s..(da decidere!!) diventa il coeff. β0+ε della regressione polinomiale del 1° ordine dell'umidità (Da fare!!!)
 
 V. 3.00.00	(NON Rilasciata)
 1) Operazioni propedeutiche su STM32:

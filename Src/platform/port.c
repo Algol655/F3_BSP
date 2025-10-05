@@ -106,9 +106,9 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	memcpy(&FlashDataOrg.b_time, &Stamp.time[0], 3);
 
 	//Get board data and copy them in the flash board data structure
-	memcpy(&FlashDataOrg.b_mdata.DeviceName, &DeviceName[0], 5);
-	memcpy(&FlashDataOrg.b_mdata.HW_Version, &HW_Version[0], 5);
-	memcpy(&FlashDataOrg.b_mdata.SW_Version, &SW_Version[0], 5);
+	memcpy(&FlashDataOrg.b_mdata.DeviceName, &DeviceName[0], 4);
+	memcpy(&FlashDataOrg.b_mdata.HW_Version, &HW_Version[0], 4);
+	memcpy(&FlashDataOrg.b_mdata.SW_Version, &SW_Version[0], 4);
 	FlashDataOrg.b_mdata.Vendor_ID = Vendor_ID;
 	FlashDataOrg.b_mdata.Prdct_Code = Prdct_Code;
 	FlashDataOrg.b_mdata.Rev_Number = Rev_Number;
@@ -162,11 +162,13 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s14_offset, FlashDataOrg.b_status.s14);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s15_offset, FlashDataOrg.b_status.s15);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s16_offset, FlashDataOrg.b_status.s16);
-#if (POLINOMIAL_REGRESSION)
+#if (ENV_POLINOMIAL_REGRESSION)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s17_offset, FlashDataOrg.b_status.s17);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s18_offset, FlashDataOrg.b_status.s18);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s19_offset, FlashDataOrg.b_status.s19);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s20_offset, FlashDataOrg.b_status.s20);
+#endif
+#if (AQ_POLINOMIAL_REGRESSION)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s21_offset, FlashDataOrg.b_status.s21);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s22_offset, FlashDataOrg.b_status.s22);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s23_offset, FlashDataOrg.b_status.s23);
@@ -263,11 +265,13 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 	FlashDataOrg.b_status.s14 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s14_offset));
 	FlashDataOrg.b_status.s15 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s15_offset));
 	FlashDataOrg.b_status.s16 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s16_offset));
-#if (POLINOMIAL_REGRESSION)
+#if (ENV_POLINOMIAL_REGRESSION)
 	FlashDataOrg.b_status.s17 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s17_offset));
 	FlashDataOrg.b_status.s18 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s18_offset));
 	FlashDataOrg.b_status.s19 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s19_offset));
 	FlashDataOrg.b_status.s20 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s20_offset));
+#endif
+#if (AQ_POLINOMIAL_REGRESSION)
 	FlashDataOrg.b_status.s21 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s21_offset));
 	FlashDataOrg.b_status.s22 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s22_offset));
 	FlashDataOrg.b_status.s23 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s23_offset));
@@ -319,14 +323,17 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 //	RTC_DateRegulate(&hrtc, Stamp.date[2], Stamp.date[0], Stamp.date[1], 0x01);
 
 	//Format the data read from flash in the board data structure (comment if factory data are declared as constant)
-	memcpy(&DeviceName[0], &FlashDataOrg.b_mdata.DeviceName, 5);
-	memcpy(&HW_Version[0], &FlashDataOrg.b_mdata.HW_Version, 5);
+	memcpy(&DeviceName[0], &FlashDataOrg.b_mdata.DeviceName, 4);
+	DeviceName[4] = 0;
+	memcpy(&HW_Version[0], &FlashDataOrg.b_mdata.HW_Version, 4);
+	HW_Version[4] = 0;
 	memcpy(&SW_Ver_Current, &SW_Version[0], 4);
 	memcpy(&SW_Ver_Previous, &FlashDataOrg.b_mdata.SW_Version, 4);
 	if (SW_Ver_Current != SW_Ver_Previous)
-		memcpy(&FlashDataOrg.b_mdata.SW_Version, &SW_Version[0], 5);
+		memcpy(&FlashDataOrg.b_mdata.SW_Version, &SW_Version[0], 4);
 	else
-		memcpy(&SW_Version[0], &FlashDataOrg.b_mdata.SW_Version, 5);
+		memcpy(&SW_Version[0], &FlashDataOrg.b_mdata.SW_Version, 4);
+	SW_Version[4] = 0;
 	Vendor_ID = FlashDataOrg.b_mdata.Vendor_ID;
 	Prdct_Code = FlashDataOrg.b_mdata.Prdct_Code;
 	Rev_Number = FlashDataOrg.b_mdata.Rev_Number;

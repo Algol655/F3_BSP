@@ -101,9 +101,12 @@ FLASH_DATA_ORG FlashDataOrg = {.b_date_offset = 0x00, .b_time_offset = 0x04,
 .b_status.sb_offset = 0x50, .b_status.sc_offset = 0x54, .b_status.sd_offset = 0x58, .b_status.se_offset = 0x5C,
 .b_status.sf_offset = 0x60, .b_status.s10_offset = 0x64, .b_status.s11_offset = 0x68, .b_status.s12_offset = 0x6C, .b_status.s12 = 0xF50000,
 .b_status.s13_offset = 0x70, .b_status.s14_offset = 0x74, .b_status.s15_offset = 0x78, .b_status.s16_offset = 0x7C
-#if (POLINOMIAL_REGRESSION)
+#if (ENV_POLINOMIAL_REGRESSION)
 ,
-.b_status.s17_offset = 0x80, .b_status.s18_offset = 0x84, .b_status.s19_offset = 0x88, .b_status.s20_offset = 0x8C,
+.b_status.s17_offset = 0x80, .b_status.s18_offset = 0x84, .b_status.s19_offset = 0x88, .b_status.s20_offset = 0x8C
+#endif
+#if (AQ_POLINOMIAL_REGRESSION)
+,
 .b_status.s21_offset = 0x90, .b_status.s22_offset = 0x94, .b_status.s23_offset = 0x98, .b_status.s24_offset = 0x9C,
 .b_status.s25_offset = 0xA0, .b_status.s26_offset = 0xA4, .b_status.s27_offset = 0xA8, .b_status.s28_offset = 0xAC,
 .b_status.s29_offset = 0xB0, .b_status.s30_offset = 0xB4, .b_status.s31_offset = 0xB8, .b_status.s32_offset = 0xBC,
@@ -649,8 +652,7 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

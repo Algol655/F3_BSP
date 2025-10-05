@@ -18,6 +18,16 @@ uint8_t mystring3[CmdLineMaxLen];
 const uint8_t mystring4[] = "\r\n\n  ---- Bye!! ----\r\n\n";
 const uint8_t mystring5[] = "\r\n\n  Are you sure you want to update the FW? [N/y]";
 const uint8_t mystring6[] = "\r\n\n  Close the terminal, connect the programming cable and start the programming tool on the PC...";
+#if ((ENV_POLINOMIAL_REGRESSION) || (AQ_POLINOMIAL_REGRESSION))
+	const uint8_t mystring9e[] = "\r\n\n  The current coefficient a0+e of the polynomial regression is:";
+	const uint8_t mystring9f[] = "\r\n\n  The current coefficient a1 of the polynomial regression is:";
+	const uint8_t mystring9g[] = "\r\n\n  The current coefficient a2 of the polynomial regression is:";
+	const uint8_t mystring9h[] = "\r\n\n  The current coefficient a3 of the polynomial regression is:";
+	const uint8_t mystring9i[] = "  Enter the coefficient a0+e: ";
+	const uint8_t mystring9l[] = "  Enter the coefficient a1: ";
+	const uint8_t mystring9m[] = "  Enter the coefficient a2: ";
+	const uint8_t mystring9n[] = "  Enter the coefficient a3: ";
+#endif
 #if (PRESSURE_SENSOR_PRESENT==1)
 	#if (LPS25HB)
 		const uint8_t mystring9a[] = "\r\n\n  The current absolute pressure read by the LPS25HB sensor is:";
@@ -44,8 +54,10 @@ const uint8_t mystring6[] = "\r\n\n  Close the terminal, connect the programming
 			const uint8_t mystring8a[] = "\r\n\n  The current temperature read by the LPS22HB sensor is:";
 		#endif
 	#endif
-	const uint8_t mystring8b[] = "  Enter the reference temp. in °C in XX.X or -XX.X format: ";
-	const uint8_t mystring10b[] = "  Enter the reference hum. in % RH: ";
+	#if !(ENV_POLINOMIAL_REGRESSION)
+		const uint8_t mystring8b[] = "  Enter the reference temp. in °C in XX.X or -XX.X format: ";
+		const uint8_t mystring10b[] = "  Enter the reference hum. in % RH: ";
+	#endif
 #endif
 const uint8_t mystring8c[] = "\r\n\n  ** Restart the board to make the changes effective! **";
 #if (VOC_SENSOR_PRESENT)
@@ -65,37 +77,33 @@ const uint8_t mystring8c[] = "\r\n\n  ** Restart the board to make the changes e
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 #if !(CO_FROM_EC)
 	const uint8_t mystring12a[] = "  The current CO read by the MiCS-6814 sensor is:";
-	//const uint8_t mystring12b[] = "  Enter the reference CO in mg/m3: ";
-	const uint8_t mystring12b[] = "  Enter the reference CO in mV/10: ";
+	const uint8_t mystring12b[] = "  Enter the CO ADC offset in mV/10: ";
 	const uint8_t mystring12c[] = "\r\n\n  The current MiCS-6814 Ro_CO is:";
 	const uint8_t mystring12d[] = "  Enter the reference Ro_CO in ohm: ";
 	const uint8_t mystring12g[] = "\r\n\n  The read value of Rf_CO is:";
 #else
 	const uint8_t mystring12a[] = "  The current CO read by the EC sensor is:";
-	const uint8_t mystring12b[] = "  Enter the reference CO in mV: ";
+	const uint8_t mystring12b[] = "  Enter the CO ADC offset in mV: ";
 #endif
 #if !(NO2_FROM_EC)
 	const uint8_t mystring14a[] = "  The current NO2 read by the MiCS-6814 sensor is:";
-	//const uint8_t mystring14b[] = "  Enter the reference NO2 in ug/m3: ";
-	const uint8_t mystring14b[] = "  Enter the reference NO2 in mV/10: ";
+	const uint8_t mystring14b[] = "  Enter the NO2 ADC offset in mV/10: ";
 	const uint8_t mystring14c[] = "\r\n\n  The current MiCS-6814 Ro_NO2 is:";
 	const uint8_t mystring14d[] = "  Enter the reference Ro_NO2 in ohm: ";
 	const uint8_t mystring14e[] = "\r\n\n  The read value of Rf_NO2 is:";
 #else
 	const uint8_t mystring14a[] = "  The current NO2 read by the EC sensor is:";
-	const uint8_t mystring14b[] = "  Enter the reference NO2 in mV: ";
+	const uint8_t mystring14b[] = "  Enter the NO2 ADC offset in mV: ";
 #endif
 	const uint8_t mystring15a[] = "  The current NH3 read by the MiCS-6814 sensor is:";
-	//const uint8_t mystring15b[] = "  Enter the reference NH3 in ug/m3: ";
-	const uint8_t mystring15b[] = "  Enter the reference NH3 in mV/10: ";
+	const uint8_t mystring15b[] = "  Enter the NH3 ADC offset in mV/10: ";
 	const uint8_t mystring15c[] = "\r\n\n  The current MiCS-6814 Ro_NH3 is:";
 	const uint8_t mystring15d[] = "  Enter the reference Ro_NH3 in ohm: ";
 	const uint8_t mystring12e[] = "\r\n\n  The read value of Rs is:";
 	const uint8_t mystring12f[] = "  If you are in clean air use this value as reference value.";
 	const uint8_t mystring15e[] = "\r\n\n  The read value of Rf_NH3 is:";
 	const uint8_t mystring12h[] = "  Enter the new Rf in ohm: ";
-	//const uint8_t mystring13b[] = "  Enter the reference CH2O in ug/m3: ";
-	const uint8_t mystring13b[] = "  Enter the reference CH2O in mV: ";
+	const uint8_t mystring13b[] = "  Enter the CH2O ADC offset in mV: ";
 	#if !(CH2O_FROM_EC)
 		const uint8_t mystring13c[] = "\r\n\n  The current SMD1001 Vo_CH2O is:";
 		const uint8_t mystring13d[] = "  Enter the reference Vo_CH2O in mVolts: ";
@@ -106,14 +114,11 @@ const uint8_t mystring8c[] = "\r\n\n  ** Restart the board to make the changes e
 	#endif
 	#if (OUTDOOR_MODE)
 		const uint8_t mystring16a[] = "  The current O3 read by the ZE25-O3 sensor is:";
-		//const uint8_t mystring16b[] = "  Enter the reference O3 in ug/m3: ";
-		const uint8_t mystring16b[] = "  Enter the reference O3 in mV: ";
+		const uint8_t mystring16b[] = "  Enter the O3 ADC offset in mV: ";
 		const uint8_t mystring17a[] = "  The current SO2 read by the ME4-SO2 sensor is:";
-		//const uint8_t mystring17b[] = "  Enter the reference SO2 in ug/m3: ";
-		const uint8_t mystring17b[] = "  Enter the reference SO2 in mV: ";
+		const uint8_t mystring17b[] = "  Enter the SO2 ADC offset in mV: ";
 		const uint8_t mystring18a[] = "  The current C6H6 read by the ME4-C6H6 sensor is:";
-		//const uint8_t mystring18b[] = "  Enter the reference C6H6 in ug/m3: ";
-		const uint8_t mystring18b[] = "  Enter the reference C6H6 in mV: ";
+		const uint8_t mystring18b[] = "  Enter the C6H6 ADC offset in mV: ";
 	#endif	//OUTDOOR_MODE
 	const uint8_t mystring18c[] = "\r\n\n  The current reference is:";
 #endif	//GAS_SENSOR_MODULE_PRESENT
@@ -348,6 +353,7 @@ void DisplayAnalogValues()
 	#endif
 #endif
 }
+
 #pragma GCC optimize ("Os")
 void GetNumericString(bool nopoint, bool nominus)
 {
@@ -457,10 +463,12 @@ void PrintNumHeader(const uint8_t *msg1, const uint8_t *msg2, float32_t fval, bo
 		USART3_Tx((uint8_t*)msg1,strlen((const char*)msg1));
 	if (Float)
 	{
-		if (strcmp(meas_unit, " Volts"))
-			sprintf((char*)&ascii_val[0], " %.1f%s\r\n", fval, meas_unit);
-		else
+		if ((strcmp(meas_unit, " Volts")) == 0)
 			sprintf((char*)&ascii_val[0], " %.3f%s\r\n", fval, meas_unit);
+		else if ((strcmp(meas_unit, "const")) == 0)
+			sprintf((char*)&ascii_val[0], " %.3f\r\n", fval);
+		else
+			sprintf((char*)&ascii_val[0], " %.1f%s\r\n", fval, meas_unit);
 	}
 	else
 		sprintf((char*)&ascii_val[0], " %ld%s\r\n", (int32_t)fval, meas_unit);
@@ -672,6 +680,7 @@ void L00_menu()
 	extern uint32_t Prdct_Code;
 	extern uint32_t Rev_Number;
 	extern uint32_t Ser_Number;
+	extern uint32_t Up_Time_H;
 	uint8_t HW_Version1[5];
 	bool updated = false;
 
@@ -1353,7 +1362,6 @@ void L80_menu_Strings()
 void L80_menu()
 {
 	static volatile uint8_t len;
-
 #if (PRESSURE_SENSOR_PRESENT==1)
 	float32_t Pref = 0.0;
 	extern int32_t P_Correction;
@@ -1365,17 +1373,27 @@ void L80_menu()
 	extern uint16_t MSL;
 #endif
 #if (HUMIDITY_SENSOR_PRESENT==1)
-	uint16_t RHref = 0;
-	extern int32_t RH_Correction;
-	#if (HTS221)
-		extern HTS221_MeasureTypeDef_st HUM_Values;
-	#elif (SHT4x)
-		extern SHT4x_MeasureTypeDef_st HUM_Values;
+	#if (ENV_POLINOMIAL_REGRESSION)
+		extern float32_t a0_Hum;
+		extern float32_t a1_Hum;
+	#else
+		uint16_t RHref = 0;
+		extern int32_t RH_Correction;
+		#if (HTS221)
+			extern HTS221_MeasureTypeDef_st HUM_Values;
+		#elif (SHT4x)
+			extern SHT4x_MeasureTypeDef_st HUM_Values;
+		#endif
 	#endif
 #endif
 #if ((PRESSURE_SENSOR_PRESENT==1) || (HUMIDITY_SENSOR_PRESENT==1))
-	float32_t Tref = 0.0;
-	extern int16_t T_Correction;
+	#if (ENV_POLINOMIAL_REGRESSION)
+		extern float32_t a0_Temp;
+		extern float32_t a1_Temp;
+	#else
+		float32_t Tref = 0.0;
+		extern int16_t T_Correction;
+	#endif
 #endif
 #if (VOC_SENSOR_PRESENT==1)
 	#if (CCS811)
@@ -1389,6 +1407,17 @@ void L80_menu()
 	#endif
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
+	#if (AQ_POLINOMIAL_REGRESSION)
+		extern float32_t a0_CO; extern float32_t a1_CO; extern float32_t a2_CO; extern float32_t a3_CO;
+		extern float32_t a0_CH2O; extern float32_t a1_CH2O; extern float32_t a2_CH2O; extern float32_t a3_CH2O;
+		extern float32_t a0_NO2; extern float32_t a1_NO2; extern float32_t a2_NO2; extern float32_t a3_NO2;
+		extern float32_t a0_NH3; extern float32_t a1_NH3; extern float32_t a2_NH3; extern float32_t a3_NH3;
+		#if (OUTDOOR_MODE)
+			extern float32_t a0_O3; extern float32_t a1_O3; extern float32_t a2_O3; extern float32_t a3_O3;
+			extern float32_t a0_SO2; extern float32_t a1_SO2; extern float32_t a2_SO2; extern float32_t a3_SO2;
+			extern float32_t a0_C6H6; extern float32_t a1_C6H6; extern float32_t a2_C6H6; extern float32_t a3_C6H6;
+		#endif
+	#endif
 	extern uint16_t CH2O, NO2, NH3; //CO
 	uint16_t COref = 0; uint16_t CH2Oref = 0; int16_t NO2ref = 0; int16_t NH3ref = 0;
 	extern int8_t CO_Corr; extern int8_t CH2O_Corr;
@@ -1444,7 +1473,7 @@ void L80_menu()
 
 	do
 	{
-		len = usart3app.usartlen;	//We need to save the receive buffer pointer
+		len = (uint8_t)usart3app.usartlen;	//We need to save the receive buffer pointer
 		if (len == 0)		//because it is used in the main application
 			len = 1;
 		sel = usart3app.usartbuf[len-1];
@@ -1475,20 +1504,47 @@ void L80_menu()
 #if ((PRESSURE_SENSOR_PRESENT==1) || (HUMIDITY_SENSOR_PRESENT==1))
 			case 0x32:
 				usart3app.usartbuf[len-1] = 0;
+	#if !(ENV_POLINOMIAL_REGRESSION)
 				PrintNumHeader((uint8_t*)mystring8a, (uint8_t*)mystring8b, temp_value, true, "°C");
 				GetNumericString(true, true);
 				//Calculate the new T_Correction
 				if (strlen((const char*)(mystring3)))
 				{
 					Tref = atof((const char*)mystring3);
-	#if (HUMIDITY_SENSOR_PRESENT)
+		#if (HUMIDITY_SENSOR_PRESENT)
 					FlashDataOrg.b_status.s3 = (uint32_t)lrintf((Tref * 10.0) - (HUM_Values.Tout));
-	#else
+		#else
 					FlashDataOrg.b_status.s3 = (uint32_t)lrintf((Tref * 10.0) - (PRS_Values.Tout));
-	#endif
+		#endif
 					T_Correction = (int16_t)FlashDataOrg.b_status.s3;
 					updated = true;
 				}
+	#else
+				PrintNumHeader((uint8_t*)mystring9e, (uint8_t*)mystring9i, a0_Temp, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a0_Temp = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s3 = *(uint32_t*)&a0_Temp;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s3), &a0_Temp, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9f, (uint8_t*)mystring9l, a1_Temp, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a1_Temp = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s17 = *(uint32_t*)&a1_Temp;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s17), &a1_Temp, 4);
+					updated = true;
+				}
+	#endif
 				break;
 #endif
 #if (PRESSURE_SENSOR_PRESENT==1)
@@ -1522,6 +1578,7 @@ void L80_menu()
 #if (HUMIDITY_SENSOR_PRESENT==1)
 			case 0x34:
 				usart3app.usartbuf[len-1] = 0;
+	#if !(ENV_POLINOMIAL_REGRESSION)
 				PrintNumHeader((uint8_t*)mystring10a, (uint8_t*)mystring10b, hum_value, false, "%");
 				GetNumericString(false, false);
 				//Calculate the new RH_Correction
@@ -1532,6 +1589,32 @@ void L80_menu()
 					RH_Correction = (int32_t)FlashDataOrg.b_status.s5;
 					updated = true;
 				}
+	#else
+			PrintNumHeader((uint8_t*)mystring9e, (uint8_t*)mystring9i, a0_Hum, true, "const");
+			GetNumericString(true, true);
+			if (strlen((const char*)(mystring3)))
+			{
+				a0_Hum = atof((const char*)mystring3);
+				//Passing content of float32 to a uint32 with pointers
+				FlashDataOrg.b_status.s5 = *(uint32_t*)&a0_Hum;
+				//Passing content of float32 to a uint32 with byte-by-byte copy
+				//memcpy(&(FlashDataOrg.b_status.s5), &a0_Hum, 4);
+				updated = true;
+			}
+
+			usart3app.usartbuf[usart3app.usartlen-1] = 0;
+			PrintNumHeader((uint8_t*)mystring9f, (uint8_t*)mystring9l, a1_Hum, true, "const");
+			GetNumericString(true, true);
+			if (strlen((const char*)(mystring3)))
+			{
+				a1_Hum = atof((const char*)mystring3);
+				//Passing content of float32 to a uint32 with pointers
+				FlashDataOrg.b_status.s19 = *(uint32_t*)&a1_Hum;
+				//Passing content of float32 to a uint32 with byte-by-byte copy
+				//memcpy(&(FlashDataOrg.b_status.s17), &a1_Hum, 4);
+				updated = true;
+			}
+	#endif
 				break;
 #endif
 #if (VOC_SENSOR_PRESENT)
@@ -1540,14 +1623,14 @@ void L80_menu()
 				mystring3[0] = 0;
 	#if (CCS811)
 				CCS811_Save_Baseline(false);
-				PrintNumHeader((uint8_t*)mystring11a, (uint8_t*)mystring11c, CCS811_VOC_Ro, false, " ");
-				PrintNumHeader((uint8_t*)mystring11b, (uint8_t*)mystring11d, CCS811_VOC_Ro_Stored, false, " ");
+				PrintNumHeader((uint8_t*)mystring11a, (uint8_t*)mystring11c, CCS811_VOC_Ro, false, "");
+				PrintNumHeader((uint8_t*)mystring11b, (uint8_t*)mystring11d, CCS811_VOC_Ro_Stored, false, "");
 				GetNumericString(false, false);
 				//Calculate the new CCS811_VOC_Ro
 				if (mystring3[0] == 0x31)
 				{
 //					CCS811_Save_Baseline(true);
-					PrintNumHeader((uint8_t*)mystring11e, (uint8_t*)mystring11c, CCS811_VOC_Ro, false, " ");
+					PrintNumHeader((uint8_t*)mystring11e, (uint8_t*)mystring11c, CCS811_VOC_Ro, false, "");
 					CCS811_Save_Baseline_Reserved = true;
 //					FlashDataOrg.b_status.s0 = (uint32_t)(atoi((const char*)mystring3));
 //					CCS811_Restore_Baseline(false);
@@ -1623,6 +1706,60 @@ void L80_menu()
 						CO_Corr = (int8_t)lrintf(COref);
 						updated = true;
 					}
+
+	#if (AQ_POLINOMIAL_REGRESSION)
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9e, (uint8_t*)mystring9i, a0_CO, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a0_CO = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s37 = *(uint32_t*)&a0_CO;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s37), &a0_CO, 4);
+						updated = true;
+					}
+
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9f, (uint8_t*)mystring9l, a1_CO, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a1_CO = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s38 = *(uint32_t*)&a1_CO;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s38), &a1_CO, 4);
+						updated = true;
+					}
+
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9g, (uint8_t*)mystring9m, a2_CO, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a2_CO = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s39 = *(uint32_t*)&a2_CO;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s39), &a2_CO, 4);
+						updated = true;
+					}
+
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9h, (uint8_t*)mystring9n, a3_CO, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a3_CO = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s40 = *(uint32_t*)&a3_CO;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s40), &a3_CO, 4);
+						updated = true;
+					}
+	#endif
 	#if !(CO_FROM_EC)
 				}
 	#endif
@@ -1653,6 +1790,60 @@ void L80_menu()
 					CH2O_Corr = (int8_t)lrintf(CH2Oref);
 					updated = true;
 				}
+
+	#if (AQ_POLINOMIAL_REGRESSION)
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9e, (uint8_t*)mystring9i, a0_CH2O, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a0_CH2O = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s21 = *(uint32_t*)&a0_CH2O;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s21), &a0_CH2O, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9f, (uint8_t*)mystring9l, a1_CH2O, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a1_CH2O = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s22 = *(uint32_t*)&a1_CH2O;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s22), &a1_CH2O, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9g, (uint8_t*)mystring9m, a2_CH2O, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a2_CH2O = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s23 = *(uint32_t*)&a2_CH2O;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s23), &a2_CH2O, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9h, (uint8_t*)mystring9n, a3_CH2O, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a3_CH2O = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s24 = *(uint32_t*)&a3_CH2O;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s24), &a3_CH2O, 4);
+					updated = true;
+				}
+	#endif
 				break;
 			case 0x38:
 	#if !(NO2_FROM_EC)
@@ -1695,6 +1886,60 @@ void L80_menu()
 						NO2_Corr = (int8_t)NO2ref;
 						updated = true;
 					}
+
+	#if (AQ_POLINOMIAL_REGRESSION)
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9e, (uint8_t*)mystring9i, a0_NO2, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a0_NO2 = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s29 = *(uint32_t*)&a0_NO2;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s29), &a0_NO2, 4);
+						updated = true;
+					}
+
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9f, (uint8_t*)mystring9l, a1_NO2, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a1_NO2 = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s30 = *(uint32_t*)&a1_NO2;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s30), &a1_NO2, 4);
+						updated = true;
+					}
+
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9g, (uint8_t*)mystring9m, a2_NO2, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a2_NO2 = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s31 = *(uint32_t*)&a2_NO2;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s31), &a2_NO2, 4);
+						updated = true;
+					}
+
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9h, (uint8_t*)mystring9n, a3_NO2, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a3_NO2 = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s32 = *(uint32_t*)&a3_NO2;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s32), &a3_NO2, 4);
+						updated = true;
+					}
+	#endif
 	#if !(NO2_FROM_EC)
 				}
 	#endif
@@ -1735,6 +1980,60 @@ void L80_menu()
 						NH3_Corr = (int8_t)NH3ref;
 						updated = true;
 					}
+
+		#if (AQ_POLINOMIAL_REGRESSION)
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9e, (uint8_t*)mystring9i, a0_NH3, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a0_NH3 = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s33 = *(uint32_t*)&a0_NH3;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s33), &a0_NH3, 4);
+						updated = true;
+					}
+
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9f, (uint8_t*)mystring9l, a1_NH3, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a1_NH3 = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s34 = *(uint32_t*)&a1_NH3;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s34), &a1_NH3, 4);
+						updated = true;
+					}
+
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9g, (uint8_t*)mystring9m, a2_NH3, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a2_NH3 = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s35 = *(uint32_t*)&a2_NH3;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s35), &a2_NH3, 4);
+						updated = true;
+					}
+
+					usart3app.usartbuf[usart3app.usartlen-1] = 0;
+					PrintNumHeader((uint8_t*)mystring9h, (uint8_t*)mystring9n, a3_NH3, true, "const");
+					GetNumericString(true, true);
+					if (strlen((const char*)(mystring3)))
+					{
+						a3_NH3 = atof((const char*)mystring3);
+						//Passing content of float32 to a uint32 with pointers
+						FlashDataOrg.b_status.s36 = *(uint32_t*)&a3_NH3;
+						//Passing content of float32 to a uint32 with byte-by-byte copy
+						//memcpy(&(FlashDataOrg.b_status.s36), &a3_NH3, 4);
+						updated = true;
+					}
+		#endif
 				}
 				break;
 	#if (OUTDOOR_MODE)
@@ -1753,6 +2052,60 @@ void L80_menu()
 					O3_Corr = (int8_t)lrintf(O3ref);
 					updated = true;
 				}
+
+		#if (AQ_POLINOMIAL_REGRESSION)
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9e, (uint8_t*)mystring9i, a0_O3, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a0_O3 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s25 = *(uint32_t*)&a0_O3;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s25), &a0_O3, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9f, (uint8_t*)mystring9l, a1_O3, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a1_O3 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s26 = *(uint32_t*)&a1_O3;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s26), &a1_O3, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9g, (uint8_t*)mystring9m, a2_O3, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a2_O3 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s27 = *(uint32_t*)&a2_O3;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s27), &a2_O3, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9h, (uint8_t*)mystring9n, a3_O3, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a3_O3 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s28 = *(uint32_t*)&a3_O3;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s28), &a3_O3, 4);
+					updated = true;
+				}
+		#endif
 				break;
 			case 0x42:	//"B"
 			case 0x62:	//"b"
@@ -1769,6 +2122,60 @@ void L80_menu()
 					SO2_Corr = (int8_t)lrintf(SO2ref);
 					updated = true;
 				}
+
+		#if (AQ_POLINOMIAL_REGRESSION)
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9e, (uint8_t*)mystring9i, a0_SO2, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a0_SO2 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s41 = *(uint32_t*)&a0_SO2;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s41), &a0_SO2, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9f, (uint8_t*)mystring9l, a1_SO2, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a1_SO2 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s42 = *(uint32_t*)&a1_SO2;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s42), &a1_SO2, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9g, (uint8_t*)mystring9m, a2_SO2, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a2_SO2 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s43 = *(uint32_t*)&a2_SO2;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s43), &a2_SO2, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9h, (uint8_t*)mystring9n, a3_SO2, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a3_SO2 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s44 = *(uint32_t*)&a3_SO2;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s44), &a3_SO2, 4);
+					updated = true;
+				}
+		#endif
 				break;
 			case 0x43:	//"C"
 			case 0x63:	//"c"
@@ -1785,6 +2192,60 @@ void L80_menu()
 					C6H6_Corr = (int8_t)lrintf(C6H6ref);
 					updated = true;
 				}
+
+		#if (AQ_POLINOMIAL_REGRESSION)
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9e, (uint8_t*)mystring9i, a0_C6H6, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a0_C6H6 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s45 = *(uint32_t*)&a0_C6H6;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s45), &a0_C6H6, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9f, (uint8_t*)mystring9l, a1_C6H6, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a1_C6H6 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s46 = *(uint32_t*)&a1_C6H6;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s46), &a1_C6H6, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9g, (uint8_t*)mystring9m, a2_C6H6, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a2_C6H6 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s47 = *(uint32_t*)&a2_C6H6;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s47), &a2_C6H6, 4);
+					updated = true;
+				}
+
+				usart3app.usartbuf[usart3app.usartlen-1] = 0;
+				PrintNumHeader((uint8_t*)mystring9h, (uint8_t*)mystring9n, a3_C6H6, true, "const");
+				GetNumericString(true, true);
+				if (strlen((const char*)(mystring3)))
+				{
+					a3_C6H6 = atof((const char*)mystring3);
+					//Passing content of float32 to a uint32 with pointers
+					FlashDataOrg.b_status.s48 = *(uint32_t*)&a3_C6H6;
+					//Passing content of float32 to a uint32 with byte-by-byte copy
+					//memcpy(&(FlashDataOrg.b_status.s48), &a3_C6H6, 4);
+					updated = true;
+				}
+		#endif
 				break;
 	#endif	//OUTDOOR_MODE
 #endif	//GAS_SENSOR_MODULE_PRESENT

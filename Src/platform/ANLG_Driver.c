@@ -886,6 +886,19 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 	static float32_t so2_avg = 0.0; static float32_t so2_avg1 = 0.0;
 	static float32_t o3_new_sample, so2_new_sample;
 #endif
+#if (AQ_POLINOMIAL_REGRESSION)
+	float32_t CH2O_PReg, NO2_PReg, NH3_PReg, CO_PReg;
+	extern float32_t a0_CO; extern float32_t a1_CO; extern float32_t a2_CO; extern float32_t a3_CO;
+	extern float32_t a0_CH2O; extern float32_t a1_CH2O; extern float32_t a2_CH2O; extern float32_t a3_CH2O;
+	extern float32_t a0_NO2; extern float32_t a1_NO2; extern float32_t a2_NO2; extern float32_t a3_NO2;
+	extern float32_t a0_NH3; extern float32_t a1_NH3; extern float32_t a2_NH3; extern float32_t a3_NH3;
+	#if (OUTDOOR_MODE)
+		float32_t O3_PReg, SO2_PReg;
+		extern float32_t a0_O3; extern float32_t a1_O3; extern float32_t a2_O3; extern float32_t a3_O3;
+		extern float32_t a0_SO2; extern float32_t a1_SO2; extern float32_t a2_SO2; extern float32_t a3_SO2;
+//		extern float32_t a0_C6H6; extern float32_t a1_C6H6; extern float32_t a2_C6H6; extern float32_t a3_C6H6;
+	#endif
+#endif
 	ANLG_Error_et ret = 0;
 
 	if(!Test_Mode)
@@ -898,7 +911,13 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 #endif
 	}
 
+#if (!AQ_POLINOMIAL_REGRESSION)
 	Measurement_Value->CH2O = CH2O_ppm2ugm3(ppm_CH2O);	//Calculate the CH2O concentration in ug/m3
+#else
+	CH2O_PReg = CH2O_ppm2ugm3(ppm_CH2O);
+	//Apply calibration using polynomial regression
+	Measurement_Value->CH2O = a3_CH2O*pow(CH2O_PReg, 3.0) + a2_CH2O*pow(CH2O_PReg, 2.0) + a1_CH2O*CH2O_PReg + a0_CH2O;
+#endif
 	ch2o_new_sample = Measurement_Value->CH2O;
 	ch2o_avg = approxMovingAverage(ch2o_avg, ch2o_new_sample, AverageWindow_10m);
 	ch2o_avg1 = approxMovingAverage(ch2o_avg1, ch2o_new_sample, AverageWindow_1m);
@@ -908,7 +927,13 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 		Measurement_Value->CH2O = ch2o_avg1;
 
 #if (OUTDOOR_MODE)
-	Measurement_Value->O3 = O3_ppm2ugm3(ppm_O3);		//Calculate the O3 concentration in ug/m3
+	#if (!AQ_POLINOMIAL_REGRESSION)
+		Measurement_Value->O3 = O3_ppm2ugm3(ppm_O3);	//Calculate the O3 concentration in ug/m3
+	#else
+		O3_PReg = O3_ppm2ugm3(ppm_O3);
+		//Apply calibration using polynomial regression
+		Measurement_Value->O3 = a3_O3*pow(O3_PReg, 3.0) + a2_O3*pow(O3_PReg, 2.0) + a1_O3*O3_PReg + a0_O3;
+	#endif
 	o3_new_sample = Measurement_Value->O3;
 	o3_avg = approxMovingAverage(o3_avg, o3_new_sample, AverageWindow_10m);
 	o3_avg1 = approxMovingAverage(o3_avg1, o3_new_sample, AverageWindow_1m);
@@ -918,7 +943,13 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 		Measurement_Value->O3 = o3_avg1;
 #endif
 
-	Measurement_Value->NO2 = NO2_ppm2ugm3(ppm_NO2);		//Calculate the NO2 concentration in ug/m3
+	#if (!AQ_POLINOMIAL_REGRESSION)
+		Measurement_Value->NO2 = NO2_ppm2ugm3(ppm_NO2);		//Calculate the NO2 concentration in ug/m3
+	#else
+		NO2_PReg = NO2_ppm2ugm3(ppm_NO2);
+		//Apply calibration using polynomial regression
+		Measurement_Value->NO2 = a3_NO2*pow(NO2_PReg, 3.0) + a2_NO2*pow(NO2_PReg, 2.0) + a1_NO2*NO2_PReg + a0_NO2;
+	#endif
 	no2_new_sample = Measurement_Value->NO2;
 	no2_avg = approxMovingAverage(no2_avg, no2_new_sample, AverageWindow_10m);
 	no2_avg1 = approxMovingAverage(no2_avg1, no2_new_sample, AverageWindow_1m);
@@ -927,7 +958,13 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 	else
 		Measurement_Value->NO2 = no2_avg1;
 
+#if (!AQ_POLINOMIAL_REGRESSION)
 	Measurement_Value->NH3 = NH3_ppm2ugm3(ppm_NH3);		//Calculate the NH3 concentration in ug/m3
+#else
+	NH3_PReg = NH3_ppm2ugm3(ppm_NH3);
+	//Apply calibration using polynomial regression
+	Measurement_Value->NH3 = a3_NH3*pow(NH3_PReg, 3.0) + a2_NH3*pow(NH3_PReg, 2.0) + a1_NH3*NH3_PReg + a0_NH3;
+#endif
 	nh3_new_sample = Measurement_Value->NH3;
 	nh3_avg = approxMovingAverage(nh3_avg, nh3_new_sample, AverageWindow_10m);
 	nh3_avg1 = approxMovingAverage(nh3_avg1, nh3_new_sample, AverageWindow_1m);
@@ -936,7 +973,13 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 	else
 		Measurement_Value->NH3 = nh3_avg1;
 
+#if (!AQ_POLINOMIAL_REGRESSION)
 	Measurement_Value->CO = CO_ppm2mgm3(ppm_CO);		//Calculate the CO concentration in mg/m3
+#else
+	CO_PReg = CO_ppm2mgm3(ppm_CO);
+	//Apply calibration using polynomial regression
+	Measurement_Value->CO = a3_CO*pow(CO_PReg, 3.0) + a2_CO*pow(CO_PReg, 2.0) + a1_CO*CO_PReg + a0_CO;
+#endif
 	co_new_sample = Measurement_Value->CO;
 	co_avg = approxMovingAverage(co_avg, co_new_sample, AverageWindow_5m);
 	co_avg1 = approxMovingAverage(co_avg1, co_new_sample, AverageWindow_1m);
@@ -946,7 +989,13 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 		Measurement_Value->CO = co_avg1;
 
 #if (OUTDOOR_MODE)
-	Measurement_Value->SO2 = SO2_ppm2ugm3(ppm_SO2);		//Calculate the SO2 concentration in ug/m3
+	#if (!AQ_POLINOMIAL_REGRESSION)
+		Measurement_Value->SO2 = SO2_ppm2ugm3(ppm_SO2);		//Calculate the SO2 concentration in ug/m3
+	#else
+		SO2_PReg = SO2_ppm2ugm3(ppm_SO2);
+		//Apply calibration using polynomial regression
+		Measurement_Value->SO2 = a3_SO2*pow(SO2_PReg, 3.0) + a2_SO2*pow(SO2_PReg, 2.0) + a1_SO2*SO2_PReg + a0_SO2;
+	#endif
 	so2_new_sample = Measurement_Value->SO2;
 	so2_avg = approxMovingAverage(so2_avg, so2_new_sample, AverageWindow_5m);
 	so2_avg1 = approxMovingAverage(so2_avg1, so2_new_sample, AverageWindow_1m);
