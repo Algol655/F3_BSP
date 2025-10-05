@@ -44,7 +44,7 @@ V. 2.07.12	(Rilasciata il 2025/08/20)
 1) Aggiunto il setting dei parametri di calibrazione del sensore TVOC/CO2 (ENS160) dall'ambiente di configurazione (Ok)
 2) Risolta la mancata memorizzazione del Product_Code dall'ambiente di configurazione (Ok)
 
-V. 2.08.00	(NON Rilasciata)
+V. 2.08.00	(Rilasciata il 2025/10/05)
 1) Aggiornamento CubeMX 6.15.0, CubeIDE 1.19.0 
 2) Risolta una possibile criticità sul settaggio dei paramemetri ambiental nella driver del sensore ENS160 (Ok)
 3) Corretta la gestione dello storage e del ripristino dei dati di fabbrica in formato stringa
