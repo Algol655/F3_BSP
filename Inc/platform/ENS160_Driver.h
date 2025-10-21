@@ -39,7 +39,6 @@
 #define ENS160_DATA_TVOC		((uint8_t)0x22)		// [7..0]: Lower Byte of DATA_TVOC. [15..8]: Upper Byte of DATA_TVOC
 //#define ENS160_DATA_ETOH		((uint8_t)0x22)		// [7..0]: Lower Byte of DATA_ETH. [15..8]: Upper Byte of DATA_ETH
 #define ENS160_DATA_ECO2		((uint8_t)0x24)		// [7..0]: Lower Byte of DATA_ECO2. [15..8]: Upper Byte of DATA_ECO2
-#define ENS160_DATA_BL			((uint8_t)0x28)		// [7..0]: Lower Byte of DATA_ETOH. [15..8]: Upper Byte of DATA_ETOH
 #define ENS160_DATA_T			((uint8_t)0x30)		// [7..0]: Lower Byte of DATA_T. [15..8]: Upper Byte of DATA_T
 #define ENS160_DATA_RH			((uint8_t)0x32)		// [7..0]: Lower Byte of DATA_RH. [15..8]: Upper Byte of DATA_RH
 #define ENS160_DATA_MISR		((uint8_t)0x38)		// [7..0]: DATA_MISR Calculated checksum of the previous transaction
@@ -154,8 +153,8 @@ typedef struct
 	uint16_t	BaseLine_2;
 	uint16_t	BaseLine_3;
 	uint8_t		Misr;
-	uint16_t	ETH;
-	uint16_t	ETH_mean;	//Ethanol 1h average
+	uint16_t	Temp;	//Temperature used in calculations
+	uint16_t	RH;		//Relative Humidity used in calculations
 } ENS160_MeasureTypeDef_st;
 
 bool Store_ENS160_Baseline;

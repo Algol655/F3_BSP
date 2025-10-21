@@ -10,7 +10,7 @@
 
 uint8_t DeviceName[5] ="S191";
 uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
-uint8_t SW_Version[5] ="2800";
+uint8_t SW_Version[5] ="2801";
 uint32_t Vendor_ID  = 0x2316F;
 uint32_t Prdct_Code = 10000324;
 uint32_t Rev_Number = 0;
@@ -24,7 +24,7 @@ uint32_t Ser_Number = 1;
 	uint16_t MSL = 0;					//Meters above sea level
 #endif
 #if (HUMIDITY_SENSOR_PRESENT==1)
-	int32_t RH_Correction = 0;			//In %
+	int16_t RH_Correction = 0;			//In %
 #endif
 #if ((HUMIDITY_SENSOR_PRESENT==1) || (PRESSURE_SENSOR_PRESENT==1))
 	int16_t T_Correction = 0;			//In °C
@@ -194,7 +194,7 @@ void AB_Init(void)
 #if (ENV_POLINOMIAL_REGRESSION)
 	if (FlashDataOrg.b_status.s17 == 0xFFFFFFFF)
 	{
-		FlashDataOrg.b_status.s3 = *(uint32_t*)&a0_Temp;	//Temperature coeff. β0+ε of the 1° order polynomial regression
+		FlashDataOrg.b_status.s20 = *(uint32_t*)&a0_Temp;	//Temperature coeff. β0+ε of the 1° order polynomial regression
 		FlashDataOrg.b_status.s17 = *(uint32_t*)&a1_Temp;	//Temperature coeff. β1 of the 1° order polynomial regression
 		FlashDataOrg.b_status.s5 = *(uint32_t*)&a0_Hum;		//Humidity coeff. β0+ε of the 1° order polynomial regression
 		FlashDataOrg.b_status.s19 = *(uint32_t*)&a1_Hum;	//Humidity coeff. β1 of the 1° order polynomial regression
@@ -281,7 +281,7 @@ void AB_Init(void)
 #endif
     HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after LPS2xHB Init
 	#if (ENV_POLINOMIAL_REGRESSION)
-    	a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s3);
+    	a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s20);
        	a1_Temp = *(float32_t*)&(FlashDataOrg.b_status.s17);
 		T_Correction = 0;
 	#else
@@ -323,15 +323,15 @@ void AB_Init(void)
     HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after HTS221 Init
     //Set the calibration values
 	#if (ENV_POLINOMIAL_REGRESSION)
-		a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s3);
+		a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s20);
 		a1_Temp = *(float32_t*)&(FlashDataOrg.b_status.s17);
 		a0_Hum = *(float32_t*)&(FlashDataOrg.b_status.s5);
 		a1_Hum = *(float32_t*)&(FlashDataOrg.b_status.s19);
 		T_Correction = 0;
 		RH_Correction = 0;
 	#else
-		T_Correction = (int16_t)FlashDataOrg.b_status.s3;	//Add Temperature offset to sensor value
-		RH_Correction = (int32_t)FlashDataOrg.b_status.s5;	//Add Humidity offset to sensor value;
+		T_Correction = (int16_t)((FlashDataOrg.b_status.s3) & 0x0000FFFF);			//Add Temperature offset to sensor value
+		RH_Correction  = (int16_t)((FlashDataOrg.b_status.s3 >> 16) & 0x0000FFFF);	//Add Humidity offset to sensor value;
 	#endif
 #endif
 
@@ -982,7 +982,7 @@ void Input_Value_Init(void *source, sDISPLAY_INFO *header)
 #endif
 
 #if (HUMIDITY_SENSOR_PRESENT==0)
-	T_Out = PressTemp->Tout + T_Correction;	//Use HTS221 if present to take T_Out
+	T_Out = PressTemp->Tout + T_Correction;	//Use Temperature/Humidity sensor if present to take T_Out
 	TMin = (T_Out < TMin) ? T_Out : TMin;
 	TMax = (T_Out > TMax) ? T_Out : TMax;
 	Temperature = T_Out/10.0;				//only if the humidity sensor is not present
@@ -1054,12 +1054,12 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 	//When the RH*10 reaches 750 (75%) then it applies the correction in proportion
 	//to the 1000 - RH*10 difference. This prevents RH% from exceeding 100%
 	if (HumTemp->Hout > 750)
-		RH_Correction = (int32_t)(lrintf((float32_t)RH_Correction * (1000.0 - (float32_t)(HumTemp->Hout))/250.0));
-//		RH_Correction = (int32_t)(lrintf(((float32_t)((1000 - HumTemp->Hout) * ((RH_Correction)/250.0)))));
+		RH_Correction = (int16_t)(lrintf((float32_t)RH_Correction * (1000.0 - (float32_t)(HumTemp->Hout))/250.0));
+//		RH_Correction = (int16_t)(lrintf(((float32_t)((1000 - HumTemp->Hout) * ((RH_Correction)/250.0)))));
 	else	//Restore the original value
-		RH_Correction = (int32_t)FlashDataOrg.b_status.s5;
+		RH_Correction  = (int16_t)((FlashDataOrg.b_status.s3 >> 16) & 0x0000FFFF);
 #endif
-	T_Out = HumTemp->Tout + T_Correction;	//Use HTS221 if present. T_Out is used by BLE in app_bluenrg_2.c User_Process() function
+	T_Out = HumTemp->Tout + T_Correction;	//Use Temperature/Humidity sensor if present. T_Out is used by BLE in app_bluenrg_2.c User_Process() function
 	temp_value = (float32_t)T_Out;
 
 	Hum_Out = HumTemp->Hout + (uint16_t)RH_Correction;
@@ -1078,7 +1078,7 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 	//Temperature and humidity readings cannot be taken when the heater is activated
 	if ((!ServiceTimer2.Start) && (!ServiceTimer4.Start))
 	{
-		p_Temp = Temperature = (double_t)temp_value;	//Use HTS221 temperature if present
+		p_Temp = Temperature = (double_t)temp_value;	//Use Temperature/Humidity sensor if present
 		p_T_Out = T_Out;
 		p_temp_value = temp_value;
 		TMin = (T_Out < TMin) ? T_Out : TMin;
@@ -1118,7 +1118,13 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 	if ((temp_value >= 22.0) && (temp_value < 26.0))	//The SSI is valid only for temperatures above 22 °C
 	{
 		TemperatureP = F2C(SSI(C2F(temp_value), hum_value));
-		SI = TemperatureP;
+//		SI = TemperatureP;
+		/*
+		 * To avoid the discontinuity that is created in the Perceived Temperature trend graph when switching from the Summer Simmer Index
+		 * (SSI) method (valid for temperatures above 22 °C and below 26 °C) to the Heat Index (HI) method (valid from 26 °C), the value
+		 * of the perceived temperature is calculated as a function of the SSI value in the temperature range in which it is valid.
+		 */
+		SI = 0.40*TemperatureP + 13.77;
 		T3_Out = (uint16_t)(lrintf((float)(SI*10)));	//Use HI as T3_Out
 	} else
 	{

@@ -112,9 +112,9 @@
 								//the value detected by the Electrochemical sensor, instead of the Metal Oxide sensor.
 #define CH2O_FROM_EC ((OUTDOOR_MODE && (GSB_HW_VER==20 || GSB_HW_VER==21)) || GSB_HW_VER==10)	//If 1 the formaldehyde concentration is
 								//calculated from the value detected by the Electrochemical sensor, instead of the Metal Oxide sensor.
-//#define CO_FROM_EC	 (OUTDOOR_MODE && (GSB_HW_VER==20 || GSB_HW_VER==21))	//If 1 the carbon monoxide concentration is calculated from
+#define CO_FROM_EC	 (OUTDOOR_MODE && (GSB_HW_VER==20 || GSB_HW_VER==21))	//If 1 the carbon monoxide concentration is calculated from
 								//the value detected by the Electrochemical sensor, instead of the Metal Oxide sensor.
-#define CO_FROM_EC	(0)		//Only for test!!!
+//#define CO_FROM_EC	(0)		//Only for test!!!
 
 /**
 * @}brief Analog Board Gases Sensors Min Max Init Values.

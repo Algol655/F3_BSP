@@ -235,7 +235,7 @@ bool SendCntrlMsg;
 	// Heat Index Formula
 	#define HI(x,y)		(C1 + C2*(x) + C3*(y) + C4*(x)*(y) + C5*((x)*(x)) + C6*((y)*(y)) + C7*(((x)*(x))*(y)) + \
 						 C8*(((y)*(y))*(x)) + C9*(((x)*(x))*((y)*(y))))
-	// Sinner Index Formula
+	// Simmer Index Formula
 	#define SSI(x,y)	(1.98F * ((x) - (0.5555F - 0.0055F * (y)) * ((x) - 58.0F)) - 56.83F)
 	// Relative humidity to absolute humidity conversion formula coefficients
 	#define D1	6.112F

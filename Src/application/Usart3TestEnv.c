@@ -1378,7 +1378,7 @@ void L80_menu()
 		extern float32_t a1_Hum;
 	#else
 		uint16_t RHref = 0;
-		extern int32_t RH_Correction;
+		extern int16_t RH_Correction;
 		#if (HTS221)
 			extern HTS221_MeasureTypeDef_st HUM_Values;
 		#elif (SHT4x)
@@ -1512,11 +1512,10 @@ void L80_menu()
 				{
 					Tref = atof((const char*)mystring3);
 		#if (HUMIDITY_SENSOR_PRESENT)
-					FlashDataOrg.b_status.s3 = (uint32_t)lrintf((Tref * 10.0) - (HUM_Values.Tout));
+					T_Correction = (int16_t)lrintf((Tref * 10.0) - (HUM_Values.Tout));
 		#else
-					FlashDataOrg.b_status.s3 = (uint32_t)lrintf((Tref * 10.0) - (PRS_Values.Tout));
+					T_Correction = (int16_t)lrintf((Tref * 10.0) - (PRS_Values.Tout));
 		#endif
-					T_Correction = (int16_t)FlashDataOrg.b_status.s3;
 					updated = true;
 				}
 	#else
@@ -1526,9 +1525,9 @@ void L80_menu()
 				{
 					a0_Temp = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s3 = *(uint32_t*)&a0_Temp;
+					FlashDataOrg.b_status.s20 = *(uint32_t*)&a0_Temp;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s3), &a0_Temp, 4);
+					//memcpy(&(FlashDataOrg.b_status.s20), &a0_Temp, 4);
 					updated = true;
 				}
 
@@ -1585,8 +1584,7 @@ void L80_menu()
 				if (strlen((const char*)(mystring3)))
 				{
 					RHref = atoi((const char*)mystring3);
-					FlashDataOrg.b_status.s5 = (uint32_t)lrintf((RHref * 10.0) - (HUM_Values.Hout));
-					RH_Correction = (int32_t)FlashDataOrg.b_status.s5;
+					RH_Correction =  (int16_t)lrintf((RHref * 10.0) - (HUM_Values.Hout));
 					updated = true;
 				}
 	#else
@@ -2453,6 +2451,10 @@ void L80_menu()
 				if (updated)
 				{
 					updated = false;
+#if ((PRESSURE_SENSOR_PRESENT==1) || (HUMIDITY_SENSOR_PRESENT==1))
+					//Pack-> Bit 0..15: T_Correction; Bit 16..31: RH_Correction
+					FlashDataOrg.b_status.s3 = ((uint32_t)(RH_Correction & 0xFFFF) << 16) | (uint32_t)(T_Correction & 0xFFFF);
+#endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	#if (OUTDOOR_MODE)
 					//Pack-> Bit 0..7: CH2O_Corr; Bit 7..15: O3_Corr; Bit 16..23: NO2_Corr; Bit 24..32: NH3_Corr

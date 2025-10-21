@@ -227,11 +227,11 @@ typedef struct board_status	// 3° order polynomial regression: y = β0 + β1*x 
 	uint8_t s1_offset;	//offset from 0x0803F800: 0x28
 	uint32_t s2;		//In this application used to store the SPS30 fan cleaning time interval
 	uint8_t s2_offset;	//offset from 0x0803F800: 0x2C
-	uint32_t s3;		//In this application used to store the Temperature Sensor calibration value (Coeff. β0+ε of the 1° order polynomial regression)
+	uint32_t s3;		//Bit 0..15: T_Correction; Bit 16..31: RH_Correction
 	uint8_t s3_offset;	//offset from 0x0803F800: 0x30
-	uint32_t s4;		//In this application used to store the Pressure Sensor calibration value (Coeff. β0+ε of the 1° order polynomial regression)
+	uint32_t s4;		//Pressure Sensor calibration value (Or Pressure Coeff. β0+ε of the 1° order polynomial regression)
 	uint8_t s4_offset;	//offset from 0x0803F800: 0x34
-	uint32_t s5;		//In this application used to store the Humidity Sensor calibration value (Coeff. β0+ε of the 1° order polynomial regression)
+	uint32_t s5;		//Humidity Sensor calibration value (Humidity Coeff. β0+ε of the 1° order polynomial regression)
 	uint8_t s5_offset;	//offset from 0x0803F800: 0x38
 	uint32_t s6;		//Bit 0..15: DeltaP; Bit 16..23: ForecastEstimate (Symbol); Bit 24..32: Z_ForecastEstimate (Value)
 	uint8_t s6_offset;	//offset from 0x0803F800: 0x3C
@@ -274,7 +274,7 @@ typedef struct board_status	// 3° order polynomial regression: y = β0 + β1*x 
 	uint8_t s18_offset;	//offset from 0x080E0000: 0x84
 	uint32_t s19;		//Coeff. β1 of the 1° order polynomial regression for the Humidity modeling
 	uint8_t s19_offset;	//offset from 0x080E0000: 0x88
-	uint32_t s20;		//Coeff. β1 of the 1° order polynomial regression for the spare modeling
+	uint32_t s20;		//Coeff. β0+ε of the 1° order polynomial regression for the Temperature modeling
 	uint8_t s20_offset;	//offset from 0x080E0000: 0x8C
 #endif
 #if (AQ_POLINOMIAL_REGRESSION)

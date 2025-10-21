@@ -45,29 +45,38 @@ V. 2.07.12	(Rilasciata il 2025/08/20)
 2) Risolta la mancata memorizzazione del Product_Code dall'ambiente di configurazione (Ok)
 
 V. 2.08.00	(Rilasciata il 2025/10/05)
-1) Aggiornamento CubeMX 6.15.0, CubeIDE 1.19.0 
-2) Risolta una possibile criticità sul settaggio dei paramemetri ambiental nella driver del sensore ENS160 (Ok)
+1) Aggiornamento a CubeMX 6.15.0, CubeIDE 1.19.0 
+2) Risolta una possibile criticità sul settaggio dei paramemetri ambientali nella driver del sensore ENS160 (Ok)
 3) Corretta la gestione dello storage e del ripristino dei dati di fabbrica in formato stringa
    (DeviceName[5], HW_Version[5], SW_Version[5] nelle funzioni ReadFlah, WriteFlash in port.c) (Ok)
 4) Aggiunti, tra i parametri di configurazione, i coefficienti della regressione polinomiale fino al terzo ordine,
    per la calibrazione dei sensori degli inquinanti gassosi (CO, CH2O, NO2, NH3, O3, SO2, C6H6). (Ok)
 
-V. 2.08.01	(NON Rilasciata)
-1) Eliminato il passaggio brusco Heath Index<->Summer Simmer Index (Da fare!!!)
+V. 2.08.01	(Rilasciata il 2025/10/21)
+1) Eliminato il passaggio brusco Heath Index<->Summer Simmer Index (Ok)
 2) Compattato lo storage dei valori di calibrazione della temperatura ed umidità in un'unica locazione di flash
    (FlashDataOrg.b_status.s3[15..0]: val. di calib. temperatura; FlashDataOrg.b_status.s3[31..16]: val. di calib. umidità)
-   FlashDataOrg.b_status.s5 diventa il coeff. β0+ε della regressione polinomiale del 1° ordine della temperatura (Da fare!!!)
-   FlashDataOrg.b_status.s..(da decidere!!) diventa il coeff. β0+ε della regressione polinomiale del 1° ordine dell'umidità (Da fare!!!)
+   FlashDataOrg.b_status.s20 diventa il coeff. β0+ε della regressione polinomiale del 1° ordine della temperatura (Ok)
+   Attenzione!!! Questa modifica richiede la ricalibrazione del sensore di umidità!!
+3) Risolto problema nella calibrazione del sensore CO (Regressione della 2.08.00) (Ok)
 
-V. 3.00.00	(NON Rilasciata)
-1) Operazioni propedeutiche su STM32:
-	a) Creare il banco di sviluppo/test con un Sensus192 V2.x (la versione con GLCD), un uC STM32F042 (???), una Env_Sensor_Board staccata dalla Sensus192
-	   ed il GW Mikroe UART<->I2C collegato al uC STM32F042. (Da fare!!!)
-	b) Sviluppare e testare il FW necessario per la comunicazione di Sensu191 con Env_Sensor_Board tramite GW UART<->I2C. (Da fare!!!)
-2) Operazioni propedeutiche su HomeAssistant:
-	a) Backup del VM con OpenMQTTGateway attuale (V1.6.1) (Da fare!!!)
-	b) aggiornare la VM all'ultima versione LTE di Ubuntu. (Da fare!!!)
-	c) aggiornare sulla VM OpenMQTTGateway all'ultima versione. (Da fare!!!)
+V. 3.00.00 (Verione con GW MQTT<->LoRa) (NON Rilasciata)
+1) Operazioni propedeutiche lato sensori:
+	a) Creare il banco di sviluppo/test con un Sensus191 V2.x, un modulo LoRa collegato al connettore BLE. (Da fare!!!)
+2) Operazioni propedeutiche lato GW:
+	a) Creare il banco di sviluppo/test con un ESP32 ed il modulo LoRa collegato all'interfaccia seriale del ESP32. (Da fare!!!)
+3) Operazioni propedeutiche su OpenMQTTGateway:
+	a) Backup del VM con OpenMQTTGateway attuale (V1.6.1) (Ok)
+	b) aggiornare la VM all'ultima versione LTE di Ubuntu. (Ok)
+	c) aggiornare sulla VM OpenMQTTGateway all'ultima versione. (Ok)
 	d) Test (Da fare!!!)
 	e) Rilascio (Da fare!!!)
-3) Aggiungere interfaccia FW per LoRAWan su STM32 (Da fare!!!)
+4) .....
+
+V. 4.00.00 (Remotizzazione dei sensori ambientali I2C mediante (UART)<->LoRa<->(UART) (NON Rilasciata)
+1) Operazioni propedeutiche su STM32:
+	a) Creare il banco di sviluppo/test con una board Sensus19x V2.x (la versione con GLCD, per la migliore accessibilità all'interfaccia
+	   UART di questa versione HW), una Env_Sensor_Board staccata dalla Sensus192 ed una board con il uC STM32F042 (Da fare!!!)
+2) Sviluppo interfaccia FW per (UART)<->Lora su STM32F405/105 lato Master (Board Sensu191) (Da fare!!!)
+3) Sviluppo interfaccia FW per LoRa<->(UART) su STM32F042 lato Slave (Env. Sensor Boards) (Da fare!!!)
+4) Test di sistema (Da fare!!!)

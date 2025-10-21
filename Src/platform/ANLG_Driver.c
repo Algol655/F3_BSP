@@ -943,13 +943,13 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 		Measurement_Value->O3 = o3_avg1;
 #endif
 
-	#if (!AQ_POLINOMIAL_REGRESSION)
-		Measurement_Value->NO2 = NO2_ppm2ugm3(ppm_NO2);		//Calculate the NO2 concentration in ug/m3
-	#else
-		NO2_PReg = NO2_ppm2ugm3(ppm_NO2);
-		//Apply calibration using polynomial regression
-		Measurement_Value->NO2 = a3_NO2*pow(NO2_PReg, 3.0) + a2_NO2*pow(NO2_PReg, 2.0) + a1_NO2*NO2_PReg + a0_NO2;
-	#endif
+#if (!AQ_POLINOMIAL_REGRESSION)
+	Measurement_Value->NO2 = NO2_ppm2ugm3(ppm_NO2);		//Calculate the NO2 concentration in ug/m3
+#else
+	NO2_PReg = NO2_ppm2ugm3(ppm_NO2);
+	//Apply calibration using polynomial regression
+	Measurement_Value->NO2 = a3_NO2*pow(NO2_PReg, 3.0) + a2_NO2*pow(NO2_PReg, 2.0) + a1_NO2*NO2_PReg + a0_NO2;
+#endif
 	no2_new_sample = Measurement_Value->NO2;
 	no2_avg = approxMovingAverage(no2_avg, no2_new_sample, AverageWindow_10m);
 	no2_avg1 = approxMovingAverage(no2_avg1, no2_new_sample, AverageWindow_1m);

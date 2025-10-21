@@ -219,13 +219,14 @@ ENS160_Error_et ENS160_Idle_Mode(uint8_t B_Addr)
 {
 	ENS160_Error_et ret = 0;
 
-	if (ENS160_WriteReg(B_Addr, ENS160_COMMAND, 1, (uint8_t*)ENS160_COMMAND_NOP))
-		return ENS160_ERROR;
-	if (ENS160_WriteReg(B_Addr, ENS160_COMMAND, 1, (uint8_t*)ENS160_COMMAND_CLRGPR))
+	if (ENS160_WriteReg(B_Addr, ENS160_OPMODE, 1, (uint8_t*)ENS160_OPMODE_IDLE))
 		return ENS160_ERROR;
 	Sleep(10);
 
-	if (ENS160_WriteReg(B_Addr, ENS160_OPMODE, 1, (uint8_t*)ENS160_OPMODE_IDLE))
+	if (ENS160_WriteReg(B_Addr, ENS160_COMMAND, 1, (uint8_t*)ENS160_COMMAND_NOP))
+		return ENS160_ERROR;
+	Sleep(10);
+	if (ENS160_WriteReg(B_Addr, ENS160_COMMAND, 1, (uint8_t*)ENS160_COMMAND_CLRGPR))
 		return ENS160_ERROR;
 	Sleep(10);
 
@@ -250,6 +251,118 @@ ENS160_Error_et ENS160_Std_Mode(uint8_t B_Addr)
 	Sleep(20);
 
 	return ret;
+}
+
+/**
+  * @brief  ENS160_Check_DataStatus()
+  * This checks the if the NEWDAT bit is high indicating that new data is ready
+  * to be read.
+  *
+  * @retval	True if NEWDAT bit is "1" (a new data is available in the DATA_x registers)
+  *
+  */
+bool ENS160_Check_DataStatus(void)
+{
+	uint8_t tempVal;
+
+	if(ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 1, &tempVal))
+		return false;
+
+	tempVal &= 0x02;
+
+	if (tempVal == 0x02)
+		return true;
+
+	return false;
+}
+
+/**
+  * @brief  ENS160_Check_GPRStatus()
+  * This checks the if the NEWGPR bit is high indicating that there is data in
+  * the general purpose read registers. The bit is cleared the relevant registers
+  * have been read.
+  *
+  * @retval	True if NEWGPR bit is "1" (a new data is available in the GPR_READx registers)
+  *
+  */
+bool ENS160_Check_GPRStatus(void)
+{
+	uint8_t tempVal;
+
+	if(ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 1, &tempVal))
+		return false;
+
+	tempVal &= 0x01;
+
+	if (tempVal == 0x01)
+		return true;
+
+	return false;
+}
+
+/**
+ * @brief  getFlags()
+ * This checks the status "flags" of the device (0-3).
+ * 0: Normal operation; 1: Warm-up phase; 2: Initial Start-Up Phase; 3: Invalid Output
+ *
+ * @retval	Interface status (MANDATORY: return 0 -> no Error).
+ *
+ */
+ENS160_Error_et ENS160_GetFlags(uint8_t *buff)
+{
+	ENS160_Error_et ret = 0;
+
+	if (ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 1, buff))
+		return ENS160_ERROR;
+
+	buff[0] = (buff[0] & 0x0C) >> 2;
+
+	return ret;
+}
+
+/**
+  * @brief  ENS160_CheckOperationStatus()
+  * Checks the bit that indicates if an operation mode is running i.e. the device
+  * is not off.
+  *
+  * @retval	True indicates that an OPMODE is running i.e. the device is not off.
+  *
+  */
+bool ENS160_CheckOperationStatus()
+{
+	uint8_t tempVal;
+
+	if(ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 1, &tempVal))
+		return false;
+
+	tempVal &= 0x80;
+
+	if (tempVal == 0x80)
+		return true;
+
+	return false;
+}
+
+/**
+ * @brief ENS160_GetOperationError()
+ * Checks the bit that indicates if an invalid operating mode has been selected.
+ *
+ * @retval	True indicates that invalid operating mode has been selected.
+ *
+ */
+bool ENS160_GetOperationError()
+{
+    uint8_t tempVal;
+
+	if(ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 1, &tempVal))
+		return false;
+
+    tempVal &= 0x40;
+
+    if (tempVal == 0x40)
+        return true;
+
+    return false;
 }
 
 /**
@@ -319,15 +432,19 @@ ENS160_Error_et ENS160_SetEnvironmentalData(float relativeHumidity, float temper
 ENS160_Error_et	ENS160_Get_Measurement(ENS160_MeasureTypeDef_st *Measurement_Value)
 {
 	ENS160_Error_et ret = 0;
-	uint8_t data_rq[12];
+	uint8_t data_rq[6];
 	static uint16_t ECO2, ETVOC;
 	static uint8_t AQI;
 
-	if(ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 12, &data_rq[0]))
+//	if (ENS160_Std_Mode(ENS160_BADDR))
+//		return ENS160_ERROR;
+
+	if(ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 6, &data_rq[0]))
 		return ENS160_ERROR;
 
 	Measurement_Value->Status = (uint8_t)data_rq[0];
-	if(data_rq[0] & ENS160_DATA_STATUS_NEWDAT)		//Check for new environmental data availability
+	//(Check for environmental data availability) && (if a valid OPMODE is running) && (if normal operation is achieved)
+	if((data_rq[0] & ENS160_DATA_STATUS_NEWDAT) && (data_rq[0] & 0x80) && (!(data_rq[0] & 0x0C)))
 	{
 	//	Measurement_Value->AQI_UBA = (uint8_t)data_rq[1];
 	//	Measurement_Value->eTVOC = (uint16_t)((data_rq[3] << 8) | data_rq[2]);
@@ -338,7 +455,8 @@ ENS160_Error_et	ENS160_Get_Measurement(ENS160_MeasureTypeDef_st *Measurement_Val
 		eTVOC_MovingAverage(&ETVOC, &(Measurement_Value->eTVOC), 10);
 		ECO2 = (uint16_t)((data_rq[5] << 8) | data_rq[4]);
 		eCO2_MovingAverage(&ECO2, &(Measurement_Value->eCO2), 10);
-	}
+	} else
+		return ENS160_ERROR;
 
 	return ret;
 }
@@ -352,16 +470,24 @@ ENS160_Error_et	ENS160_Get_Raw_Data(ENS160_MeasureTypeDef_st *Measurement_Value)
 {
 	ENS160_Error_et ret = 0;
 	uint8_t misr;
-	uint8_t data_rq[6];
+	uint8_t data_rq[1];
 	uint8_t func_rq[8];
 
-	if(ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 6, &data_rq[0]))
+	if(ENS160_ReadReg(ENS160_BADDR, ENS160_DEVICE_STATUS, 1, &data_rq[0]))
 		return ENS160_ERROR;
 
-	Measurement_Value->Status = (uint8_t)data_rq[0];
-
-	if(data_rq[0] & ENS160_DATA_STATUS_NEWGPR)		//Check for new ENS160 function data availability
+//	Measurement_Value->Status = (uint8_t)data_rq[0];
+	//(Check for data availability) && (if a valid OPMODE is running) && (if normal operation is achieved)
+	if((data_rq[0] & ENS160_DATA_STATUS_NEWGPR) && (data_rq[0] & 0x80) && (!(data_rq[0] & 0x0C)))
 	{
+		if(ENS160_ReadReg(ENS160_BADDR, ENS160_DATA_T, 4, &func_rq[0]))
+			return ENS160_ERROR;
+		else									// Read raw resistance values
+		{
+			Measurement_Value->Temp = (uint16_t)((func_rq[1] << 8) | func_rq[0]);
+			Measurement_Value->RH = (uint16_t)((func_rq[3] << 8) | func_rq[2]);
+		}
+
 		if(ENS160_ReadReg(ENS160_BADDR, ENS160_GPR_READ_0, 8, &func_rq[0]))
 			return ENS160_ERROR;
 		else									// Read raw resistance values
@@ -372,7 +498,7 @@ ENS160_Error_et	ENS160_Get_Raw_Data(ENS160_MeasureTypeDef_st *Measurement_Value)
 			Measurement_Value->RawData_3 = (uint16_t)((func_rq[7] << 8) | func_rq[6]);
 		}
 
-		if(ENS160_ReadReg(ENS160_BADDR, ENS160_DATA_BL, 8, &func_rq[0]))
+		if(ENS160_ReadReg(ENS160_BADDR, ENS160_GPR_WRITE_0, 8, &func_rq[0]))
 			return ENS160_ERROR;
 		else									// Read raw resistance values
 		{
@@ -386,7 +512,8 @@ ENS160_Error_et	ENS160_Get_Raw_Data(ENS160_MeasureTypeDef_st *Measurement_Value)
 			return ENS160_ERROR;
 		else
 			Measurement_Value->Misr = misr;
-	}
+	} else
+		return ENS160_ERROR;
 
 	return ret;
 }
@@ -403,7 +530,7 @@ ENS160_Error_et	ENS160_SoftRST()
 	if(ENS160_WriteReg(ENS160_BADDR, ENS160_OPMODE, 1, (uint8_t*)ENS160_OPMODE_RESET))
 		return ENS160_ERROR;
 
-	Sleep(10);		// Wait to boot after reset
+	Sleep(100);		// Wait to boot after reset
 
 	return ret;
 }
@@ -424,27 +551,26 @@ ENS160_Error_et MX_ENS160_Init()
     // Sends a reset to the ENS160. Returns false on I2C problems
 	if (ENS160_SoftRST())
 		return ENS160_ERROR;
-    Sleep(100);
 
     // Reads the part ID and confirms valid sensor
 	if (ENS160_Get_Dev(ENS160_BADDR, (uint8_t*)DevID))
 		return ENS160_ERROR;
 
 	// Initialize idle mode and confirms
-//	if (ENS160_Idle_Mode(ENS160_BADDR))
-//		return ENS160_ERROR;
+	if (ENS160_Idle_Mode(ENS160_BADDR))
+		return ENS160_ERROR;
 
 	// Read firmware revisions
 	if (ENS160_Get_FW_Ver(ENS160_BADDR, (uint8_t*)FW_Ver, false))
 		return ENS160_ERROR;
 
-	// Initialize Standard mode, set references temperature and humidity and confirms
-	if (ENS160_Init(ENS160_BADDR, ENS160_OPMODE, &ENS160_1[0], 7))
-		return ENS160_ERROR;
-
 	// Initialize Standard mode and confirms
 //	if (ENS160_Std_Mode(ENS160_BADDR))
 //		return ENS160_ERROR;
+
+	// Initialize Standard mode, set references temperature and humidity and confirms
+	if (ENS160_Init(ENS160_BADDR, ENS160_OPMODE, &ENS160_1[0], 7))
+		return ENS160_ERROR;
 
 	return ENS160_OK;
 }
