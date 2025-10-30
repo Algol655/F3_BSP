@@ -60,6 +60,10 @@ V. 2.08.01	(Rilasciata il 2025/10/21)
    Attenzione!!! Questa modifica richiede la ricalibrazione del sensore di umidità!!
 3) Risolto problema nella calibrazione del sensore CO (Regressione della 2.08.00) (Ok)
 
+V. 2.08.02	(Rilasciata il 2025/10/30)
+1) Risolto il problema dell'aggiornamento ritardato (fino ad 24 ore) dall'ora solare a quella legale e viceversa (Ok)
+2) Ottimizzata la funzione di ottenimento della data/ora (Ok)
+
 V. 3.00.00 (Verione con GW MQTT<->LoRa) (NON Rilasciata)
 1) Operazioni propedeutiche lato sensori:
 	a) Creare il banco di sviluppo/test con un Sensus191 V2.x, un modulo LoRa collegato al connettore BLE. (Da fare!!!)

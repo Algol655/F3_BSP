@@ -50,8 +50,10 @@ int RtcSynchPrediv;
 typedef struct
 {
   uint8_t date[3];
-  uint8_t time[3];
+  uint8_t time[4];
 } DateTime_t;
+
+DateTime_t Stamp;
 
 /** @brief Macro that stores Value into Backup register in Little Endian Format (2 bytes)*/
 #define HOST_TO_BKPR_LE_16(buf, val)	( ((buf)[0] =  (uint8_t) (val)    ) , \

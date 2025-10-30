@@ -595,7 +595,6 @@ LCD_Error_et ReDrawPage_S0(uint8_t PageNumb)
 LCD_Error_et ReDrawPage_S1(uint8_t PageNumb)
 {
 	Disp_Area = 1;
-	static DateTime_t Stamp;
 	static uint8_t len = 0;
 	static AirQualityParameters_st AQ_Level;
 #if (VOC_SENSOR_PRESENT==1)

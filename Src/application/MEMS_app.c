@@ -10,7 +10,7 @@
 
 uint8_t DeviceName[5] ="S191";
 uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
-uint8_t SW_Version[5] ="2801";
+uint8_t SW_Version[5] ="2802";
 uint32_t Vendor_ID  = 0x2316F;
 uint32_t Prdct_Code = 10000324;
 uint32_t Rev_Number = 0;
@@ -280,6 +280,7 @@ void AB_Init(void)
 	}
 #endif
     HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after LPS2xHB Init
+    //Set the calibration values
 	#if (ENV_POLINOMIAL_REGRESSION)
     	a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s20);
        	a1_Temp = *(float32_t*)&(FlashDataOrg.b_status.s17);
@@ -435,7 +436,7 @@ void AB_Init(void)
 	NumberOfDevices++;				//Increment number of sensors mounted
 	MC_2p5_24h_MeanMax = SPS30_LOWER_PM2P5_LIMIT;	//Initialize Min Max values variables
 	MC_10p0_24h_MeanMax = SPS30_LOWER_PM10_LIMIT;
-    SPS30_status = MX_SPS30_Init();			//Initialize (disabled) Sensor
+	SPS30_status = MX_SPS30_Init();			//Initialize (disabled) Sensor
 	if (SPS30_status == (uint8_t)SPS30_OK)
 	{
 		strcat(ReadyDevices, "SPS30 ");

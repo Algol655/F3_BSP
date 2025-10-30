@@ -153,7 +153,7 @@ int HandleUSB_MSG(uint8_t* Buff)
 	static char HH[3] = {'\0'}; static char MN[3] = {'\0'}; static char SS[3] = {'\0'};
 	static uint8_t y = 0; static uint8_t m = 0; static uint8_t d = 0; static uint8_t dw = 0;
 	static uint8_t hh = 0; static uint8_t mm = 0; static uint8_t ss = 0;
-	static DateTime_t Stamp; static uint8_t len = 0;
+	static uint8_t len = 0;
 
 //	if (Msg->Len != 3U)
 //	{
@@ -269,7 +269,8 @@ int HandleUSB_MSG(uint8_t* Buff)
 			TIM_OC_Timers_Start(&htim1);		//ReStart Output Compare Timers
 			MotionFX_manager_start_9X();
 	#endif
-			RTC_Handler(&hrtc, &dataseq[0]);
+			RTC_DateTimeStamp(&hrtc, &Stamp);
+			memcpy(&dataseq[3], &Stamp.time[0], 4);
 			DataLoggerActive = 1;
 	#if (PARTICULATE_SENSOR_PRESENT==1)
 			sps30_start_measurement();			//PowerOn SPS30 PMx sensor
@@ -490,7 +491,7 @@ int HandleUSART3_MSG(uint8_t* Buff)
 	static char HH[3] = {'\0'}; static char MN[3] = {'\0'}; static char SS[3] = {'\0'};
 	static uint8_t y = 0; static uint8_t m = 0; static uint8_t d = 0; static uint8_t dw = 0;
 	static uint8_t hh = 0; static uint8_t mm = 0; static uint8_t ss = 0;
-	static DateTime_t Stamp; static uint8_t len = 0;
+	static uint8_t len = 0;
 
 //	if (Msg->Len != 3U)
 //	{

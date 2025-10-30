@@ -93,7 +93,6 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 {
 #include "stm32_hal_legacy.h"
 	FLASH_EraseInitTypeDef EraseInitStruct;
-	static DateTime_t Stamp;
 	extern FLASH_DATA_ORG FlashDataOrg;
 	extern uint8_t DeviceName[5], HW_Version[5], SW_Version[5];
 	extern uint32_t Vendor_ID, Prdct_Code, Rev_Number, Ser_Number;
@@ -103,7 +102,7 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	//Get RTC Current Date & Time and copy them in the flash time data structure
 	RTC_DateTimeStamp(&hrtc, &Stamp);
 	memcpy(&FlashDataOrg.b_date, &Stamp.date[0], 3);
-	memcpy(&FlashDataOrg.b_time, &Stamp.time[0], 3);
+	memcpy(&FlashDataOrg.b_time, &Stamp.time[0], 4);
 
 	//Get board data and copy them in the flash board data structure
 	memcpy(&FlashDataOrg.b_mdata.DeviceName, &DeviceName[0], 4);
@@ -223,7 +222,6 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
   */
 void Read_Flash(uint32_t *data, uint8_t f_offset)
 {
-	static DateTime_t Stamp;
 	extern FLASH_DATA_ORG FlashDataOrg;
 	extern uint8_t DeviceName[5], HW_Version[5], SW_Version[5];
 	extern uint32_t Vendor_ID, Prdct_Code, Rev_Number, Ser_Number;
@@ -1039,7 +1037,6 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 #if ((BLE_SUPPORT) && (BEACON_APP) && (USE_IWDGT))
 	extern IWDG_HandleTypeDef hiwdg;
 #endif
-//	static DateTime_t Stamp;
 	static uint16_t s = 0;
 	static uint16_t m = 0;
 	static uint16_t hd = 0;
@@ -1437,7 +1434,8 @@ void process_timer1_irq(void)
 	//Get Local IMU Values
 		LSM9DS1_status = LSM9DS1_Get_Measurement(&IMU_Values);
 	//Get Local Time-Stamp
-	    RTC_Handler(&hrtc, &dataseq[0]);		//Get RTC data at the MotionFX update rate
+		RTC_DateTimeStamp(&hrtc, &Stamp);
+		memcpy(&dataseq[3], &Stamp.time[0], 4);
 		lcl_imu_data_rdy = true;
 		send_lcl_imu_data = true;				//Send IMU data at the MotionFX update rate
 		update_100Hz = 0;
@@ -1649,9 +1647,11 @@ void process_timer3_irq(void)
 	}
 //	Get Local Timestamp
 #if (GUI_SUPPORT==1)
-	RTC_Handler(&hrtc, &dataseq[0]);
+	RTC_DateTimeStamp(&hrtc, &Stamp);
+	memcpy(&dataseq[3], &Stamp.time[0], 4);
 #else
-	RTC_Handler(&hrtc, &dataseq1[0]);
+	RTC_DateTimeStamp(&hrtc, &Stamp);
+	memcpy(&dataseq1[3], &Stamp.time[0], 4);
 	#if ((BLE_SUPPORT) && (BEACON_APP))
 		memcpy(&BLE_TimeStamp, &dataseq1[3], 4);
 	#endif

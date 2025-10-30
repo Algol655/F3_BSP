@@ -344,7 +344,7 @@ void CheckDayLigth(RTC_HandleTypeDef* rtcHandle, uint8_t sec, uint8_t min, uint8
 }
 
 /**
- * @brief  Handles the time+date getting
+ * @brief  Handles the data timestamp
  * @param  Stamp time + date
  * @retval None
  */
@@ -353,79 +353,37 @@ void RTC_DateTimeStamp(RTC_HandleTypeDef* rtcHandle, DateTime_t *Stamp)
 	RTC_DateTypeDef date;
 	RTC_TimeTypeDef time;
 
-	if (HAL_RTC_GetDateTime(rtcHandle, &date, &time, FORMAT_BIN) != HAL_OK)
-	{
-		HAL_RTC_MspDeInit(rtcHandle);
-		HAL_RTC_MspInit(rtcHandle);
-	}
-/*	if (HAL_RTC_GetTime(rtcHandle, &time, FORMAT_BIN) != HAL_OK)
-	{
-		HAL_RTC_MspDeInit(rtcHandle);
-		HAL_RTC_MspInit(rtcHandle);
-	}
-	if (HAL_RTC_GetDate(rtcHandle, &date, FORMAT_BIN) != HAL_OK)
-	{
-		HAL_RTC_MspDeInit(rtcHandle);
-		HAL_RTC_MspInit(rtcHandle);
-	} */
-
-#if (RTC_SET_VALUES==0)
-	CheckDayLigth(rtcHandle, time.Seconds, time.Minutes, time.Hours, date.Date, date.Month, date.Year);
-#endif
-
-	Stamp->date[0] = (uint8_t)date.Month;
-	Stamp->date[1] = (uint8_t)date.Date;
-	Stamp->date[2] = (uint8_t)date.Year;
-	Stamp->time[0] = (uint8_t)time.Hours;
-	Stamp->time[1] = (uint8_t)time.Minutes;
-	Stamp->time[2] = (uint8_t)time.Seconds;
-}
-
-/**
- * @brief  Handles the time+date getting
- * @param  Msg the time+date part of the stream
- * @retval None
- */
-void RTC_Handler(RTC_HandleTypeDef* rtcHandle, uint8_t* Buff)
-{
-	uint8_t sub_sec = 0;
-//	uint32_t ans_uint32;
-//	int32_t ans_int32;
-	RTC_DateTypeDef sdatestructureget;
-	RTC_TimeTypeDef stimestructure;
-
 	if(rtcHandle->Instance==RTC)
 	{
-		if (HAL_RTC_GetDateTime(rtcHandle, &sdatestructureget, &stimestructure, FORMAT_BIN) != HAL_OK)
+		if (HAL_RTC_GetDateTime(rtcHandle, &date, &time, FORMAT_BIN) != HAL_OK)
 		{
 			HAL_RTC_MspDeInit(rtcHandle);
 			HAL_RTC_MspInit(rtcHandle);
 		}
-/*		if (HAL_RTC_GetTime(rtcHandle, &stimestructure, FORMAT_BIN) != HAL_OK)
+	/*	if (HAL_RTC_GetTime(rtcHandle, &time, FORMAT_BIN) != HAL_OK)
 		{
 			HAL_RTC_MspDeInit(rtcHandle);
 			HAL_RTC_MspInit(rtcHandle);
 		}
-		if (HAL_RTC_GetDate(rtcHandle, &sdatestructureget, FORMAT_BCD) != HAL_OK)
+		if (HAL_RTC_GetDate(rtcHandle, &date, FORMAT_BIN) != HAL_OK)
 		{
 			HAL_RTC_MspDeInit(rtcHandle);
 			HAL_RTC_MspInit(rtcHandle);
 		} */
 
-		/* To be MISRA C-2012 compliant the original calculation:
-		sub_sec = ((((((int)RtcSynchPrediv) - ((int)stimestructure.SubSeconds)) * 100) / (RtcSynchPrediv + 1)) & 0xFF);
-		has been split to separate expressions */
-//		ans_int32 = (RtcSynchPrediv - (int32_t)stimestructure.SubSeconds) * 100;
-//		ans_int32 /= RtcSynchPrediv + 1;
-//		ans_uint32 = (uint32_t)ans_int32 & 0xFFU;
-//		sub_sec = (uint8_t)ans_uint32;
+#if (RTC_SET_VALUES==0)
+		CheckDayLigth(rtcHandle, time.Seconds, time.Minutes, time.Hours, date.Date, date.Month, date.Year);
+#endif
 
-		Buff[3] = (uint8_t)stimestructure.Hours;
-		Buff[4] = (uint8_t)stimestructure.Minutes;
-		Buff[5] = (uint8_t)stimestructure.Seconds;
-		Buff[6] = sub_sec;
+		Stamp->date[0] = (uint8_t)date.Month;
+		Stamp->date[1] = (uint8_t)date.Date;
+		Stamp->date[2] = (uint8_t)date.Year;
+		Stamp->time[0] = (uint8_t)time.Hours;
+		Stamp->time[1] = (uint8_t)time.Minutes;
+		Stamp->time[2] = (uint8_t)time.Seconds;
+		Stamp->time[3] = 0;
 
-		if (!(Buff[3] | Buff[4]))
+		if (!(Stamp->time[0] | Stamp->time[1]))
 		{
 			MidNight = true;
 		} else
