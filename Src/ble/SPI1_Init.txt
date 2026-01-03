@@ -1,0 +1,107 @@
+/*********************************
+/* IN "f4_bsp_bus.c"
+/* Chiamato in: "BSP_SPI1_Init()"
+/*********************************
+__weak HAL_StatusTypeDef MX_SPI1_Init(SPI_HandleTypeDef* hspi)
+{
+  HAL_StatusTypeDef ret = HAL_OK;
+
+  hspi->Instance = SPI1;
+  hspi->Init.Mode = SPI_MODE_MASTER;
+  hspi->Init.Direction = SPI_DIRECTION_2LINES;
+  hspi->Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi->Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi->Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi->Init.NSS = SPI_NSS_SOFT;
+  hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
+  hspi->Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi->Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi->Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi->Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(hspi) != HAL_OK)
+  {
+    ret = HAL_ERROR;
+  }
+
+  return ret;
+}
+
+/*********************************
+/* IN "f4_bsp_bus.c"
+/* Chiamato in: "BSP_SPI1_Init()"
+/*********************************
+static void SPI1_MspInit(SPI_HandleTypeDef* spiHandle)
+{
+  GPIO_InitTypeDef GPIO_InitStruct;
+  /* USER CODE BEGIN SPI1_MspInit 0 */
+
+  /* USER CODE END SPI1_MspInit 0 */
+    /* Enable Peripheral clock */
+    __HAL_RCC_SPI1_CLK_ENABLE();
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    /**SPI1 GPIO Configuration
+    PA5     ------> SPI1_SCK
+    PA6     ------> SPI1_MISO
+    PA7     ------> SPI1_MOSI
+    */
+    GPIO_InitStruct.Pin = BUS_SPI1_SCK_GPIO_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = BUS_SPI1_SCK_GPIO_AF;
+    HAL_GPIO_Init(BUS_SPI1_SCK_GPIO_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = BUS_SPI1_MISO_GPIO_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = BUS_SPI1_MISO_GPIO_AF;
+    HAL_GPIO_Init(BUS_SPI1_MISO_GPIO_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = BUS_SPI1_MOSI_GPIO_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = BUS_SPI1_MOSI_GPIO_AF;
+    HAL_GPIO_Init(BUS_SPI1_MOSI_GPIO_PORT, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN SPI1_MspInit 1 */
+
+  /* USER CODE END SPI1_MspInit 1 */
+}
+
+/****************************************
+/* IN "hci_tl_interface.c"
+/* Chiamato in: "hci_tl_lowlevel_init()"
+/****************************************
+int32_t HCI_TL_SPI_Init(void* pConf)
+{
+  GPIO_InitTypeDef GPIO_InitStruct;
+
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /* Configure EXTI Line */
+  GPIO_InitStruct.Pin = HCI_TL_SPI_EXTI_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(HCI_TL_SPI_EXTI_PORT, &GPIO_InitStruct);
+
+  /* Configure RESET Line */
+  GPIO_InitStruct.Pin =  HCI_TL_RST_PIN ;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(HCI_TL_RST_PORT, &GPIO_InitStruct);
+
+  /* Configure CS */
+  GPIO_InitStruct.Pin = HCI_TL_SPI_CS_PIN ;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(HCI_TL_SPI_CS_PORT, &GPIO_InitStruct);
+  /* Deselect CS PIN for BlueNRG at startup to avoid spurious commands */
+  HAL_GPIO_WritePin(HCI_TL_SPI_CS_PORT, HCI_TL_SPI_CS_PIN, GPIO_PIN_SET);
+
+  return BSP_SPI1_Init();
+}

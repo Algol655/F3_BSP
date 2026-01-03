@@ -502,7 +502,7 @@ void Refresh_AQI(void);
 	void ReStore_MeanValues_BackupRTC(void);
 #endif
 
-#if ((BLE_SUPPORT) && (BEACON_APP))
+#if (SENSOR_REMOTE_MODE)
 	#if (CCS811)
 	void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
 					 CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, VEML6075_MeasureTypeDef_st *LuxUVI);

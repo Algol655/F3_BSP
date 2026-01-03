@@ -14,7 +14,7 @@
 #define INPUT_TEST		(1)
 #define OUTPUT_TEST		(1)
 #define ANALOG_TEST		(1)
-#define CAN1_TEST		(1)
+#define CAN1_TEST		(0)
 #define CAN2_TEST		(0)
 #define FW_UPDATE		(1)
 #define UTILITIES		(1)

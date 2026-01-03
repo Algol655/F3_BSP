@@ -26,13 +26,14 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 
+#include "OpModes.h"
+
 #if defined(STM32F405xx)
 	#include "stm32f4xx_hal.h"
 #elif defined(STM32F105xC)
 	#include "stm32f1xx_hal.h"
 #endif
 #include <string.h>
-#include "OpModes.h"
 
 /*---------- Print messages from BLE2 files at user level -----------*/
 #define BLE2_DEBUG      0
@@ -132,4 +133,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif /* BLUENRG_CONF_H */
+
+#endif 	/* BLUENRG_CONF_H */

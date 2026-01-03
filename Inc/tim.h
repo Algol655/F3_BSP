@@ -62,14 +62,18 @@ extern TIM_HandleTypeDef htim7;
 #define ServiceTimer1_Timeout 	3		//Used for push button debounce timer (300mS)
 #define ServiceTimer2_Timeout	300		//Used for HTS221 heather timeout (30s)
 #define ServiceTimer3_Timeout	36000	//Used for the HTS221 waiting time between two heater starts (1h)
-#define ServiceTimer4_Timeout	6000	//used for the HTS221 waiting time to measures restart after the heater activation (10min)
+#define ServiceTimer4_Timeout	6000	//used for the HTS221 waiting time resume measures after the heater activation (10min)
+#define ServiceTimer5_Timeout	6		//used for LoRa Tx interval (600 mS)
+#define ServiceTimer6_Timeout	6		//used for LoRa Rx interval (600 mS)
 
 typedef enum	service_timers
 {
 	STim_1,
 	STim_2,
 	STim_3,
-	STim_4
+	STim_4,
+	STim_5,
+	STim_6
 } Service_Timer;
 
 typedef struct
@@ -80,7 +84,7 @@ typedef struct
   bool				Expired;
 } ServiceTimer_st;
 
-ServiceTimer_st ServiceTimer1, ServiceTimer2, ServiceTimer3, ServiceTimer4;
+ServiceTimer_st ServiceTimer1, ServiceTimer2, ServiceTimer3, ServiceTimer4, ServiceTimer5, ServiceTimer6;
 /* USER CODE END Private defines */
 
 void MX_TIM1_Init(void);

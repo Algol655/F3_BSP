@@ -371,6 +371,16 @@ void ServiceTimersInit(void)
 	ServiceTimer4.Counter = 0;
 	ServiceTimer4.Start = false;
 	ServiceTimer4.Expired = false;
+
+	ServiceTimer5.TimeOut = ServiceTimer5_Timeout;
+	ServiceTimer5.Counter = 0;
+	ServiceTimer5.Start = false;
+	ServiceTimer5.Expired = false;
+
+	ServiceTimer6.TimeOut = ServiceTimer6_Timeout;
+	ServiceTimer6.Counter = 0;
+	ServiceTimer6.Start = false;
+	ServiceTimer6.Expired = false;
 }
 
 void ServiceTimerStart(Service_Timer nTim)
@@ -403,6 +413,20 @@ void ServiceTimerStart(Service_Timer nTim)
 			ServiceTimer4.Counter = 0;
 			ServiceTimer4.Start = true;
 			ServiceTimer4.Expired = false;
+		}
+		break;
+		case STim_5:
+		{
+			ServiceTimer5.Counter = 0;
+			ServiceTimer5.Start = true;
+			ServiceTimer5.Expired = false;
+		}
+		break;
+		case STim_6:
+		{
+			ServiceTimer6.Counter = 0;
+			ServiceTimer6.Start = true;
+			ServiceTimer6.Expired = false;
 		}
 		break;
 	}

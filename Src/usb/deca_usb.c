@@ -407,7 +407,7 @@ void send_usbmessage(uint8_t *string, int len)
     	if(local_have_data == 0)
     	{
     		memcpy(&tx_buff[0], string, len);
-    #if ((DATA_MODE==0) && (GUI_SUPPORT==0) && (BLE_SUPPORT==0))
+    #if ((DATA_MODE==0) && (GUI_SUPPORT==0) && (BLE_SUPPORT==0) && (LoRa_SUPPORT==0))
     		tx_buff[len] = '\r';
     		tx_buff[len+1] = '\n';
     		tx_buff_length = len + 2;

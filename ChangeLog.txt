@@ -64,23 +64,8 @@ V. 2.08.02	(Rilasciata il 2025/10/30)
 1) Risolto il problema dell'aggiornamento ritardato (fino ad 24 ore) dall'ora solare a quella legale e viceversa (Ok)
 2) Ottimizzata la funzione di ottenimento della data/ora (Ok)
 
-V. 3.00.00 (Verione con GW MQTT<->LoRa) (NON Rilasciata)
-1) Operazioni propedeutiche lato sensori:
-	a) Creare il banco di sviluppo/test con un Sensus191 V2.x, un modulo LoRa collegato al connettore BLE. (Da fare!!!)
-2) Operazioni propedeutiche lato GW:
-	a) Creare il banco di sviluppo/test con un ESP32 ed il modulo LoRa collegato all'interfaccia seriale del ESP32. (Da fare!!!)
-3) Operazioni propedeutiche su OpenMQTTGateway:
-	a) Backup del VM con OpenMQTTGateway attuale (V1.6.1) (Ok)
-	b) aggiornare la VM all'ultima versione LTE di Ubuntu. (Ok)
-	c) aggiornare sulla VM OpenMQTTGateway all'ultima versione. (Ok)
-	d) Test (Da fare!!!)
-	e) Rilascio (Da fare!!!)
-4) .....
-
-V. 4.00.00 (Remotizzazione dei sensori ambientali I2C mediante (UART)<->LoRa<->(UART) (NON Rilasciata)
-1) Operazioni propedeutiche su STM32:
-	a) Creare il banco di sviluppo/test con una board Sensus19x V2.x (la versione con GLCD, per la migliore accessibilità all'interfaccia
-	   UART di questa versione HW), una Env_Sensor_Board staccata dalla Sensus192 ed una board con il uC STM32F042 (Da fare!!!)
-2) Sviluppo interfaccia FW per (UART)<->Lora su STM32F405/105 lato Master (Board Sensu191) (Da fare!!!)
-3) Sviluppo interfaccia FW per LoRa<->(UART) su STM32F042 lato Slave (Env. Sensor Boards) (Da fare!!!)
-4) Test di sistema (Da fare!!!)
+V. 2.08.03	(Rilasciata il 2026/01/02)
+1) Aggiornamento a CubeMX 6.16.1, CubeIDE 2.0.0 
+2) Corretto overlap fra AH_Min, AH_Max con UV_Index_Max nella gestione della memoria di backup (Ok)
+3) Corretta la gestione del parametro calibrazione del sensore TVOC/CO2 con device CCS811 (Ok)
+4) Corretta la rappresentazione del numero di errori dell'ADC nel registro di stato (StatusReg) (Ok)

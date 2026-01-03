@@ -81,7 +81,6 @@ void MX_RTC_Init(void);
 /* USER CODE BEGIN Prototypes */
 uint32_t RTC_GetCounter(void);
 void RTC_DateTimeStamp(RTC_HandleTypeDef* rtcHandle, DateTime_t *Stamp);
-void RTC_Handler(RTC_HandleTypeDef* rtcHandle, uint8_t* Buff);
 void RTC_DateRegulate(RTC_HandleTypeDef* rtcHandle, uint8_t y, uint8_t m, uint8_t d, uint8_t dw);
 void RTC_TimeRegulate(RTC_HandleTypeDef* rtcHandle, uint8_t hh, uint8_t mm, uint8_t ss, uint32_t Format);
 void RTC_DateTimeRegulate(RTC_HandleTypeDef* rtcHandle, uint8_t y, uint8_t m, uint8_t d, uint8_t dw,

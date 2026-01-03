@@ -283,8 +283,9 @@ void Ain2_Check(uint8_t* b, uint8_t* a, AIN2_FUNCTION An_Func)
 
 					//Restore and increment the second nibble of the ADC restart event counter modulo 16...
 					ADCRestartCounter = BakUpRTC_Data[70];
+					ADCRestartCounter = (ADCRestartCounter >> 4) & 0x0F;
+					ADCRestartCounter++;	//Increment by one the second nibble of the first byte of ADCRestartCounter...
 					ADCRestartCounter = (ADCRestartCounter << 4) & 0xF0;
-					ADCRestartCounter = ADCRestartCounter + 4;	//Increment by one the second nibble of the first byte of ADCRestartCounter
 					//...and copies the value to the status register first byte, second nibble
 					StatusReg &= 0xFFFFFF0F; StatusReg |= (uint32_t)(ADCRestartCounter);
 					HOST_TO_BKPR_LE_32(BakUpRTC_Data+70, StatusReg);
@@ -368,7 +369,7 @@ void read_analogs(void)
 			BIT_CLEAR(AnlgOvflStatusReg, i);
 			//Get and filter the ADC1 i-th analog input
 			mux1_inputs[i] = (float32_t)(((((adc_values[0] & mask1)) * ((R1 + R2) / R2) * Vref)) / ADC_RESOLUTION);
-			if ((BLE_DataReady) && !(Test_Mode))
+			if (((BLE_DataReady) || (LoRa_DataReady)) && !(Test_Mode))
 			{
 				filter1_Value[i] = filter1_Value[i] + scale1_Factor[i] * (mux1_inputs[i] - filter1_Value[i]);
 				mux1_inputs[i] = filter1_Value[i];
@@ -406,7 +407,7 @@ void read_analogs(void)
 			BIT_CLEAR(AnlgOvflStatusReg, i<<16);
 			//Get and filter the ADC2 i-th analog input
 			mux2_inputs[i] = (float32_t)(((((adc_values[1] & mask2)) * ((R1 + R2) / R2) * Vref)) / ADC_RESOLUTION);
-			if ((BLE_DataReady) && !(Test_Mode))
+			if (((BLE_DataReady) || (LoRa_DataReady)) && !(Test_Mode))
 			{
 				filter2_Value[i] = filter2_Value[i] + scale2_Factor[i] * (mux2_inputs[i] - filter2_Value[i]);
 				mux2_inputs[i] = filter2_Value[i];

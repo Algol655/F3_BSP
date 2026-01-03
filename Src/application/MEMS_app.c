@@ -10,7 +10,7 @@
 
 uint8_t DeviceName[5] ="S191";
 uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
-uint8_t SW_Version[5] ="2802";
+uint8_t SW_Version[5] ="2803";
 uint32_t Vendor_ID  = 0x2316F;
 uint32_t Prdct_Code = 10000324;
 uint32_t Rev_Number = 0;
@@ -292,7 +292,7 @@ void AB_Init(void)
 		if ((MSL == 0xFFFF) || (MSL == 0x0))	//If no value has been programmed then set with the default value
 			MSL = 10;
 	#endif
-#endif
+#endif	//PRESSURE_SENSOR_PRESENT==1
 
 #if (HUMIDITY_SENSOR_PRESENT==1)
 	/* Humidity_Init(), Temperature_Init() */
@@ -334,7 +334,7 @@ void AB_Init(void)
 		T_Correction = (int16_t)((FlashDataOrg.b_status.s3) & 0x0000FFFF);			//Add Temperature offset to sensor value
 		RH_Correction  = (int16_t)((FlashDataOrg.b_status.s3 >> 16) & 0x0000FFFF);	//Add Humidity offset to sensor value;
 	#endif
-#endif
+#endif	//HUMIDITY_SENSOR_PRESENT==1
 
 #if (UVx_SENSOR_PRESENT==1)
 	/* UVx_Init() */
@@ -406,6 +406,8 @@ void AB_Init(void)
 		BIT_SET(SensorStatusReg,3);	//Set VOC sensor status in SensorStatusRegister
 	}
 	CCS811_VOC_Ro_Stored = FlashDataOrg.b_status.s0;
+	CO2_Correction = 1;
+	VOC_Correction = 1;
 #elif (ENS160)
     ENS160_status = MX_ENS160_Init();		//Initialize (disabled) Sensor
 	//Initialize EN160 eTVOC, eCO2 Max values variables
@@ -421,13 +423,13 @@ void AB_Init(void)
 		}
 		BIT_SET(SensorStatusReg,3);	//Set VOC sensor status in SensorStatusRegister
 	}
-#endif	// CCS811
     VOC_Correction = (uint16_t)(FlashDataOrg.b_status.s0 & 0x0000FFFF);
 	if ((VOC_Correction == 0xFFFF) || (VOC_Correction == 0x0))
     	VOC_Correction = 1;			//If no value has been programmed then set with the default value
 	CO2_Correction = (uint16_t)((FlashDataOrg.b_status.s0 >> 16) & 0x0000FFFF);
 	if ((CO2_Correction == 0xFFFF) || (CO2_Correction == 0x0))
     	CO2_Correction = 1;			//If no value has been programmed then set with the default value
+#endif	// CCS811
 #endif	// VOC_SENSOR_PRESENT
 
 #if (PARTICULATE_SENSOR_PRESENT==1)
@@ -1076,7 +1078,7 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 	temp_value = temp_value/10.0;
 	hum_value = hum_value/10.0;
 
-	//Temperature and humidity readings cannot be taken when the heater is activated
+	//Temperature and humidity readings cannot be taken when the heater is activated and before the measurement restart timer expires (10 min)
 	if ((!ServiceTimer2.Start) && (!ServiceTimer4.Start))
 	{
 		p_Temp = Temperature = (double_t)temp_value;	//Use Temperature/Humidity sensor if present
@@ -1674,8 +1676,8 @@ void Store_MeanValues_BackupRTC(void)
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+46, H_Max);
 #endif
 #if ((HUMIDITY_SENSOR_PRESENT) && (defined(STM32F405xx)))	//The size of the backup SRAM (BKPSRAM) in the STM32F1xx family is only 84 bytes.
-	HOST_TO_BKPR_LE_16(BakUpRTC_Data+90, AH_Min);
-	HOST_TO_BKPR_LE_16(BakUpRTC_Data+92, AH_Max);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+94, AH_Min);
+	HOST_TO_BKPR_LE_16(BakUpRTC_Data+96, AH_Max);
 #endif
 #if ((PRESSURE_SENSOR_PRESENT) || (HUMIDITY_SENSOR_PRESENT))
 	HOST_TO_BKPR_LE_16(BakUpRTC_Data+40, T_Min);
@@ -1798,7 +1800,7 @@ void ReStore_MeanValues_BackupRTC(void)
  * @param  None
  * @retval None
  */
-#if ((BLE_SUPPORT) && (BEACON_APP))
+#if (SENSOR_REMOTE_MODE)
 	#if (CCS811)
 	void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
 					 CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, VEML6075_MeasureTypeDef_st *LuxUVI)
@@ -1917,7 +1919,7 @@ void ReStore_MeanValues_BackupRTC(void)
 	#endif
 #endif	//GAS_SENSOR_MODULE_PRESENT
 }
-#endif	//((BLE_SUPPORT) && (BEACON_APP))
+#endif	//SENSOR_REMOTE_MODE
 #endif	//USE_BKUP_SRAM
 
 #if (IMU_PRESENT==1)

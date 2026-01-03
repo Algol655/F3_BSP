@@ -33,6 +33,8 @@ extern "C" {
 #include "gui/lcd.h"
 #if (BLE_SUPPORT==1)
 	#include "OpModes.h"
+#elif (LoRa_SUPPORT)
+	#include "LoRa_OpModes.h"
 #endif
 
 #define USBBUFFLEN 			(2048)	//It must be >= the maximum size of the message to be transmitted
@@ -389,7 +391,7 @@ HAL_StatusTypeDef MCP23017_status, LSM9DS1_status, LPS25HB_status, HTS221_status
 HAL_StatusTypeDef LPS22HB_status, SHT4x_status, ENS160_status, SPS30_status, VEML7700_status, LTR390UV_status;
 HAL_StatusTypeDef TLCD_status, GLCD_status, ANLG_status;
 bool Test_Mode, leds_test, timer5s_expired, conversion_ended, RiskReport;
-bool input_changed, I2C_done, can_tx_done, refresh, WarmUpPeriod_expired, ColdRestart, BakUpSRamWiped, BLE_DataReady;
+bool input_changed, I2C_done, can_tx_done, refresh, WarmUpPeriod_expired, ColdRestart, BakUpSRamWiped, BLE_DataReady, LoRa_DataReady;
 bool display_imu_data, send_lcl_imu_data, send_lcl_imu_data_to_ble, lcl_imu_data_rdy;
 bool display_prs_data, send_lcl_prs_data, lcl_prs_data_rdy;
 bool display_uvx_data, send_lcl_uvx_data, lcl_uvx_data_rdy;
@@ -432,6 +434,8 @@ float32_t approxMovingAverage(float32_t avg, float32_t new_sample, uint32_t N);
 uint8_t ByteToBcd(uint8_t Value);
 int32_t max(int32_t args, ...);
 int32_t min(int32_t args, ...);
+uint32_t reverse_Digits(uint32_t num);
+void reverse_String(char *s);
 int usleep(useconds_t usec);
 void Sleep(uint32_t Delay);
 unsigned long portGetTickCnt(void);

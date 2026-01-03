@@ -722,6 +722,45 @@ int32_t min(int32_t args, ...)
     return min;
 }
 
+/**
+ * Iterative function to reverse digits of uint32
+ * @param num Number to reverse
+ * @return reversed num
+ */
+uint32_t reverse_Digits(uint32_t num)
+{
+	uint32_t rev_num = 0;
+	while (num > 0)
+	{
+		rev_num = rev_num * 16 + num % 16;
+		num = num / 16;
+	}
+
+	return rev_num;
+}
+
+/**
+ * Iterative function to reverse string
+ * @param s string pointer to reverse
+ * @return null
+ */
+void reverse_String(char *s)
+{
+	char *end,temp;
+	end = s;
+	while(*end != '\0')
+	{
+		end++;
+	}
+	end--;  //end points to last letter now
+	for(;s<end;s++,end--)
+	{
+		temp = *end;
+		*end = *s;
+		*s = temp;
+	}
+}
+
 /****************************************************************************//**
  * 								Time section
  *******************************************************************************/
@@ -1034,7 +1073,7 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 {
 	extern FLASH_DATA_ORG FlashDataOrg;
 	extern uint32_t Up_Time_H;
-#if ((BLE_SUPPORT) && (BEACON_APP) && (USE_IWDGT))
+#if (SENSOR_REMOTE_MODE && USE_IWDGT)
 	extern IWDG_HandleTypeDef hiwdg;
 #endif
 	static uint16_t s = 0;
@@ -1047,11 +1086,11 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 	extern void Store_MeanValues_BackupRTC(void);
 #endif
 	const uint16_t Baseline_El_Store_Period = 24*7;
-	const uint16_t GAS_SesorBoard_WarmUp = 45;	//Do not acquire the the analog sensors values
-												//before the warm-up period (in minutes) has elapsed
-	if ((Test_Mode) || (!BLE_SUPPORT))			//GAS_SesorBoard_WarmUp must be greater timeout RUN_IN_TIME
-	{											//where the CCS811 VOC sensor loads the BaseLine
-	#if ((BLE_SUPPORT) && (BEACON_APP) && (USE_IWDGT))
+	const uint16_t GAS_SesorBoard_WarmUp = 45;				//Do not acquire the the analog sensors values
+															//before the warm-up period (in minutes) has elapsed
+	if ((Test_Mode) || ((!BLE_SUPPORT) && (!LoRa_SUPPORT)))	//GAS_SesorBoard_WarmUp must be greater timeout RUN_IN_TIME
+	{														//where the CCS811 VOC sensor loads the BaseLine
+	#if (SENSOR_REMOTE_MODE && USE_IWDGT)
 		HAL_IWDG_Refresh(&hiwdg);
 	#endif
 #if (USE_BKUP_SRAM)
@@ -1086,8 +1125,10 @@ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 			load_baseline = true;
 #endif
 #if ((BLE_SUPPORT) && (BEACON_APP))
-		BLE_DataReady = true;	//To allow BLE transmission to occur when valid sensor data
-#endif				//is certainly available, start beaconing after 1 minute from the start of sensor reading.
+		BLE_DataReady = true;					//To allow BLE or LoRa transmission to occur when valid sensor data
+#elif ((LoRa_SUPPORT) && (SENSOR_END_NODE_APP))	//is certainly available, start beaconing after 1 minute from the start of sensor reading.
+		LoRa_DataReady = true;
+#endif
 		s = 0;
 	}
 	if (m > 59)
@@ -1477,8 +1518,8 @@ void button_manage(void)
 	extern void MotionFX_manager_stop_9X(void);
 #endif
 
-#if (BLE_SUPPORT)
-	//When in BLE mode, the system goes into the operating state autonomously
+#if ((BLE_SUPPORT) || (LoRa_SUPPORT))
+	//When in BLE or LoRa mode, the system goes into the operating state autonomously
 	StartDataStrmng = true;
 #else	
 	//Otherwise, it waits for the button to be pressed or for the command
@@ -1611,7 +1652,7 @@ void process_timer3_irq(void)
 {
 	static uint16_t DeltaT = 0;
 	extern FLASH_DATA_ORG FlashDataOrg;
-#if ((BLE_SUPPORT) && (BEACON_APP))
+#if (SENSOR_REMOTE_MODE)
 	#if (CCS811)
 	extern void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
 							CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, VEML6075_MeasureTypeDef_st *LuxUVI);
@@ -1652,7 +1693,7 @@ void process_timer3_irq(void)
 #else
 	RTC_DateTimeStamp(&hrtc, &Stamp);
 	memcpy(&dataseq1[3], &Stamp.time[0], 4);
-	#if ((BLE_SUPPORT) && (BEACON_APP))
+	#if (SENSOR_REMOTE_MODE)
 		memcpy(&BLE_TimeStamp, &dataseq1[3], 4);
 	#endif
 #endif
@@ -1807,7 +1848,7 @@ void process_timer3_irq(void)
 	send_lcl_gas_data = true;
 	display_gas_data = StartDataStrmng;
 #endif
-#if ((BLE_SUPPORT) && (BEACON_APP))
+#if (SENSOR_REMOTE_MODE)
 	if ((MidNight) && !(MinMaxStored))
 	{
 		StoreMinMax(&PRS_Values, &HUM_Values, &GAS_Values, &VOC_Values, &PMS_Values, &UVx_Values);
@@ -1906,6 +1947,28 @@ void process_timer7_irq(void)
 			ServiceTimer4.Expired = true;
 			ServiceTimer4.Start = false;
 			ServiceTimer4.Counter = 0;
+		}
+	}
+	//ServiceTimer5 management: LoRa SX127x Tx interval
+	if (ServiceTimer5.Start)
+	{
+		ServiceTimer5.Counter++;
+		if (ServiceTimer5.Counter >= ServiceTimer5.TimeOut)
+		{
+			ServiceTimer5.Expired = true;
+			ServiceTimer5.Start = false;
+			ServiceTimer5.Counter = 0;
+		}
+	}
+	//ServiceTimer6 management: LoRa SX127x Rx interval
+	if (ServiceTimer6.Start)
+	{
+		ServiceTimer6.Counter++;
+		if (ServiceTimer6.Counter >= ServiceTimer6.TimeOut)
+		{
+			ServiceTimer6.Expired = true;
+			ServiceTimer6.Start = false;
+			ServiceTimer6.Counter = 0;
 		}
 	}
 
