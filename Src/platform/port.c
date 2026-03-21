@@ -101,8 +101,6 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 
 	//Get RTC Current Date & Time and copy them in the flash time data structure
 	RTC_DateTimeStamp(&hrtc, &Stamp);
-	memcpy(&FlashDataOrg.b_date, &Stamp.date[0], 3);
-	memcpy(&FlashDataOrg.b_time, &Stamp.time[0], 4);
 
 	//Get board data and copy them in the flash board data structure
 	memcpy(&FlashDataOrg.b_mdata.DeviceName, &DeviceName[0], 4);
@@ -161,22 +159,26 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s14_offset, FlashDataOrg.b_status.s14);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s15_offset, FlashDataOrg.b_status.s15);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s16_offset, FlashDataOrg.b_status.s16);
-#if (ENV_POLINOMIAL_REGRESSION)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s17_offset, FlashDataOrg.b_status.s17);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s18_offset, FlashDataOrg.b_status.s18);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s19_offset, FlashDataOrg.b_status.s19);
+#if (ENV_POLINOMIAL_REGRESSION)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s20_offset, FlashDataOrg.b_status.s20);
-#endif
-#if (AQ_POLINOMIAL_REGRESSION)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s21_offset, FlashDataOrg.b_status.s21);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s22_offset, FlashDataOrg.b_status.s22);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s23_offset, FlashDataOrg.b_status.s23);
+#endif
+#if (AQ_POLINOMIAL_REGRESSION)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s24_offset, FlashDataOrg.b_status.s24);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s25_offset, FlashDataOrg.b_status.s25);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s26_offset, FlashDataOrg.b_status.s26);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s27_offset, FlashDataOrg.b_status.s27);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s28_offset, FlashDataOrg.b_status.s28);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s29_offset, FlashDataOrg.b_status.s29);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s2a_offset, FlashDataOrg.b_status.s2a);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s2b_offset, FlashDataOrg.b_status.s2b);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s2c_offset, FlashDataOrg.b_status.s2c);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s2d_offset, FlashDataOrg.b_status.s2d);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s2e_offset, FlashDataOrg.b_status.s2e);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s2f_offset, FlashDataOrg.b_status.s2f);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s30_offset, FlashDataOrg.b_status.s30);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s31_offset, FlashDataOrg.b_status.s31);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s32_offset, FlashDataOrg.b_status.s32);
@@ -187,6 +189,12 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s37_offset, FlashDataOrg.b_status.s37);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s38_offset, FlashDataOrg.b_status.s38);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s39_offset, FlashDataOrg.b_status.s39);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s3a_offset, FlashDataOrg.b_status.s3a);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s3b_offset, FlashDataOrg.b_status.s3b);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s3c_offset, FlashDataOrg.b_status.s3c);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s3d_offset, FlashDataOrg.b_status.s3d);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s3e_offset, FlashDataOrg.b_status.s3e);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s3f_offset, FlashDataOrg.b_status.s3f);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s40_offset, FlashDataOrg.b_status.s40);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s41_offset, FlashDataOrg.b_status.s41);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s42_offset, FlashDataOrg.b_status.s42);
@@ -197,17 +205,8 @@ void Write_Flash(uint32_t data, uint8_t f_offset)
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s47_offset, FlashDataOrg.b_status.s47);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s48_offset, FlashDataOrg.b_status.s48);
 	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s49_offset, FlashDataOrg.b_status.s49);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s50_offset, FlashDataOrg.b_status.s50);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s51_offset, FlashDataOrg.b_status.s51);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s52_offset, FlashDataOrg.b_status.s52);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s53_offset, FlashDataOrg.b_status.s53);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s54_offset, FlashDataOrg.b_status.s54);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s55_offset, FlashDataOrg.b_status.s55);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s56_offset, FlashDataOrg.b_status.s56);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s57_offset, FlashDataOrg.b_status.s57);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s58_offset, FlashDataOrg.b_status.s58);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s59_offset, FlashDataOrg.b_status.s59);
-	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s60_offset, FlashDataOrg.b_status.s60);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s4a_offset, FlashDataOrg.b_status.s4a);
+	HAL_FLASH_Program(TYPEPROGRAM_WORD, DATA_EEPROM_BASE + FlashDataOrg.b_status.s4b_offset, FlashDataOrg.b_status.s4b);
 #endif
 	HAL_FLASH_Lock();
 }
@@ -263,22 +262,26 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 	FlashDataOrg.b_status.s14 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s14_offset));
 	FlashDataOrg.b_status.s15 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s15_offset));
 	FlashDataOrg.b_status.s16 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s16_offset));
-#if (ENV_POLINOMIAL_REGRESSION)
 	FlashDataOrg.b_status.s17 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s17_offset));
-	FlashDataOrg.b_status.s18 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s18_offset));
-	FlashDataOrg.b_status.s19 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s19_offset));
+#if (ENV_POLINOMIAL_REGRESSION)
 	FlashDataOrg.b_status.s20 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s20_offset));
-#endif
-#if (AQ_POLINOMIAL_REGRESSION)
 	FlashDataOrg.b_status.s21 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s21_offset));
 	FlashDataOrg.b_status.s22 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s22_offset));
 	FlashDataOrg.b_status.s23 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s23_offset));
+#endif
+#if (AQ_POLINOMIAL_REGRESSION)
 	FlashDataOrg.b_status.s24 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s24_offset));
 	FlashDataOrg.b_status.s25 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s25_offset));
 	FlashDataOrg.b_status.s26 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s26_offset));
 	FlashDataOrg.b_status.s27 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s27_offset));
 	FlashDataOrg.b_status.s28 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s28_offset));
 	FlashDataOrg.b_status.s29 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s29_offset));
+	FlashDataOrg.b_status.s2a = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s2a_offset));
+	FlashDataOrg.b_status.s2b = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s2b_offset));
+	FlashDataOrg.b_status.s2c = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s2c_offset));
+	FlashDataOrg.b_status.s2d = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s2d_offset));
+	FlashDataOrg.b_status.s2e = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s2e_offset));
+	FlashDataOrg.b_status.s2f = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s2f_offset));
 	FlashDataOrg.b_status.s30 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s30_offset));
 	FlashDataOrg.b_status.s31 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s31_offset));
 	FlashDataOrg.b_status.s32 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s32_offset));
@@ -289,6 +292,12 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 	FlashDataOrg.b_status.s37 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s37_offset));
 	FlashDataOrg.b_status.s38 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s38_offset));
 	FlashDataOrg.b_status.s39 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s39_offset));
+	FlashDataOrg.b_status.s3a = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s3a_offset));
+	FlashDataOrg.b_status.s3b = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s3b_offset));
+	FlashDataOrg.b_status.s3c = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s3c_offset));
+	FlashDataOrg.b_status.s3d = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s3d_offset));
+	FlashDataOrg.b_status.s3e = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s3e_offset));
+	FlashDataOrg.b_status.s3f = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s3f_offset));
 	FlashDataOrg.b_status.s40 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s40_offset));
 	FlashDataOrg.b_status.s41 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s41_offset));
 	FlashDataOrg.b_status.s42 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s42_offset));
@@ -299,24 +308,16 @@ void Read_Flash(uint32_t *data, uint8_t f_offset)
 	FlashDataOrg.b_status.s47 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s47_offset));
 	FlashDataOrg.b_status.s48 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s48_offset));
 	FlashDataOrg.b_status.s49 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s49_offset));
-	FlashDataOrg.b_status.s50 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s50_offset));
-	FlashDataOrg.b_status.s51 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s51_offset));
-	FlashDataOrg.b_status.s52 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s52_offset));
-	FlashDataOrg.b_status.s53 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s53_offset));
-	FlashDataOrg.b_status.s54 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s54_offset));
-	FlashDataOrg.b_status.s55 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s55_offset));
-	FlashDataOrg.b_status.s56 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s56_offset));
-	FlashDataOrg.b_status.s57 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s57_offset));
-	FlashDataOrg.b_status.s58 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s58_offset));
-	FlashDataOrg.b_status.s59 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s59_offset));
-	FlashDataOrg.b_status.s60 = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s60_offset));
+	FlashDataOrg.b_status.s4a = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s4a_offset));
+	FlashDataOrg.b_status.s4b = *((uint32_t*)(DATA_EEPROM_BASE + FlashDataOrg.b_status.s4b_offset));
 #endif
 	//Format the RTC Current Date & Time read from flash in the time data structure
 	memcpy(&Stamp.date[0], &FlashDataOrg.b_date, 3);
 	Stamp.date[0] = ByteToBcd(Stamp.date[0]);
 	Stamp.date[1] = ByteToBcd(Stamp.date[1]);
 	Stamp.date[2] = ByteToBcd(Stamp.date[2]);
-	memcpy(&Stamp.time[0], &FlashDataOrg.b_time, 3);	//Not used; the time is stored in the RTC backup registers
+	memcpy(&Stamp.time[0], &FlashDataOrg.b_time, 3);			//Not used; the time is stored in the RTC backup registers
+	memcpy(&Stamp.time_diff, &FlashDataOrg.b_status.s17, 4);	//Restore the time difference register
 
 //	RTC_DateRegulate(&hrtc, Stamp.date[2], Stamp.date[0], Stamp.date[1], 0x01);
 
@@ -972,7 +973,7 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
  * @brief	Timer 3 Interrupt Handler (process_timer3_irq():
  * 			Called when Timer3 counter expires (5 second period).
  * 			There isn't a Timer 6 Interrupt Handler; when Timer 6 expires (period 5s)
- * 			the timer5s_expired flag is set and the storage of VOC sensor (CCs811)
+ * 			the timer5s_expired flag is set and the storage of VOC sensor (CCs311)
  * 			baseline data is performed in VOC_Sensor_Handler function (in MEMS_app.c)
  */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -1457,6 +1458,18 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle)
 	process_ADC_irq(AdcHandle);
 }
 
+/**
+  * @brief  Memory Rx Transfer completed callback.
+  * @param  hi2c Pointer to a I2C_HandleTypeDef structure that contains
+  *                the configuration information for the specified I2C.
+  * @retval None
+  */
+//void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
+//{
+//    // Data in pData buffer is now valid
+//    // Clear flags or trigger processing here
+//}
+
 /****************************************************************************//**
  * 								IRQ section
  *******************************************************************************/
@@ -1476,7 +1489,6 @@ void process_timer1_irq(void)
 		LSM9DS1_status = LSM9DS1_Get_Measurement(&IMU_Values);
 	//Get Local Time-Stamp
 		RTC_DateTimeStamp(&hrtc, &Stamp);
-		memcpy(&dataseq[3], &Stamp.time[0], 4);
 		lcl_imu_data_rdy = true;
 		send_lcl_imu_data = true;				//Send IMU data at the MotionFX update rate
 		update_100Hz = 0;
@@ -1652,7 +1664,7 @@ void process_timer3_irq(void)
 {
 	static uint16_t DeltaT = 0;
 	extern FLASH_DATA_ORG FlashDataOrg;
-#if (SENSOR_REMOTE_MODE)
+#if ((SENSOR_REMOTE_MODE) && (USE_BKUP_SRAM))
 	#if (CCS811)
 	extern void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
 							CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, VEML6075_MeasureTypeDef_st *LuxUVI);
@@ -1687,11 +1699,10 @@ void process_timer3_irq(void)
 		DeltaT = 0;
 	}
 //	Get Local Timestamp
-#if (GUI_SUPPORT==1)
 	RTC_DateTimeStamp(&hrtc, &Stamp);
+#if (GUI_SUPPORT==1)
 	memcpy(&dataseq[3], &Stamp.time[0], 4);
 #else
-	RTC_DateTimeStamp(&hrtc, &Stamp);
 	memcpy(&dataseq1[3], &Stamp.time[0], 4);
 	#if (SENSOR_REMOTE_MODE)
 		memcpy(&BLE_TimeStamp, &dataseq1[3], 4);
@@ -1851,7 +1862,9 @@ void process_timer3_irq(void)
 #if (SENSOR_REMOTE_MODE)
 	if ((MidNight) && !(MinMaxStored))
 	{
+	#if (USE_BKUP_SRAM)
 		StoreMinMax(&PRS_Values, &HUM_Values, &GAS_Values, &VOC_Values, &PMS_Values, &UVx_Values);
+	#endif
 		MinMaxStored = true;
 		if (Restart_Reserved)
 		{

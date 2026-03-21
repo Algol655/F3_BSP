@@ -11,7 +11,12 @@
 #include "application/Usart3TestEnv.h"
 #include "application/MEMS_app.h"
 
-const uint8_t mystring0[] ="\r\n\nALGOL TSXX - Personal Air Monitoring Station";
+const uint8_t mystring0[] ="\r\n\nALGOL TS50 - Personal Environmental Monitoring Station";
+#if (BLE_SUPPORT)
+	const uint8_t mystring0a[] ="\r\nBLE Beacon Sensor Application";
+#elif (LoRa_SUPPORT)
+	const uint8_t mystring0a[] ="\r\nLoRa Beacon Sensor End Node Application";
+#endif
 const uint8_t mystring1[] ="Premere il pulsante per piu' di 5s";
 const uint8_t mystring2[] =" per attivare i menu' di test...\r\n";
 uint8_t mystring3[CmdLineMaxLen];
@@ -21,12 +26,14 @@ const uint8_t mystring6[] = "\r\n\n  Close the terminal, connect the programming
 #if ((ENV_POLINOMIAL_REGRESSION) || (AQ_POLINOMIAL_REGRESSION))
 	const uint8_t mystring9e[] = "\r\n\n  The current coefficient a0+e of the polynomial regression is:";
 	const uint8_t mystring9f[] = "\r\n\n  The current coefficient a1 of the polynomial regression is:";
-	const uint8_t mystring9g[] = "\r\n\n  The current coefficient a2 of the polynomial regression is:";
-	const uint8_t mystring9h[] = "\r\n\n  The current coefficient a3 of the polynomial regression is:";
 	const uint8_t mystring9i[] = "  Enter the coefficient a0+e: ";
 	const uint8_t mystring9l[] = "  Enter the coefficient a1: ";
-	const uint8_t mystring9m[] = "  Enter the coefficient a2: ";
-	const uint8_t mystring9n[] = "  Enter the coefficient a3: ";
+	#if (AQ_POLINOMIAL_REGRESSION)
+		const uint8_t mystring9g[] = "\r\n\n  The current coefficient a2 of the polynomial regression is:";
+		const uint8_t mystring9h[] = "\r\n\n  The current coefficient a3 of the polynomial regression is:";
+		const uint8_t mystring9m[] = "  Enter the coefficient a2: ";
+		const uint8_t mystring9n[] = "  Enter the coefficient a3: ";
+	#endif
 #endif
 #if (PRESSURE_SENSOR_PRESENT==1)
 	#if (LPS25HB)
@@ -247,6 +254,14 @@ const uint8_t top_menu_items_row10[]="| FW UPDATE...: [6] |\r\n";
 		const uint8_t L80_menu_items_row4[]= "| SET DATE/TIME...: 1 |\r\n";
 		const uint8_t mystring7[] = "\r\n\n  Open the 'RTC_SetUp.ttl' macro...\r\n\n";
 	#endif
+	#if (RTC_CALIB==1)
+		const uint8_t L80_menu_items_row20[]="| RTC CALIB.......: D |\r\n";
+		const uint8_t mystring7a[] = "\r\n\n  The next to last adjustment has been made";
+		const uint8_t mystring7b[] = "  The Time Difference from last regulation is";
+		const uint8_t mystring7c[] = "  The current value of the RTC calibration register is:";
+		const uint8_t mystring7d[] = "  Enter the new RTC calibration value: ";
+		const uint8_t mystring7e[] = "\r\n\n  Please adjust the date/time first! Exit...";
+	#endif
 	#if ((PRESSURE_SENSOR_PRESENT==1) || (HUMIDITY_SENSOR_PRESENT==1))
 		const uint8_t L80_menu_items_row5[]= "| T SENSOR CALIB..: 2 |\r\n";
 	#endif
@@ -278,9 +293,6 @@ const uint8_t L50_menu_items_row3b[]=": MAIN MENU                               
 uint8_t L50_menu_items_row4a[]="+------------------------------------------------";
 uint8_t L50_menu_items_row4b[]="-------------------------------------------------+\r\n";
 uint8_t L50_menu_items_row4c[]="-------------------------------------------------+\r\n\n";
-#if (RTC_CALIB==1)
-	const uint8_t L80_menu_items_row20[]="| RTC CALIB.......: D |\r\n";
-#endif
 #if (USE_BKUP_SRAM==1)
 	const uint8_t L80_menu_items_row23[]="| CLEAR BKUP_SRAM.: G |\r\n";
 	const uint8_t mystring22a[] = "\r\n\n  Warning!!!\r\n  The internal BackUp RAM will be deleted at the next restart!";
@@ -518,6 +530,9 @@ void top_menu()
 	led_pc6_timer = 0;
 
 	USART3_Tx((uint8_t*)mystring0,strlen((const char*)mystring0));	//Transmit welcome string
+#if ((BLE_SUPPORT) || (LoRa_SUPPORT))
+	USART3_Tx((uint8_t*)mystring0a,strlen((const char*)mystring0a));	//Transmit product string
+#endif
 	USART3_Tx((uint8_t*)Version,strlen((const char*)Version));		//Transmit version string
 	USART3_Tx((uint8_t*)top_menu_items_row1,strlen((const char*)top_menu_items_row1));
 	USART3_Tx((uint8_t*)top_menu_items_row2,strlen((const char*)top_menu_items_row2));
@@ -1313,6 +1328,9 @@ void L80_menu_Strings()
 #if (SET_DATE_TIME==1)
 	USART3_Tx((uint8_t*)L80_menu_items_row4,strlen((const char*)L80_menu_items_row4));
 #endif
+#if (RTC_CALIB==1)
+	USART3_Tx((uint8_t*)L80_menu_items_row20,strlen((const char*)L80_menu_items_row20));
+#endif
 #if ((PRESSURE_SENSOR_PRESENT==1) || (HUMIDITY_SENSOR_PRESENT==1))
 	USART3_Tx((uint8_t*)L80_menu_items_row5,strlen((const char*)L80_menu_items_row5));
 #endif
@@ -1336,9 +1354,6 @@ void L80_menu_Strings()
 	USART3_Tx((uint8_t*)L80_menu_items_row15,strlen((const char*)L80_menu_items_row15));
 #endif	//OUTDOOR_MODE
 #endif	//GAS_SENSOR_MODULE_PRESENT
-#if (RTC_CALIB==1)
-	USART3_Tx((uint8_t*)L80_menu_items_row20,strlen((const char*)L80_menu_items_row20));
-#endif
 #if (USE_BKUP_SRAM==1)
 	USART3_Tx((uint8_t*)L80_menu_items_row23,strlen((const char*)L80_menu_items_row23));
 #endif
@@ -1450,6 +1465,11 @@ void L80_menu()
 #if (SET_DATE_TIME==1)
 	extern bool SendCntrlMsg;
 #endif
+#if (RTC_CALIB)
+	bool date_time_adjust_done = false;
+	uint32_t last_date_time_adjust = 0;
+	int32_t RTC_Calib;
+#endif
 #if (WRITE_FLASH==1)
 	extern FLASH_DATA_ORG FlashDataOrg;
 #endif
@@ -1499,6 +1519,48 @@ void L80_menu()
 					}
 					usart3_run();
 				} while ((sel1 != 0x04) && (sel1 != 0x1B));
+	#if (RTC_CALIB)
+				/*
+				 * When the date/time is adjusted, the epoch timer is stored in FlashDataOrg.b_status.s16.
+				 * This way, when the RTC calibration function is called, the difference between the current
+				 * value of the epoch counter and this stored value provides the number of seconds since the
+				 * last adjustment. This is very useful for calculating the value to use for RTC calibration.
+				 */
+				last_date_time_adjust = FlashDataOrg.b_status.s16;
+				FlashDataOrg.b_status.s16 = Stamp.epoch_timestamp;
+				/*
+				 * The time difference in seconds between the time before the adjustment and the time after the
+				 * adjustment is recorded in the "FlashDataOrg.b_status.s17" register to be used for RTC calibration.
+				 */
+				memcpy(&FlashDataOrg.b_status.s17, &Stamp.time_diff, 4);
+				date_time_adjust_done = true;
+				updated = true;
+	#endif
+				break;
+#endif
+#if (RTC_CALIB==1)
+			case 0x44:	//"D"
+			case 0x64:	//"d"
+				usart3app.usartbuf[len-1] = 0;
+				if (date_time_adjust_done)
+				{
+					PrintNumHeader((uint8_t*)mystring7a, NULL, Stamp.epoch_timestamp-last_date_time_adjust, false, " seconds ago");
+					PrintNumHeader((uint8_t*)mystring7b, NULL, Stamp.time_diff, false, " seconds");
+					PrintNumHeader((uint8_t*)mystring7b, NULL, Stamp.time_diff_ppm, false, " ppm");
+					PrintNumHeader((uint8_t*)mystring7c, (uint8_t*)mystring7d, FlashDataOrg.b_status.s7, false, "");
+					GetNumericString(false, true);
+					//Calculate the new RH_Correction
+					if (strlen((const char*)(mystring3)))
+					{
+						RTC_Calib = atoi((const char*)mystring3);
+						memcpy(&FlashDataOrg.b_status.s7, &RTC_Calib, 4);
+						updated = true;
+					}
+				} else
+				{
+					PrintTextHeader((uint8_t*)mystring7e, NULL, NULL, "");
+					usart3app.usartbuf[usart3app.usartlen-1] = 0x1B;
+				}
 				break;
 #endif
 #if ((PRESSURE_SENSOR_PRESENT==1) || (HUMIDITY_SENSOR_PRESENT==1))
@@ -1525,9 +1587,9 @@ void L80_menu()
 				{
 					a0_Temp = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s20 = *(uint32_t*)&a0_Temp;
+					FlashDataOrg.b_status.s23 = *(uint32_t*)&a0_Temp;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s20), &a0_Temp, 4);
+					//memcpy(&(FlashDataOrg.b_status.s23), &a0_Temp, 4);
 					updated = true;
 				}
 
@@ -1538,9 +1600,9 @@ void L80_menu()
 				{
 					a1_Temp = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s17 = *(uint32_t*)&a1_Temp;
+					FlashDataOrg.b_status.s20 = *(uint32_t*)&a1_Temp;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s17), &a1_Temp, 4);
+					//memcpy(&(FlashDataOrg.b_status.s20), &a1_Temp, 4);
 					updated = true;
 				}
 	#endif
@@ -1607,9 +1669,9 @@ void L80_menu()
 			{
 				a1_Hum = atof((const char*)mystring3);
 				//Passing content of float32 to a uint32 with pointers
-				FlashDataOrg.b_status.s19 = *(uint32_t*)&a1_Hum;
+				FlashDataOrg.b_status.s22 = *(uint32_t*)&a1_Hum;
 				//Passing content of float32 to a uint32 with byte-by-byte copy
-				//memcpy(&(FlashDataOrg.b_status.s17), &a1_Hum, 4);
+				//memcpy(&(FlashDataOrg.b_status.s20), &a1_Hum, 4);
 				updated = true;
 			}
 	#endif
@@ -1713,9 +1775,9 @@ void L80_menu()
 					{
 						a0_CO = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s37 = *(uint32_t*)&a0_CO;
+						FlashDataOrg.b_status.s34 = *(uint32_t*)&a0_CO;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s37), &a0_CO, 4);
+						//memcpy(&(FlashDataOrg.b_status.s34), &a0_CO, 4);
 						updated = true;
 					}
 
@@ -1726,9 +1788,9 @@ void L80_menu()
 					{
 						a1_CO = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s38 = *(uint32_t*)&a1_CO;
+						FlashDataOrg.b_status.s35 = *(uint32_t*)&a1_CO;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s38), &a1_CO, 4);
+						//memcpy(&(FlashDataOrg.b_status.s35), &a1_CO, 4);
 						updated = true;
 					}
 
@@ -1739,9 +1801,9 @@ void L80_menu()
 					{
 						a2_CO = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s39 = *(uint32_t*)&a2_CO;
+						FlashDataOrg.b_status.s36 = *(uint32_t*)&a2_CO;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s39), &a2_CO, 4);
+						//memcpy(&(FlashDataOrg.b_status.s36), &a2_CO, 4);
 						updated = true;
 					}
 
@@ -1752,9 +1814,9 @@ void L80_menu()
 					{
 						a3_CO = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s40 = *(uint32_t*)&a3_CO;
+						FlashDataOrg.b_status.s37 = *(uint32_t*)&a3_CO;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s40), &a3_CO, 4);
+						//memcpy(&(FlashDataOrg.b_status.s37), &a3_CO, 4);
 						updated = true;
 					}
 	#endif
@@ -1797,9 +1859,9 @@ void L80_menu()
 				{
 					a0_CH2O = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s21 = *(uint32_t*)&a0_CH2O;
+					FlashDataOrg.b_status.s24 = *(uint32_t*)&a0_CH2O;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s21), &a0_CH2O, 4);
+					//memcpy(&(FlashDataOrg.b_status.s24), &a0_CH2O, 4);
 					updated = true;
 				}
 
@@ -1810,9 +1872,9 @@ void L80_menu()
 				{
 					a1_CH2O = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s22 = *(uint32_t*)&a1_CH2O;
+					FlashDataOrg.b_status.s25 = *(uint32_t*)&a1_CH2O;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s22), &a1_CH2O, 4);
+					//memcpy(&(FlashDataOrg.b_status.s25), &a1_CH2O, 4);
 					updated = true;
 				}
 
@@ -1823,9 +1885,9 @@ void L80_menu()
 				{
 					a2_CH2O = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s23 = *(uint32_t*)&a2_CH2O;
+					FlashDataOrg.b_status.s26 = *(uint32_t*)&a2_CH2O;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s23), &a2_CH2O, 4);
+					//memcpy(&(FlashDataOrg.b_status.s26), &a2_CH2O, 4);
 					updated = true;
 				}
 
@@ -1836,9 +1898,9 @@ void L80_menu()
 				{
 					a3_CH2O = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s24 = *(uint32_t*)&a3_CH2O;
+					FlashDataOrg.b_status.s27 = *(uint32_t*)&a3_CH2O;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s24), &a3_CH2O, 4);
+					//memcpy(&(FlashDataOrg.b_status.s27), &a3_CH2O, 4);
 					updated = true;
 				}
 	#endif
@@ -1893,9 +1955,9 @@ void L80_menu()
 					{
 						a0_NO2 = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s29 = *(uint32_t*)&a0_NO2;
+						FlashDataOrg.b_status.s2c = *(uint32_t*)&a0_NO2;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s29), &a0_NO2, 4);
+						//memcpy(&(FlashDataOrg.b_status.s2c), &a0_NO2, 4);
 						updated = true;
 					}
 
@@ -1906,9 +1968,9 @@ void L80_menu()
 					{
 						a1_NO2 = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s30 = *(uint32_t*)&a1_NO2;
+						FlashDataOrg.b_status.s2d = *(uint32_t*)&a1_NO2;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s30), &a1_NO2, 4);
+						//memcpy(&(FlashDataOrg.b_status.s2d), &a1_NO2, 4);
 						updated = true;
 					}
 
@@ -1919,9 +1981,9 @@ void L80_menu()
 					{
 						a2_NO2 = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s31 = *(uint32_t*)&a2_NO2;
+						FlashDataOrg.b_status.s2e = *(uint32_t*)&a2_NO2;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s31), &a2_NO2, 4);
+						//memcpy(&(FlashDataOrg.b_status.s2e), &a2_NO2, 4);
 						updated = true;
 					}
 
@@ -1932,9 +1994,9 @@ void L80_menu()
 					{
 						a3_NO2 = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s32 = *(uint32_t*)&a3_NO2;
+						FlashDataOrg.b_status.s2f = *(uint32_t*)&a3_NO2;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s32), &a3_NO2, 4);
+						//memcpy(&(FlashDataOrg.b_status.s2f), &a3_NO2, 4);
 						updated = true;
 					}
 	#endif
@@ -1987,9 +2049,9 @@ void L80_menu()
 					{
 						a0_NH3 = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s33 = *(uint32_t*)&a0_NH3;
+						FlashDataOrg.b_status.s30 = *(uint32_t*)&a0_NH3;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s33), &a0_NH3, 4);
+						//memcpy(&(FlashDataOrg.b_status.s30), &a0_NH3, 4);
 						updated = true;
 					}
 
@@ -2000,9 +2062,9 @@ void L80_menu()
 					{
 						a1_NH3 = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s34 = *(uint32_t*)&a1_NH3;
+						FlashDataOrg.b_status.s31 = *(uint32_t*)&a1_NH3;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s34), &a1_NH3, 4);
+						//memcpy(&(FlashDataOrg.b_status.s31), &a1_NH3, 4);
 						updated = true;
 					}
 
@@ -2013,9 +2075,9 @@ void L80_menu()
 					{
 						a2_NH3 = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s35 = *(uint32_t*)&a2_NH3;
+						FlashDataOrg.b_status.s32 = *(uint32_t*)&a2_NH3;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s35), &a2_NH3, 4);
+						//memcpy(&(FlashDataOrg.b_status.s32), &a2_NH3, 4);
 						updated = true;
 					}
 
@@ -2026,9 +2088,9 @@ void L80_menu()
 					{
 						a3_NH3 = atof((const char*)mystring3);
 						//Passing content of float32 to a uint32 with pointers
-						FlashDataOrg.b_status.s36 = *(uint32_t*)&a3_NH3;
+						FlashDataOrg.b_status.s33 = *(uint32_t*)&a3_NH3;
 						//Passing content of float32 to a uint32 with byte-by-byte copy
-						//memcpy(&(FlashDataOrg.b_status.s36), &a3_NH3, 4);
+						//memcpy(&(FlashDataOrg.b_status.s33), &a3_NH3, 4);
 						updated = true;
 					}
 		#endif
@@ -2059,9 +2121,9 @@ void L80_menu()
 				{
 					a0_O3 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s25 = *(uint32_t*)&a0_O3;
+					FlashDataOrg.b_status.s28 = *(uint32_t*)&a0_O3;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s25), &a0_O3, 4);
+					//memcpy(&(FlashDataOrg.b_status.s28), &a0_O3, 4);
 					updated = true;
 				}
 
@@ -2072,9 +2134,9 @@ void L80_menu()
 				{
 					a1_O3 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s26 = *(uint32_t*)&a1_O3;
+					FlashDataOrg.b_status.s29 = *(uint32_t*)&a1_O3;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s26), &a1_O3, 4);
+					//memcpy(&(FlashDataOrg.b_status.s29), &a1_O3, 4);
 					updated = true;
 				}
 
@@ -2085,9 +2147,9 @@ void L80_menu()
 				{
 					a2_O3 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s27 = *(uint32_t*)&a2_O3;
+					FlashDataOrg.b_status.s2a = *(uint32_t*)&a2_O3;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s27), &a2_O3, 4);
+					//memcpy(&(FlashDataOrg.b_status.s2a), &a2_O3, 4);
 					updated = true;
 				}
 
@@ -2098,9 +2160,9 @@ void L80_menu()
 				{
 					a3_O3 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s28 = *(uint32_t*)&a3_O3;
+					FlashDataOrg.b_status.s2b = *(uint32_t*)&a3_O3;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s28), &a3_O3, 4);
+					//memcpy(&(FlashDataOrg.b_status.s2b), &a3_O3, 4);
 					updated = true;
 				}
 		#endif
@@ -2129,9 +2191,9 @@ void L80_menu()
 				{
 					a0_SO2 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s41 = *(uint32_t*)&a0_SO2;
+					FlashDataOrg.b_status.s38 = *(uint32_t*)&a0_SO2;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s41), &a0_SO2, 4);
+					//memcpy(&(FlashDataOrg.b_status.s38), &a0_SO2, 4);
 					updated = true;
 				}
 
@@ -2142,9 +2204,9 @@ void L80_menu()
 				{
 					a1_SO2 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s42 = *(uint32_t*)&a1_SO2;
+					FlashDataOrg.b_status.s39 = *(uint32_t*)&a1_SO2;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s42), &a1_SO2, 4);
+					//memcpy(&(FlashDataOrg.b_status.s39), &a1_SO2, 4);
 					updated = true;
 				}
 
@@ -2155,9 +2217,9 @@ void L80_menu()
 				{
 					a2_SO2 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s43 = *(uint32_t*)&a2_SO2;
+					FlashDataOrg.b_status.s3a = *(uint32_t*)&a2_SO2;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s43), &a2_SO2, 4);
+					//memcpy(&(FlashDataOrg.b_status.s3a), &a2_SO2, 4);
 					updated = true;
 				}
 
@@ -2168,9 +2230,9 @@ void L80_menu()
 				{
 					a3_SO2 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s44 = *(uint32_t*)&a3_SO2;
+					FlashDataOrg.b_status.s3b = *(uint32_t*)&a3_SO2;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s44), &a3_SO2, 4);
+					//memcpy(&(FlashDataOrg.b_status.s3b), &a3_SO2, 4);
 					updated = true;
 				}
 		#endif
@@ -2199,9 +2261,9 @@ void L80_menu()
 				{
 					a0_C6H6 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s45 = *(uint32_t*)&a0_C6H6;
+					FlashDataOrg.b_status.s3c = *(uint32_t*)&a0_C6H6;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s45), &a0_C6H6, 4);
+					//memcpy(&(FlashDataOrg.b_status.s3c), &a0_C6H6, 4);
 					updated = true;
 				}
 
@@ -2212,9 +2274,9 @@ void L80_menu()
 				{
 					a1_C6H6 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s46 = *(uint32_t*)&a1_C6H6;
+					FlashDataOrg.b_status.s3d = *(uint32_t*)&a1_C6H6;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s46), &a1_C6H6, 4);
+					//memcpy(&(FlashDataOrg.b_status.s3d), &a1_C6H6, 4);
 					updated = true;
 				}
 
@@ -2225,9 +2287,9 @@ void L80_menu()
 				{
 					a2_C6H6 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s47 = *(uint32_t*)&a2_C6H6;
+					FlashDataOrg.b_status.s3e = *(uint32_t*)&a2_C6H6;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s47), &a2_C6H6, 4);
+					//memcpy(&(FlashDataOrg.b_status.s3e), &a2_C6H6, 4);
 					updated = true;
 				}
 
@@ -2238,9 +2300,9 @@ void L80_menu()
 				{
 					a3_C6H6 = atof((const char*)mystring3);
 					//Passing content of float32 to a uint32 with pointers
-					FlashDataOrg.b_status.s48 = *(uint32_t*)&a3_C6H6;
+					FlashDataOrg.b_status.s3f = *(uint32_t*)&a3_C6H6;
 					//Passing content of float32 to a uint32 with byte-by-byte copy
-					//memcpy(&(FlashDataOrg.b_status.s48), &a3_C6H6, 4);
+					//memcpy(&(FlashDataOrg.b_status.s3f), &a3_C6H6, 4);
 					updated = true;
 				}
 		#endif
@@ -2451,6 +2513,9 @@ void L80_menu()
 				if (updated)
 				{
 					updated = false;
+	#if (RTC_CALIB)
+					date_time_adjust_done = false;
+	#endif
 #if ((PRESSURE_SENSOR_PRESENT==1) || (HUMIDITY_SENSOR_PRESENT==1))
 					//Pack-> Bit 0..15: T_Correction; Bit 16..31: RH_Correction
 					FlashDataOrg.b_status.s3 = ((uint32_t)(RH_Correction & 0xFFFF) << 16) | (uint32_t)(T_Correction & 0xFFFF);

@@ -65,7 +65,23 @@ V. 2.08.02	(Rilasciata il 2025/10/30)
 2) Ottimizzata la funzione di ottenimento della data/ora (Ok)
 
 V. 2.08.03	(Rilasciata il 2026/01/02)
-1) Aggiornamento a CubeMX 6.16.1, CubeIDE 2.0.0 
+1) Aggiornamento a CubeMX 6.16.1, CubeIDE 2.0.0 (Ok)
 2) Corretto overlap fra AH_Min, AH_Max con UV_Index_Max nella gestione della memoria di backup (Ok)
 3) Corretta la gestione del parametro calibrazione del sensore TVOC/CO2 con device CCS811 (Ok)
 4) Corretta la rappresentazione del numero di errori dell'ADC nel registro di stato (StatusReg) (Ok)
+5) Corretto il set/clear dei bit 31..16 nel registro AnlgOvflStatusReg (Ok)
+
+V. 2.09.00	(Rilasciata il 2026/21/03)
+1) Aggiornamento a CubeMX 6.17.0, CubeIDE 2.1.1
+2) Corretta la compensazione dell'umidità nel driver del sensore di VOC CCS811
+   (La compensazione si applica solo quando l'umidità relativa è <= 85%) (Ok)
+3) Migliorata la gestione del recupero degli errori sul bus I2C (Ok)
+4) Corrette le locazioni di memoria per lo storage dei coefficienti delle regressioni polinomiali delle curve
+   di calibrazione dei parametri ambientali e della qualità dell'aria (Ok)
+5) Ottimizzati i punti di lettura della data/tempo (chiamate alla funzione "RTC_DateTimeStamp(&hrtc, &Stamp))" (Ok)
+6) Aggiunto il ritorno del numero di secondi (epoch timestamp) nella funzione "CheckDayLigth" e la sua memorizzazione
+  (fatta nella funzione "RTC_DateTimeStamp") nella struttura dati "DateTime" (Ok)
+7) Aggiunta la funzione calibrazione dell'RTC nel menù "UTILITIES" dell'ambiente di configurazione
+   (N.B.: Occorre ripetere la regolazione dell'ora dal menù "UTILITIES" affinchè questa funzione sia efficace) (Ok)
+8) Nella versione con LCD corretta la visualizzazione del sensore CH2O quando il sensore TVOC è in failure
+   (L'indicazione di "FAIL" sul campo TVOC si ripercuoteva erroneamente anche sul campo del sensore CH2O) (Ok)

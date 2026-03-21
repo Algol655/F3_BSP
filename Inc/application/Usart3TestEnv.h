@@ -19,7 +19,7 @@
 #define FW_UPDATE		(1)
 #define UTILITIES		(1)
 #define SET_DATE_TIME	(1)
-#define RTC_CALIB		(0)
+#define RTC_CALIB		(1)
 #define UWB_MODE		(0)
 #define PWR_NODE_MODE	(0)
 #define RTLS_FW			(0)

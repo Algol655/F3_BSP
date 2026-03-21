@@ -17,12 +17,14 @@
 //#define GSB_HW_VER			(20U)		//Gas Sensor Board HW Version 2.0
 //#define GSB_HW_VER			(21U)		//Gas Sensor Board HW Version 2.1
 
-#define SMD1001_CH2O_1(x)	((0.4377F * x) - 0.4399F)	//y(ppm) = 0.4377(Vs/Vo) - 0.4399 -> when Vs/Vo <= 1.45
+#define SMD1001_CH2O_1(x)	((0.4351F * x) - 0.4364F)	//y(ppm) = 0.4351(Vs/Vo) - 0.4364 -> when Vs/Vo <= 1.45
 #define SMD1001_CH2O_2(x)	((0.8111F * x) - 0.9918F)	//y(ppm) = 0.8111(Vs/Vo) - 0.9918 -> when 1,45 < Vs/Vo <= 1.83
 #define SMD1001_CH2O_3(x)	((0.8164F * x) - 0.9584F)	//y(ppm) = 0.7859(Vs/Vo) - 0.9001 -> when Vs/Vo > 1.83
 #define SMD1001_CH2O_TC1(x)	((-0.0210F * x) + 1.2650F)	//T < 10°C SMD1001_CH2O sensor temperature compensation (0.4ppm Vs/Vo - °C relationship, see data sheet)
 #define SMD1001_CH2O_TC2(x)	((-0.0088F * x) + 1.1855F)	//T >= 10°C SMD1001_CH2O sensor temperature compensation (0.4ppm Vs/Vo - °C relationship, see data sheet)
 #define SMD1001_CH2O_RHC(x)	((-0.0047F * x) + 1.2795F)	//SMD1001_CH2O sensor humidity compensation (0.4ppm Vs/Vo - RH relationship, see data sheet)
+#define SMD1001_CH2O(x)		((4.36598e-8F * pow(x, 3.0F)) + (-9.1977e-5F * pow(x, 2.0F)) + (0.0740F * x) + 8.3836F)	//Cubic regression for the SMD1001
+																													//sensor calibration. x in ug/m3
 #define ZE08_CH2O(x)	((3.125F * x) - 1.25F)	//y(ppm) = 3.125(Vadc) - 1.25
 #define CH2O_MOL_WEIGHT	30.026F //Formaldehyde Molecular weight, g/mol
 #define CH2O_ppm2ugm3(x)	((CH2O_MOL_WEIGHT * x * 1000.0F)/24.45F)	//ppm to ug/m3 CH2O conversion

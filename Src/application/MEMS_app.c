@@ -10,7 +10,7 @@
 
 uint8_t DeviceName[5] ="S191";
 uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
-uint8_t SW_Version[5] ="2803";
+uint8_t SW_Version[5] ="2900";
 uint32_t Vendor_ID  = 0x2316F;
 uint32_t Prdct_Code = 10000324;
 uint32_t Rev_Number = 0;
@@ -192,51 +192,51 @@ void AB_Init(void)
 #endif
 	}
 #if (ENV_POLINOMIAL_REGRESSION)
-	if (FlashDataOrg.b_status.s17 == 0xFFFFFFFF)
+	if (FlashDataOrg.b_status.s20 == 0xFFFFFFFF)
 	{
-		FlashDataOrg.b_status.s20 = *(uint32_t*)&a0_Temp;	//Temperature coeff. β0+ε of the 1° order polynomial regression
-		FlashDataOrg.b_status.s17 = *(uint32_t*)&a1_Temp;	//Temperature coeff. β1 of the 1° order polynomial regression
+		FlashDataOrg.b_status.s23 = *(uint32_t*)&a0_Temp;	//Temperature coeff. β0+ε of the 1° order polynomial regression
+		FlashDataOrg.b_status.s20 = *(uint32_t*)&a1_Temp;	//Temperature coeff. β1 of the 1° order polynomial regression
 		FlashDataOrg.b_status.s5 = *(uint32_t*)&a0_Hum;		//Humidity coeff. β0+ε of the 1° order polynomial regression
-		FlashDataOrg.b_status.s19 = *(uint32_t*)&a1_Hum;	//Humidity coeff. β1 of the 1° order polynomial regression
+		FlashDataOrg.b_status.s22 = *(uint32_t*)&a1_Hum;	//Humidity coeff. β1 of the 1° order polynomial regression
 	}
 #endif
 #if (AQ_POLINOMIAL_REGRESSION)
-	if (FlashDataOrg.b_status.s37 == 0xFFFFFFFF)
+	if (FlashDataOrg.b_status.s34 == 0xFFFFFFFF)
 	{
-		FlashDataOrg.b_status.s37 = *(uint32_t*)&a0_CO;		//Carbon Monoxide coeff. β0+ε of the 3° order polynomial regression
-		FlashDataOrg.b_status.s38 = *(uint32_t*)&a1_CO;		//Carbon Monoxide coeff. β1 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s39 = *(uint32_t*)&a2_CO;		//Carbon Monoxide coeff. β2 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s40 = *(uint32_t*)&a3_CO;		//Carbon Monoxide coeff. β3 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s34 = *(uint32_t*)&a0_CO;		//Carbon Monoxide coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s35 = *(uint32_t*)&a1_CO;		//Carbon Monoxide coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s36 = *(uint32_t*)&a2_CO;		//Carbon Monoxide coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s37 = *(uint32_t*)&a3_CO;		//Carbon Monoxide coeff. β3 of the 3° order polynomial regression
 
-		FlashDataOrg.b_status.s21 = *(uint32_t*)&a0_CH2O;	//Formaldehyde coeff. β0+ε of the 3° order polynomial regression
-		FlashDataOrg.b_status.s22 = *(uint32_t*)&a1_CH2O;	//Formaldehyde coeff. β1 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s23 = *(uint32_t*)&a2_CH2O;	//Formaldehyde coeff. β2 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s24 = *(uint32_t*)&a3_CH2O;	//Formaldehyde coeff. β3 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s24 = *(uint32_t*)&a0_CH2O;	//Formaldehyde coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s25 = *(uint32_t*)&a1_CH2O;	//Formaldehyde coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s26 = *(uint32_t*)&a2_CH2O;	//Formaldehyde coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s27 = *(uint32_t*)&a3_CH2O;	//Formaldehyde coeff. β3 of the 3° order polynomial regression
 
-		FlashDataOrg.b_status.s29 = *(uint32_t*)&a0_NO2;	//Nitrogen Dioxide coeff. β0+ε of the 3° order polynomial regression
-		FlashDataOrg.b_status.s30 = *(uint32_t*)&a1_NO2;	//Nitrogen Dioxide coeff. β1 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s31 = *(uint32_t*)&a2_NO2;	//Nitrogen Dioxide coeff. β2 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s32 = *(uint32_t*)&a3_NO2;	//Nitrogen Dioxide coeff. β3 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s2c = *(uint32_t*)&a0_NO2;	//Nitrogen Dioxide coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s2d = *(uint32_t*)&a1_NO2;	//Nitrogen Dioxide coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s2e = *(uint32_t*)&a2_NO2;	//Nitrogen Dioxide coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s2f = *(uint32_t*)&a3_NO2;	//Nitrogen Dioxide coeff. β3 of the 3° order polynomial regression
 
-		FlashDataOrg.b_status.s33 = *(uint32_t*)&a0_NH3;	//Ammonia coeff. β0+ε of the 3° order polynomial regression
-		FlashDataOrg.b_status.s34 = *(uint32_t*)&a1_NH3;	//Ammonia coeff. β1 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s35 = *(uint32_t*)&a2_NH3;	//Ammonia coeff. β2 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s36 = *(uint32_t*)&a3_NH3;	//Ammonia coeff. β3 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s30 = *(uint32_t*)&a0_NH3;	//Ammonia coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s31 = *(uint32_t*)&a1_NH3;	//Ammonia coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s32 = *(uint32_t*)&a2_NH3;	//Ammonia coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s33 = *(uint32_t*)&a3_NH3;	//Ammonia coeff. β3 of the 3° order polynomial regression
 	#if (OUTDOOR_MODE)
-		FlashDataOrg.b_status.s25 = *(uint32_t*)&a0_O3;		//Ozone coeff. β0+ε of the 3° order polynomial regression
-		FlashDataOrg.b_status.s26 = *(uint32_t*)&a1_O3;		//Ozone coeff. β1 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s27 = *(uint32_t*)&a2_O3;		//Ozone coeff. β2 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s28 = *(uint32_t*)&a3_O3;		//Ozone coeff. β3 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s28 = *(uint32_t*)&a0_O3;		//Ozone coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s29 = *(uint32_t*)&a1_O3;		//Ozone coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s2a = *(uint32_t*)&a2_O3;		//Ozone coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s2b = *(uint32_t*)&a3_O3;		//Ozone coeff. β3 of the 3° order polynomial regression
 
-		FlashDataOrg.b_status.s41 = *(uint32_t*)&a0_SO2;	//Sulphur Dioxide coeff. β0+ε of the 3° order polynomial regression
-		FlashDataOrg.b_status.s42 = *(uint32_t*)&a1_SO2;	//Sulphur Dioxide coeff. β1 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s43 = *(uint32_t*)&a2_SO2;	//Sulphur Dioxide coeff. β2 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s44 = *(uint32_t*)&a3_SO2;	//Sulphur Dioxide coeff. β3 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s38 = *(uint32_t*)&a0_SO2;	//Sulphur Dioxide coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s39 = *(uint32_t*)&a1_SO2;	//Sulphur Dioxide coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s3a = *(uint32_t*)&a2_SO2;	//Sulphur Dioxide coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s3b = *(uint32_t*)&a3_SO2;	//Sulphur Dioxide coeff. β3 of the 3° order polynomial regression
 
-		FlashDataOrg.b_status.s45 = *(uint32_t*)&a0_C6H6;	//Benzene coeff. β0+ε of the 3° order polynomial regression
-		FlashDataOrg.b_status.s46 = *(uint32_t*)&a1_C6H6;	//Benzene coeff. β1 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s47 = *(uint32_t*)&a2_C6H6;	//Benzene coeff. β2 of the 3° order polynomial regression
-		FlashDataOrg.b_status.s48 = *(uint32_t*)&a3_C6H6;	//Benzene coeff. β3 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s3c = *(uint32_t*)&a0_C6H6;	//Benzene coeff. β0+ε of the 3° order polynomial regression
+		FlashDataOrg.b_status.s3d = *(uint32_t*)&a1_C6H6;	//Benzene coeff. β1 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s3e = *(uint32_t*)&a2_C6H6;	//Benzene coeff. β2 of the 3° order polynomial regression
+		FlashDataOrg.b_status.s3f = *(uint32_t*)&a3_C6H6;	//Benzene coeff. β3 of the 3° order polynomial regression
 	#endif
 	}
 #endif
@@ -282,8 +282,8 @@ void AB_Init(void)
     HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after LPS2xHB Init
     //Set the calibration values
 	#if (ENV_POLINOMIAL_REGRESSION)
-    	a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s20);
-       	a1_Temp = *(float32_t*)&(FlashDataOrg.b_status.s17);
+    	a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s23);
+       	a1_Temp = *(float32_t*)&(FlashDataOrg.b_status.s20);
 		T_Correction = 0;
 	#else
 		T_Correction = (int16_t)((FlashDataOrg.b_status.s3) & 0x0000FFFF);	//Add Temperature offset to sensor value
@@ -324,10 +324,10 @@ void AB_Init(void)
     HAL_TIM_Base_Start_IT(&htim3);			//Start Timer3 after HTS221 Init
     //Set the calibration values
 	#if (ENV_POLINOMIAL_REGRESSION)
-		a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s20);
-		a1_Temp = *(float32_t*)&(FlashDataOrg.b_status.s17);
+		a0_Temp = *(float32_t*)&(FlashDataOrg.b_status.s23);
+		a1_Temp = *(float32_t*)&(FlashDataOrg.b_status.s20);
 		a0_Hum = *(float32_t*)&(FlashDataOrg.b_status.s5);
-		a1_Hum = *(float32_t*)&(FlashDataOrg.b_status.s19);
+		a1_Hum = *(float32_t*)&(FlashDataOrg.b_status.s22);
 		T_Correction = 0;
 		RH_Correction = 0;
 	#else
@@ -481,35 +481,35 @@ void AB_Init(void)
     HAL_TIM_Base_Start_IT(&htim3);		//Start Timer3 after Analog Module Init
     //Set the calibration values
 	#if (AQ_POLINOMIAL_REGRESSION)
-		a0_CO = *(float32_t*)&(FlashDataOrg.b_status.s37);
-		a1_CO = *(float32_t*)&(FlashDataOrg.b_status.s38);
-		a2_CO = *(float32_t*)&(FlashDataOrg.b_status.s39);
-		a3_CO = *(float32_t*)&(FlashDataOrg.b_status.s40);
-		a0_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s21);
-		a1_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s22);
-		a2_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s23);
-		a3_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s24);
-		a0_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s29);
-		a1_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s30);
-		a2_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s31);
-		a3_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s32);
-		a0_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s33);
-		a1_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s34);
-		a2_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s35);
-		a3_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s36);
+		a0_CO = *(float32_t*)&(FlashDataOrg.b_status.s34);
+		a1_CO = *(float32_t*)&(FlashDataOrg.b_status.s35);
+		a2_CO = *(float32_t*)&(FlashDataOrg.b_status.s36);
+		a3_CO = *(float32_t*)&(FlashDataOrg.b_status.s37);
+		a0_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s24);
+		a1_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s25);
+		a2_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s26);
+		a3_CH2O = *(float32_t*)&(FlashDataOrg.b_status.s27);
+		a0_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s2c);
+		a1_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s2d);
+		a2_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s2e);
+		a3_NO2 = *(float32_t*)&(FlashDataOrg.b_status.s2f);
+		a0_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s30);
+		a1_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s31);
+		a2_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s32);
+		a3_NH3 = *(float32_t*)&(FlashDataOrg.b_status.s33);
 		#if (OUTDOOR_MODE)
-			a0_O3 = *(float32_t*)&(FlashDataOrg.b_status.s25);
-			a1_O3 = *(float32_t*)&(FlashDataOrg.b_status.s26);
-			a2_O3 = *(float32_t*)&(FlashDataOrg.b_status.s27);
-			a3_O3 = *(float32_t*)&(FlashDataOrg.b_status.s28);
-			a0_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s41);
-			a1_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s42);
-			a2_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s43);
-			a3_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s44);
-			a0_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s45);
-			a1_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s46);
-			a2_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s47);
-			a3_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s48);
+			a0_O3 = *(float32_t*)&(FlashDataOrg.b_status.s28);
+			a1_O3 = *(float32_t*)&(FlashDataOrg.b_status.s29);
+			a2_O3 = *(float32_t*)&(FlashDataOrg.b_status.s2a);
+			a3_O3 = *(float32_t*)&(FlashDataOrg.b_status.s2b);
+			a0_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s38);
+			a1_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s39);
+			a2_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s3a);
+			a3_SO2 = *(float32_t*)&(FlashDataOrg.b_status.s3b);
+			a0_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s3c);
+			a1_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s3d);
+			a2_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s3e);
+			a3_C6H6 = *(float32_t*)&(FlashDataOrg.b_status.s3f);
 		#endif
 	#else
 		CO_Corr = (int8_t)(FlashDataOrg.b_status.sa & 0x000000FF);
@@ -1283,9 +1283,9 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 	eTVOC_avg5m = approxMovingAverage(eTVOC_avg5m, (float32_t)eq_TVOC, AverageWindow_5m);
 	eTVOC_avg1m = approxMovingAverage(eTVOC_avg1m, (float32_t)eq_TVOC, AverageWindow_1m);
 	if (eTVOC_avg1m > eTVOC_avg5m)
-		eq_TVOC = eTVOC_avg5m;
+		eq_TVOC = (uint16_t)lrintf(eTVOC_avg5m);
 	else
-		eq_TVOC = eTVOC_avg1m;
+		eq_TVOC = (uint16_t)lrintf(eTVOC_avg1m);
 
 	if (eq_TVOC < 1)		//1 ppb is the minimum value measurable by the sensor
 		eq_TVOC = 1;
@@ -1296,9 +1296,9 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 	eCO2_avg5m = approxMovingAverage(eCO2_avg5m, (float32_t)eq_CO2, AverageWindow_5m);
 	eCO2_avg1m = approxMovingAverage(eCO2_avg1m, (float32_t)eq_CO2, AverageWindow_1m);
 	if ((float32_t)eq_CO2 > eCO2_avg5m)
-		eq_CO2 = eCO2_avg5m;
+		eq_CO2 = (uint16_t)lrintf(eCO2_avg5m);
 	else
-		eq_CO2 = eCO2_avg1m;
+		eq_CO2 = (uint16_t)lrintf(eCO2_avg1m);
 
 	if (eq_CO2 < 400)		//400 ppm is the minimum value measurable by the sensor
 		eq_CO2 = 400;
@@ -1320,8 +1320,8 @@ void VOC_Sensor_Handler(ENS160_MeasureTypeDef_st *voc, uint8_t* Buff)
 	eCO2_avg = approxMovingAverage(eCO2_avg, (float32_t)eq_CO2, AverageWindow_1h);
 	if (WarmUpPeriod_expired)
 	{
-		if (eCO2_avg < 400)
-			eCO2_avg = 400;	//400 ppm is the minimum value measurable by the sensor
+		if (eCO2_avg < 400.0)
+			eCO2_avg = 400.0;	//400 ppm is the minimum value measurable by the sensor
 	}
 	voc->eCO2_mean = (uint16_t)lrintf(eCO2_avg);
 
@@ -1494,7 +1494,7 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	// it is possible to apply the correction here!!
 	// For non-linear relations the correction is applied in the "read_SMO_sensors ()" function
 	CO = (uint16_t)lrintf(anlg->CO);
-	CO_Out = (uint16_t)lrintf(anlg->CO * 100);	//Used by BLE in app_bluenrg_2.c User_Process() function
+	CO_Out = (uint16_t)lrintf(anlg->CO * 100);	//Used by BLE and LoRa report functions
 	CH2O = (uint16_t)lrintf(anlg->CH2O);
 //	CH2O = (uint16_t)(lrintf(anlg->CH2O) + CH2O_Corr);
 	NO2 = (uint16_t)lrintf(anlg->NO2);
@@ -2021,9 +2021,9 @@ void MC_Data_Handler(LSM9DS1_MeasureTypeDef_st *IMU_Axes, uint8_t* Buff)
 	IMU_Axes->Mag_Out.AXIS_Z = (int32_t)IMU_Axes->Mag_Out.AXIS_Z - MagOffset.AXIS_Z;
 /*
   //Offset coefficients
-  Serialize_s32(&Buff[55], (int32_t)acc_bias_to_mg(data_out.AccBias[0]), 4);
-  Serialize_s32(&Buff[59], (int32_t)acc_bias_to_mg(data_out.AccBias[1]), 4);
-  Serialize_s32(&Buff[63], (int32_t)acc_bias_to_mg(data_out.AccBias[2]), 4);
+  Serialize_s2f(&Buff[55], (int32_t)acc_bias_to_mg(data_out.AccBias[0]), 4);
+  Serialize_s2f(&Buff[59], (int32_t)acc_bias_to_mg(data_out.AccBias[1]), 4);
+  Serialize_s2f(&Buff[63], (int32_t)acc_bias_to_mg(data_out.AccBias[2]), 4);
 
   //Scale factor coefficients
   FloatToArray(&Buff[67], data_out.SF_Matrix[0][0]);
@@ -2039,12 +2039,12 @@ void MC_Data_Handler(LSM9DS1_MeasureTypeDef_st *IMU_Axes, uint8_t* Buff)
   FloatToArray(&Buff[99], data_out.SF_Matrix[2][2]);
 
   //Calibrated data
-  Serialize_s32(&Buff[103], (int32_t) acc_comp.x, 4);
-  Serialize_s32(&Buff[107], (int32_t) acc_comp.y, 4);
-  Serialize_s32(&Buff[111], (int32_t) acc_comp.z, 4);
+  Serialize_s2f(&Buff[103], (int32_t) acc_comp.x, 4);
+  Serialize_s2f(&Buff[107], (int32_t) acc_comp.y, 4);
+  Serialize_s2f(&Buff[111], (int32_t) acc_comp.z, 4);
 
   //Calibration quality
-  Serialize_s32(&Buff[115], (int32_t) data_out.CalQuality, 4); */
+  Serialize_s2f(&Buff[115], (int32_t) data_out.CalQuality, 4); */
 }
 
 /**
@@ -2080,17 +2080,17 @@ void GC_Data_Handler(LSM9DS1_MeasureTypeDef_st *IMU_Axes, uint8_t* Buff)
 	(void)memcpy((void *)&Buff[39], (void *)&IMU_Axes->Gy_Out.AXIS_Z, 4);
 /*
 	//Offset coefficients
-	Serialize_s32(&Buff[55], (int32_t)gyro_bias_to_mdps(data_out.GyroBiasX), 4);
-	Serialize_s32(&Buff[59], (int32_t)gyro_bias_to_mdps(data_out.GyroBiasY), 4);
-	Serialize_s32(&Buff[63], (int32_t)gyro_bias_to_mdps(data_out.GyroBiasZ), 4);
+	Serialize_s2f(&Buff[55], (int32_t)gyro_bias_to_mdps(data_out.GyroBiasX), 4);
+	Serialize_s2f(&Buff[59], (int32_t)gyro_bias_to_mdps(data_out.GyroBiasY), 4);
+	Serialize_s2f(&Buff[63], (int32_t)gyro_bias_to_mdps(data_out.GyroBiasZ), 4);
 
 	//Calibrated data
-	Serialize_s32(&Buff[67], (int32_t) GyrComp.x, 4);
-	Serialize_s32(&Buff[71], (int32_t) GyrComp.y, 4);
-	Serialize_s32(&Buff[75], (int32_t) GyrComp.z, 4);
+	Serialize_s2f(&Buff[67], (int32_t) GyrComp.x, 4);
+	Serialize_s2f(&Buff[71], (int32_t) GyrComp.y, 4);
+	Serialize_s2f(&Buff[75], (int32_t) GyrComp.z, 4);
 
 	//Calibration quality
-	Serialize_s32(&Buff[79], (int32_t) bias_update, 4); */
+	Serialize_s2f(&Buff[79], (int32_t) bias_update, 4); */
 }
 
 /**
@@ -2142,9 +2142,9 @@ void AC_Data_Handler(LSM9DS1_MeasureTypeDef_st *IMU_Axes, uint8_t* Buff)
 	(void)memcpy((void *)&Buff[27], (void *)&IMU_Axes->Acc_Out.AXIS_Z, 4);
 /*
 	//Offset coefficients
-	Serialize_s32(&Msg->Data[55], (int32_t)acc_bias_to_mg(data_out.AccBias[0]), 4);
-	Serialize_s32(&Msg->Data[59], (int32_t)acc_bias_to_mg(data_out.AccBias[1]), 4);
-	Serialize_s32(&Msg->Data[63], (int32_t)acc_bias_to_mg(data_out.AccBias[2]), 4);
+	Serialize_s2f(&Msg->Data[55], (int32_t)acc_bias_to_mg(data_out.AccBias[0]), 4);
+	Serialize_s2f(&Msg->Data[59], (int32_t)acc_bias_to_mg(data_out.AccBias[1]), 4);
+	Serialize_s2f(&Msg->Data[63], (int32_t)acc_bias_to_mg(data_out.AccBias[2]), 4);
 
 	//Scale factor coefficients
 	FloatToArray(&Msg->Data[67], data_out.SF_Matrix[0][0]);
@@ -2160,12 +2160,12 @@ void AC_Data_Handler(LSM9DS1_MeasureTypeDef_st *IMU_Axes, uint8_t* Buff)
 	FloatToArray(&Msg->Data[99], data_out.SF_Matrix[2][2]);
 
 	//Calibrated data
-	Serialize_s32(&Msg->Data[103], (int32_t) acc_comp.x, 4);
-	Serialize_s32(&Msg->Data[107], (int32_t) acc_comp.y, 4);
-	Serialize_s32(&Msg->Data[111], (int32_t) acc_comp.z, 4);
+	Serialize_s2f(&Msg->Data[103], (int32_t) acc_comp.x, 4);
+	Serialize_s2f(&Msg->Data[107], (int32_t) acc_comp.y, 4);
+	Serialize_s2f(&Msg->Data[111], (int32_t) acc_comp.z, 4);
 
 	//Calibration quality
-	Serialize_s32(&Msg->Data[115], (int32_t) data_out.CalQuality, 4); */
+	Serialize_s2f(&Msg->Data[115], (int32_t) data_out.CalQuality, 4); */
 }
 
 /**
@@ -2204,7 +2204,7 @@ void AR_Data_Handler(LSM9DS1_MeasureTypeDef_st *IMU_Axes, uint8_t* Buff)
 
 /*		if (ProgramState == GUI_MODE)
 		{
-			Serialize_s32(&Msg->Data[55], (int32_t)ActivityCode, 4);
+			Serialize_s2f(&Msg->Data[55], (int32_t)ActivityCode, 4);
 		}
 		else if (ProgramState == STANDALONE_MODE)
 		{

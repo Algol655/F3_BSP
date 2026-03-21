@@ -1666,13 +1666,6 @@ void FormatDisplayString(int *len, uint8_t* Buff, SENSOR_TYPE stype)
 				{
 					PM_toggle = 1;
 				}
-				if (!((SensorStatusReg) & (VOC_SENSOR_OK)))
-				{
-					ptr = str_center((char *)sensor_fail, FAIL_MSG_W, AIRQ_FRAME_FILL_CHAR);
-					memcpy((void *)&Buff[0], ptr, FAIL_MSG_W);
-
-					*len = eTVOC_FRAME_W;
-				}
 				if (!((SensorStatusReg) & (GAS_SENSORS_OK)))
 				{
 					ptr = str_center((char *)sensor_fail1a, FAIL_MSG_W+1, AIRQ_FRAME_FILL_CHAR);

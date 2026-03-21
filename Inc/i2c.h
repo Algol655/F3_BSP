@@ -47,6 +47,7 @@ void MX_I2C2_Init(void);
 void I2C_Config(I2C_HandleTypeDef* i2cHandle);
 uint8_t I2C_ReadData(uint8_t B_Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size);
 uint8_t I2C_WriteData(uint8_t B_Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size);
+uint8_t I2C_ReadData_DMA(uint8_t B_Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size);
 uint8_t I2C_WriteData_DMA(uint8_t B_Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size);
 HAL_StatusTypeDef I2CResetBus(I2C_HandleTypeDef* i2cHandle);
 /* USER CODE END Prototypes */

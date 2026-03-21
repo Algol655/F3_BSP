@@ -241,9 +241,9 @@ typedef struct board_status	// 3° order polynomial regression: y = β0 + β1*x 
 	uint8_t s7_offset;	//offset from 0x0803F800: 0x40
 	uint32_t s8;		//In this application used to store the RTC Asinch Prediv value
 	uint8_t s8_offset;	//offset from 0x0803F800: 0x44
-	uint32_t s9;		//Bit 0..7: CH2O_Corr; Bit 7..15: O3_Corr; Bit 16..23: NO2_Corr; Bit 24..32: NH3_Corr (N.B.: Offset (± 127mV) of the reading from the ADC)
+	uint32_t s9;		//Bit 0..7: CH2O_Corr; Bit 7..15: O3_Corr; Bit 16..23: NO2_Corr; Bit 24..32: NH3_Corr (N.B.: Offset (±127mV) of the reading from the ADC)
 	uint8_t s9_offset;	//offset from 0x0803F800: 0x48
-	uint32_t sa;		//Bit 0..7: CO_Corr; Bit 7..15: SO2_Corr; Bit 16..23: C6H6_Corr; Bit 24..32: Spare_Corr (N.B.: Offset (± 127mV) of the reading from the ADC)
+	uint32_t sa;		//Bit 0..7: CO_Corr; Bit 7..15: SO2_Corr; Bit 16..23: C6H6_Corr; Bit 24..32: Spare_Corr (N.B.: Offset (±127mV) of the reading from the ADC)
 	uint8_t sa_offset;	//offset from 0x0803F800: 0x4C
 	uint32_t sb;		//Bit 0..32: MiCS_6814_CO_Ro
 	uint8_t sb_offset;	//offset from 0x0803F800: 0x50
@@ -267,108 +267,124 @@ typedef struct board_status	// 3° order polynomial regression: y = β0 + β1*x 
 	uint8_t s14_offset;	//offset from 0x0803F800: 0x74
 	uint32_t s15;		//Bit 0..32: SMD1001_CH2O_Rf
 	uint8_t s15_offset;	//offset from 0x0803F800: 0x78
-	uint32_t s16;
+	uint32_t s16;		//Uptime counter value when the date/time is adjusted
 	uint8_t s16_offset;	//offset from 0x0803F800: 0x7C
-#if (ENV_POLINOMIAL_REGRESSION)
-	uint32_t s17;		//Coeff. β1 of the 1° order polynomial regression for the Temperature modeling
+	uint32_t s17;		//Delta time in seconds post-pre time setting
 	uint8_t s17_offset;	//offset from 0x080E0000: 0x80
-	uint32_t s18;		//Coeff. β1 of the 1° order polynomial regression for the Pressure modeling
-	uint8_t s18_offset;	//offset from 0x080E0000: 0x84
-	uint32_t s19;		//Coeff. β1 of the 1° order polynomial regression for the Humidity modeling
-	uint8_t s19_offset;	//offset from 0x080E0000: 0x88
-	uint32_t s20;		//Coeff. β0+ε of the 1° order polynomial regression for the Temperature modeling
-	uint8_t s20_offset;	//offset from 0x080E0000: 0x8C
+//	uint32_t s18;
+//	uint8_t s18_offset;	//offset from 0x0803F800: 0x84
+//	uint32_t s19;
+//	uint8_t s19_offset;	//offset from 0x0803F800: 0x88
+//	uint32_t s1a;
+//	uint8_t s1a_offset;	//offset from 0x0803F800: 0x8C
+//	uint32_t s1b;
+//	uint8_t s1b_offset;	//offset from 0x0803F800: 0x90
+//	uint32_t s1c;
+//	uint8_t s1c_offset;	//offset from 0x0803F800: 0x94
+//	uint32_t s1d;
+//	uint8_t s1d_offset;	//offset from 0x0803F800: 0x98
+//	uint32_t s1e;
+//	uint8_t s1e_offset;	//offset from 0x0803F800: 0x9C
+#if (ENV_POLINOMIAL_REGRESSION)
+	uint32_t s20;		//Coeff. β1 of the 1° order polynomial regression for the Temperature modeling
+	uint8_t s20_offset;	//offset from 0x0803F800: 0xA0
+	uint32_t s21;		//Coeff. β1 of the 1° order polynomial regression for the Pressure modeling
+	uint8_t s21_offset;	//offset from 0x0803F800: 0xA4
+	uint32_t s22;		//Coeff. β1 of the 1° order polynomial regression for the Humidity modeling
+	uint8_t s22_offset;	//offset from 0x0803F800: 0xA8
+	uint32_t s23;		//Coeff. β0+ε of the 1° order polynomial regression for the Temperature modeling
+	uint8_t s23_offset;	//offset from 0x0803F800: 0xAC
 #endif
 #if (AQ_POLINOMIAL_REGRESSION)
-	uint32_t s21;		//Coeff. β0+ε of the 3° order polynomial regression for the CH2O modeling
-	uint8_t s21_offset;	//offset from 0x0803F800: 0x90
-	uint32_t s22;		//Coeff. β1 of the 3° order polynomial regression for the CH2O modeling
-	uint8_t s22_offset;	//offset from 0x0803F800: 0x94
-	uint32_t s23;		//Coeff. β2 of the 3° order polynomial regression for the CH2O modeling
-	uint8_t s23_offset;	//offset from 0x0803F800: 0x98
-	uint32_t s24;		//Coeff. β3 of the 3° order polynomial regression for the CH2O modeling
-	uint8_t s24_offset;	//offset from 0x0803F800: 0x9C
+	uint32_t s24;		//Coeff. β0+ε of the 3° order polynomial regression for the CH2O modeling
+	uint8_t s24_offset;	//offset from 0x0803F800: 0xB0
+	uint32_t s25;		//Coeff. β1 of the 3° order polynomial regression for the CH2O modeling
+	uint8_t s25_offset;	//offset from 0x0803F800: 0xB4
+	uint32_t s26;		//Coeff. β2 of the 3° order polynomial regression for the CH2O modeling
+	uint8_t s26_offset;	//offset from 0x0803F800: 0xB8
+	uint32_t s27;		//Coeff. β3 of the 3° order polynomial regression for the CH2O modeling
+	uint8_t s27_offset;	//offset from 0x0803F800: 0xBC
 
-	uint32_t s25;		//Coeff. β0+ε of the 3° order polynomial regression for the O3 modeling
-	uint8_t s25_offset;	//offset from 0x0803F800: 0xA0
-	uint32_t s26;		//Coeff. β1 of the 3° order polynomial regression for the O3 modeling
-	uint8_t s26_offset;	//offset from 0x0803F800: 0xA4
-	uint32_t s27;		//Coeff. β2 of the 3° order polynomial regression for the O3 modeling
-	uint8_t s27_offset;	//offset from 0x0803F800: 0xA8
-	uint32_t s28;		//Coeff. β3 of the 3° order polynomial regression for the O3 modeling
-	uint8_t s28_offset;	//offset from 0x0803F800: 0xAC
+	uint32_t s28;		//Coeff. β0+ε of the 3° order polynomial regression for the O3 modeling
+	uint8_t s28_offset;	//offset from 0x0803F800: 0xC0
+	uint32_t s29;		//Coeff. β1 of the 3° order polynomial regression for the O3 modeling
+	uint8_t s29_offset;	//offset from 0x0803F800: 0xC4
+	uint32_t s2a;		//Coeff. β2 of the 3° order polynomial regression for the O3 modeling
+	uint8_t s2a_offset;	//offset from 0x0803F800: 0xC8
+	uint32_t s2b;		//Coeff. β3 of the 3° order polynomial regression for the O3 modeling
+	uint8_t s2b_offset;	//offset from 0x0803F800: 0xCC
 
-	uint32_t s29;		//Coeff. β0+ε of the 3° order polynomial regression for the NO2 modeling
-	uint8_t s29_offset;	//offset from 0x0803F800: 0xB0
-	uint32_t s30;		//Coeff. β1 of the 3° order polynomial regression for the NO2 modeling
-	uint8_t s30_offset;	//offset from 0x0803F800: 0xB4
-	uint32_t s31;		//Coeff. β2 of the 3° order polynomial regression for the NO2 modeling
-	uint8_t s31_offset;	//offset from 0x0803F800: 0xB8
-	uint32_t s32;		//Coeff. β3 of the 3° order polynomial regression for the NO2 modeling
-	uint8_t s32_offset;	//offset from 0x0803F800: 0xBC
+	uint32_t s2c;		//Coeff. β0+ε of the 3° order polynomial regression for the NO2 modeling
+	uint8_t s2c_offset;	//offset from 0x0803F800: 0xD0
+	uint32_t s2d;		//Coeff. β1 of the 3° order polynomial regression for the NO2 modeling
+	uint8_t s2d_offset;	//offset from 0x0803F800: 0xD4
+	uint32_t s2e;		//Coeff. β2 of the 3° order polynomial regression for the NO2 modeling
+	uint8_t s2e_offset;	//offset from 0x0803F800: 0xD8
+	uint32_t s2f;		//Coeff. β3 of the 3° order polynomial regression for the NO2 modeling
+	uint8_t s2f_offset;	//offset from 0x0803F800: 0xDC
 
-	uint32_t s33;		//Coeff. β0+ε of the 3° order polynomial regression for the NH3 modeling
-	uint8_t s33_offset;	//offset from 0x0803F800: 0xC0
-	uint32_t s34;		//Coeff. β1 of the 3° order polynomial regression for the NH3 modeling
-	uint8_t s34_offset;	//offset from 0x0803F800: 0xC4
-	uint32_t s35;		//Coeff. β2 of the 3° order polynomial regression for the NH3 modeling
-	uint8_t s35_offset;	//offset from 0x0803F800: 0xC8
-	uint32_t s36;		//Coeff. β3 of the 3° order polynomial regression for the NH3 modeling
-	uint8_t s36_offset;	//offset from 0x0803F800: 0xCC
+	uint32_t s30;		//Coeff. β0+ε of the 3° order polynomial regression for the NH3 modeling
+	uint8_t s30_offset;	//offset from 0x0803F800: 0xE0
+	uint32_t s31;		//Coeff. β1 of the 3° order polynomial regression for the NH3 modeling
+	uint8_t s31_offset;	//offset from 0x0803F800: 0xE4
+	uint32_t s32;		//Coeff. β2 of the 3° order polynomial regression for the NH3 modeling
+	uint8_t s32_offset;	//offset from 0x0803F800: 0xE8
+	uint32_t s33;		//Coeff. β3 of the 3° order polynomial regression for the NH3 modeling
+	uint8_t s33_offset;	//offset from 0x0803F800: 0xEC
 
-	uint32_t s37;		//Coeff. β0+ε of the 3° order polynomial regression for the CO modeling
-	uint8_t s37_offset;	//offset from 0x0803F800: 0xD0
-	uint32_t s38;		//Coeff. β1 of the 3° order polynomial regression for the CO modeling
-	uint8_t s38_offset;	//offset from 0x0803F800: 0xD4
-	uint32_t s39;		//Coeff. β2 of the 3° order polynomial regression for the CO modeling
-	uint8_t s39_offset;	//offset from 0x0803F800: 0xD8
-	uint32_t s40;		//Coeff. β3 of the 3° order polynomial regression for the CO modeling
-	uint8_t s40_offset;	//offset from 0x0803F800: 0xDC
+	uint32_t s34;		//Coeff. β0+ε of the 3° order polynomial regression for the CO modeling
+	uint8_t s34_offset;	//offset from 0x0803F800: 0xF0
+	uint32_t s35;		//Coeff. β1 of the 3° order polynomial regression for the CO modeling
+	uint8_t s35_offset;	//offset from 0x0803F800: 0xF4
+	uint32_t s36;		//Coeff. β2 of the 3° order polynomial regression for the CO modeling
+	uint8_t s36_offset;	//offset from 0x0803F800: 0xF8
+	uint32_t s37;		//Coeff. β3 of the 3° order polynomial regression for the CO modeling
+	uint8_t s37_offset;	//offset from 0x0803F800: 0xFC
 
-	uint32_t s41;		//Coeff. β0+ε of the 3° order polynomial regression for the SO2 modeling
-	uint8_t s41_offset;	//offset from 0x0803F800: 0xE0
-	uint32_t s42;		//Coeff. β1 of the 3° order polynomial regression for the SO2 modeling
-	uint8_t s42_offset;	//offset from 0x0803F800: 0xE4
-	uint32_t s43;		//Coeff. β2 of the 3° order polynomial regression for the SO2 modeling
-	uint8_t s43_offset;	//offset from 0x0803F800: 0xE8
-	uint32_t s44;		//Coeff. β3 of the 3° order polynomial regression for the SO2 modeling
-	uint8_t s44_offset;	//offset from 0x0803F800: 0xEC
+	uint32_t s38;		//Coeff. β0+ε of the 3° order polynomial regression for the SO2 modeling
+	uint16_t s38_offset;	//offset from 0x0803F800: 0x100
+	uint32_t s39;		//Coeff. β1 of the 3° order polynomial regression for the SO2 modeling
+	uint16_t s39_offset;	//offset from 0x0803F800: 0x104
+	uint32_t s3a;		//Coeff. β2 of the 3° order polynomial regression for the SO2 modeling
+	uint16_t s3a_offset;	//offset from 0x0803F800: 0x108
+	uint32_t s3b;		//Coeff. β3 of the 3° order polynomial regression for the SO2 modeling
+	uint16_t s3b_offset;	//offset from 0x0803F800: 0x10C
 
-	uint32_t s45;		//Coeff. β0+ε of the 3° order polynomial regression for the C6H6 modeling
-	uint8_t s45_offset;	//offset from 0x0803F800: 0xF0
-	uint32_t s46;		//Coeff. β1 of the 3° order polynomial regression for the C6H6 modeling
-	uint8_t s46_offset;	//offset from 0x0803F800: 0xF4
-	uint32_t s47;		//Coeff. β2 of the 3° order polynomial regression for the C6H6 modeling
-	uint8_t s47_offset;	//offset from 0x0803F800: 0xF8
-	uint32_t s48;		//Coeff. β3 of the 3° order polynomial regression for the C6H6 modeling
-	uint8_t s48_offset;	//offset from 0x0803F800: 0xFC
+	uint32_t s3c;		//Coeff. β0+ε of the 3° order polynomial regression for the C6H6 modeling
+	uint16_t s3c_offset;	//offset from 0x0803F800: 0x110
+	uint32_t s3d;		//Coeff. β1 of the 3° order polynomial regression for the C6H6 modeling
+	uint16_t s3d_offset;	//offset from 0x0803F800: 0x114
+	uint32_t s3e;		//Coeff. β2 of the 3° order polynomial regression for the C6H6 modeling
+	uint16_t s3e_offset;	//offset from 0x0803F800: 0x118
+	uint32_t s3f;		//Coeff. β3 of the 3° order polynomial regression for the C6H6 modeling
+	uint16_t s3f_offset;	//offset from 0x0803F800: 0x11C
 
-	uint32_t s49;		//Coeff. β0+ε of the 3° order polynomial regression for the spare modeling
-	uint16_t s49_offset;	//offset from 0x0803F800: 0x100
-	uint32_t s50;		//Coeff. β1 of the 3° order polynomial regression for the spare modeling
-	uint16_t s50_offset;	//offset from 0x0803F800: 0x104
-	uint32_t s51;		//Coeff. β2 of the 3° order polynomial regression for the spare modeling
-	uint16_t s51_offset;	//offset from 0x0803F800: 0x108
-	uint32_t s52;		//Coeff. β3 of the 3° order polynomial regression for the spare modeling
-	uint16_t s52_offset;	//offset from 0x0803F800: 0x10C
+	uint32_t s40;		//Coeff. β0+ε of the 3° order polynomial regression for the spare modeling
+	uint16_t s40_offset;	//offset from 0x0803F800: 0x120
+	uint32_t s41;		//Coeff. β1 of the 3° order polynomial regression for the spare modeling
+	uint16_t s41_offset;	//offset from 0x0803F800: 0x124
+	uint32_t s42;		//Coeff. β2 of the 3° order polynomial regression for the spare modeling
+	uint16_t s42_offset;	//offset from 0x0803F800: 0x128
+	uint32_t s43;		//Coeff. β3 of the 3° order polynomial regression for the spare modeling
+	uint16_t s43_offset;	//offset from 0x0803F800: 0x12C
 
-	uint32_t s53;		//Coeff. β0+ε of the 3° order polynomial regression for the PM2.5 modeling
-	uint16_t s53_offset;	//offset from 0x0803F800: 0x110
-	uint32_t s54;		//Coeff. β1 of the 3° order polynomial regression for the PM2.5 modeling
-	uint16_t s54_offset;	//offset from 0x0803F800: 0x114
-	uint32_t s55;		//Coeff. β2 of the 3° order polynomial regression for the PM2.5 modeling
-	uint16_t s55_offset;	//offset from 0x0803F800: 0x118
-	uint32_t s56;		//Coeff. β3 of the 3° order polynomial regression for the PM2.5 modeling
-	uint16_t s56_offset;	//offset from 0x0803F800: 0x11C
+	uint32_t s44;		//Coeff. β0+ε of the 3° order polynomial regression for the PM2.5 modeling
+	uint16_t s44_offset;	//offset from 0x0803F800: 0x130
+	uint32_t s45;		//Coeff. β1 of the 3° order polynomial regression for the PM2.5 modeling
+	uint16_t s45_offset;	//offset from 0x0803F800: 0x134
+	uint32_t s46;		//Coeff. β2 of the 3° order polynomial regression for the PM2.5 modeling
+	uint16_t s46_offset;	//offset from 0x0803F800: 0x138
+	uint32_t s47;		//Coeff. β3 of the 3° order polynomial regression for the PM2.5 modeling
+	uint16_t s47_offset;	//offset from 0x0803F800: 0x13C
 
-	uint32_t s57;		//Coeff. β0+ε of the 3° order polynomial regression for the PM10 modeling
-	uint16_t s57_offset;	//offset from 0x0803F800: 0x120
-	uint32_t s58;		//Coeff. β1 of the 3° order polynomial regression for the PM10 modeling
-	uint16_t s58_offset;	//offset from 0x0803F800: 0x124
-	uint32_t s59;		//Coeff. β2 of the 3° order polynomial regression for the PM10 modeling
-	uint16_t s59_offset;	//offset from 0x0803F800: 0x128
-	uint32_t s60;		//Coeff. β3 of the 3° order polynomial regression for the PM10 modeling
-	uint16_t s60_offset;	//offset from 0x0803F800: 0x12C
+	uint32_t s48;		//Coeff. β0+ε of the 3° order polynomial regression for the PM10 modeling
+	uint16_t s48_offset;	//offset from 0x0803F800: 0x140
+	uint32_t s49;		//Coeff. β1 of the 3° order polynomial regression for the PM10 modeling
+	uint16_t s49_offset;	//offset from 0x0803F800: 0x144
+	uint32_t s4a;		//Coeff. β2 of the 3° order polynomial regression for the PM10 modeling
+	uint16_t s4a_offset;	//offset from 0x0803F800: 0x148
+	uint32_t s4b;		//Coeff. β3 of the 3° order polynomial regression for the PM10 modeling
+	uint16_t s4b_offset;	//offset from 0x0803F800: 0x14C
 #endif
 } BOARD_STATUS;
 
@@ -461,6 +477,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle);
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle);
 void HAL_UART_IdleCpltCallback(UART_HandleTypeDef *UartHandle, DMA_HandleTypeDef *DMAHandle);
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *AdcHandle);
+//void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c);
 
 /****************************************************************************//**
  * 								IRQ section

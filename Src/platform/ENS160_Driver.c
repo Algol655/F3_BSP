@@ -234,7 +234,7 @@ ENS160_Error_et ENS160_Idle_Mode(uint8_t B_Addr)
 }
 
 /**
-  * @brief  ENS160_Idle_Mode - Initialize Standard mode
+  * @brief  ENS160_Std_Mode - Initialize Standard mode
   *
   * @param  B_Addr    ENS160 Base Address
   * @retval           Interface status (MANDATORY: return 0 -> no Error).
@@ -251,6 +251,27 @@ ENS160_Error_et ENS160_Std_Mode(uint8_t B_Addr)
 	Sleep(20);
 
 	return ret;
+}
+
+/**
+  * @brief  ENS160_Check_Std_Mode()
+  *
+  * @retval		True if the OPMODE register is = 0x02 (STANDARD Gas Sensing Mode).
+  *
+  */
+bool ENS160_Check_StdMode(void)
+{
+	uint8_t tempVal;
+
+	if(ENS160_ReadReg(ENS160_BADDR, ENS160_OPMODE, 1, &tempVal))
+		return false;
+
+	tempVal &= 0x02;
+
+	if (tempVal == 0x02)
+		return true;
+
+	return false;
 }
 
 /**

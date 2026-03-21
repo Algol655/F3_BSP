@@ -268,8 +268,8 @@ void RTC_DST_Sub1Hour(void)
 }
 
 //#pragma GCC optimize ("O0")
-void CheckDayLigth(RTC_HandleTypeDef* rtcHandle, uint8_t sec, uint8_t min, uint8_t hour,
-												 uint8_t day, uint8_t month, uint8_t year)
+uint32_t CheckDayLigth(RTC_HandleTypeDef* rtcHandle, uint8_t sec, uint8_t min, uint8_t hour,
+												     uint8_t day, uint8_t month, uint8_t year)
 {
 	uint8_t Index;
 	uint32_t Counter, DayLigthPeriod;
@@ -301,7 +301,7 @@ void CheckDayLigth(RTC_HandleTypeDef* rtcHandle, uint8_t sec, uint8_t min, uint8
 	DayLigthPeriod = RTC_DST_ReadStoreOperation();
 	Index = year - StartYear;
 	if ((Index < 0) || (Index > 12))
-		return;
+		return Counter;
 	/*
 	 * When switching back to standard time, one hour is subtracted from the RTC Counter value.
 	 * This causes a bounce between the daylight saving time setting and the standard time setting in the comparison on line 329.
@@ -341,6 +341,8 @@ void CheckDayLigth(RTC_HandleTypeDef* rtcHandle, uint8_t sec, uint8_t min, uint8
 			RTC_DST_ClearStoreOperation();
 		}
 	}
+
+	return Counter;
 }
 
 /**
@@ -352,6 +354,7 @@ void RTC_DateTimeStamp(RTC_HandleTypeDef* rtcHandle, DateTime_t *Stamp)
 {
 	RTC_DateTypeDef date;
 	RTC_TimeTypeDef time;
+	extern FLASH_DATA_ORG FlashDataOrg;
 
 	if(rtcHandle->Instance==RTC)
 	{
@@ -372,7 +375,7 @@ void RTC_DateTimeStamp(RTC_HandleTypeDef* rtcHandle, DateTime_t *Stamp)
 		} */
 
 #if (RTC_SET_VALUES==0)
-		CheckDayLigth(rtcHandle, time.Seconds, time.Minutes, time.Hours, date.Date, date.Month, date.Year);
+		Stamp->epoch_timestamp = CheckDayLigth(rtcHandle, time.Seconds, time.Minutes, time.Hours, date.Date, date.Month, date.Year);
 #endif
 
 		Stamp->date[0] = (uint8_t)date.Month;
@@ -382,6 +385,9 @@ void RTC_DateTimeStamp(RTC_HandleTypeDef* rtcHandle, DateTime_t *Stamp)
 		Stamp->time[1] = (uint8_t)time.Minutes;
 		Stamp->time[2] = (uint8_t)time.Seconds;
 		Stamp->time[3] = 0;
+
+		memcpy(&FlashDataOrg.b_date, &Stamp->date[0], 3);
+		memcpy(&FlashDataOrg.b_time, &Stamp->time[0], 4);
 
 		if (!(Stamp->time[0] | Stamp->time[1]))
 		{

@@ -149,6 +149,8 @@ int HandleUSB_MSG(uint8_t* Buff)
 	extern SPS30_Error_et sps30_start_measurement();
 	extern SPS30_Error_et sps30_stop_measurement();
 #endif
+	static uint32_t P_EpochTime = 0;	//Previous epoch value
+	static uint32_t C_EpochTime = 0;	//Current epoch counter value
 	static char dd[3] = {'\0'}; static char MM[3] = {'\0'};	static char yy[3] = {'\0'};
 	static char HH[3] = {'\0'}; static char MN[3] = {'\0'}; static char SS[3] = {'\0'};
 	static uint8_t y = 0; static uint8_t m = 0; static uint8_t d = 0; static uint8_t dw = 0;
@@ -270,7 +272,6 @@ int HandleUSB_MSG(uint8_t* Buff)
 			MotionFX_manager_start_9X();
 	#endif
 			RTC_DateTimeStamp(&hrtc, &Stamp);
-			memcpy(&dataseq[3], &Stamp.time[0], 4);
 			DataLoggerActive = 1;
 	#if (PARTICULATE_SENSOR_PRESENT==1)
 			sps30_start_measurement();			//PowerOn SPS30 PMx sensor
@@ -368,9 +369,19 @@ int HandleUSB_MSG(uint8_t* Buff)
 			d = (uint8_t)xtoi(dd);
 			dw = (uint8_t)xtoi((char*)&Buff[17]);
 
+			RTC_DateTimeStamp(&hrtc, &Stamp);		//Update the current epoch timestamp register
+			P_EpochTime = Stamp.epoch_timestamp;	//Previous value of the epoch timestamp
+
 //			RTC_TimeRegulate(&hrtc, hh, mm, ss, FORMAT_BCD);
 //			RTC_DateRegulate(&hrtc, y, m, d, dw);
 			RTC_DateTimeRegulate(&hrtc, y, m, d, dw, hh, mm, ss, FORMAT_BCD);
+			/*
+			 * Calculating the difference between the time before adjustment and the time after adjustment
+			 */
+			RTC_DateTimeStamp(&hrtc, &Stamp);		//Update the current epoch timestamp register
+			C_EpochTime = Stamp.epoch_timestamp;	//Current value of the epoch timestamp
+			Stamp.time_diff = P_EpochTime - C_EpochTime;
+			Stamp.time_diff_ppm = (int32_t)lrintf(1.0e+06*(Stamp.time_diff/P_EpochTime));
 
 			SendCntrlMsg = true;
 			dataseq[0] = 0x0A;
@@ -487,6 +498,8 @@ int HandleUSART3_MSG(uint8_t* Buff)
  */
 {
 	int ret = 0;
+	static uint32_t P_EpochTime = 0;	//Previous epoch value
+	static uint32_t C_EpochTime = 0;	//Current epoch counter value
 	static char dd[3] = {'\0'}; static char MM[3] = {'\0'};	static char yy[3] = {'\0'};
 	static char HH[3] = {'\0'}; static char MN[3] = {'\0'}; static char SS[3] = {'\0'};
 	static uint8_t y = 0; static uint8_t m = 0; static uint8_t d = 0; static uint8_t dw = 0;
@@ -520,9 +533,19 @@ int HandleUSART3_MSG(uint8_t* Buff)
 			d = (uint8_t)xtoi(dd);
 			dw = (uint8_t)xtoi((char*)&Buff[17]);
 
+			RTC_DateTimeStamp(&hrtc, &Stamp);		//Update the current epoch timestamp register
+			P_EpochTime = Stamp.epoch_timestamp;	//Previous value of the epoch timestamp
+
 //			RTC_TimeRegulate(&hrtc, hh, mm, ss, FORMAT_BCD);
 //			RTC_DateRegulate(&hrtc, y, m, d, dw);
 			RTC_DateTimeRegulate(&hrtc, y, m, d, dw, hh, mm, ss, FORMAT_BCD);
+			/*
+			 * Calculating the difference between the time before adjustment and the time after adjustment
+			 */
+			RTC_DateTimeStamp(&hrtc, &Stamp);		//Update the current epoch timestamp register
+			C_EpochTime = Stamp.epoch_timestamp;	//Current value of the epoch timestamp
+			Stamp.time_diff = P_EpochTime - C_EpochTime;
+			Stamp.time_diff_ppm = (int32_t)lrintf(1.0e+06*(Stamp.time_diff/P_EpochTime));
 
 			SendCntrlMsg = true;
 			dataseq[0] = 0x0A;

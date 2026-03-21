@@ -121,6 +121,26 @@ CCS811_Error_et CCS811_WriteReg(uint8_t B_Addr, uint8_t RegAddr, uint16_t NumByt
     return CCS811_OK;
 }
 
+/**
+  * @brief  Read generic device register in DMA mode
+  *
+  * @param  B_Addr   read / write interface definitions(ptr)
+  * @param  reg   register to read
+  * @param  data  pointer to buffer that store the data read(ptr)
+  * @param  len   number of consecutive register to read
+  * @retval       interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+CCS811_Error_et CCS811_ReadReg_DMA(uint8_t B_Addr, uint8_t RegAddr, uint16_t NumByteToRead, uint8_t *Data)
+{
+
+//if ( NumByteToRead > 1 ) RegAddr |= 0x80;
+  if (I2C_ReadData_DMA(B_Addr, RegAddr, &Data[0], NumByteToRead))
+    return CCS811_ERROR;
+  else
+    return CCS811_OK;
+}
+
 /*******************************************************************************
 * Function Name	: CCS811_WriteReg
 * Description   : Generic Writing function in DMA mode. It must be fullfilled with either
@@ -237,38 +257,56 @@ CCS811_Error_et setDriveMode(uint8_t B_Addr, uint8_t mode)
  */
 CCS811_Error_et	CCS811_Get_Measurement(CCS811_MeasureTypeDef_st *Measurement_Value)
 {
-	CCS811_Error_et ret;
 	uint8_t data_rq[8];
+	uint8_t  Status, ErrorCode;
 	static uint16_t ECO2, ETVOC;
 
-	ret = CCS811_ReadReg(CCS811_BADDR, CCS811_ALG_RESULT_DATA, 8, &data_rq[0]);
+	if (CCS811_Status_Get(CCS811_BADDR, &Status))
+		return CCS811_ERROR;
+	if (Status & 0x01)				//If error check error source
+	{
+		CCS811_Error_Get(CCS811_BADDR, &ErrorCode);
+//		return CCS811_ERROR;
+	}
+	if (Status & 0x08)				//If DATA_READY
+	{
+		if(CCS811_ReadReg(CCS811_BADDR, CCS811_ALG_RESULT_DATA, 8, &data_rq[0]))
+//		if(CCS811_ReadReg_DMA(CCS811_BADDR, CCS811_ALG_RESULT_DATA, 8, &data_rq[0]))
+		{
+			return CCS811_ERROR;
+		} else
+		{
+			/*	TVOC value, in parts per billion (ppb)
+			eC02 value, in parts per million (ppm) */
+			ECO2 = (uint16_t)((data_rq[0] << 8) | data_rq[1]);
+			eCO2_MovingAverage(&ECO2, &(Measurement_Value->eCO2), 10);
+			ETVOC = (uint16_t)((data_rq[2] << 8) | data_rq[3]);
+			eTVOC_MovingAverage(&ETVOC, &(Measurement_Value->eTVOC), 10);
+		//	Measurement_Value->eCO2 = ((uint8_t)data_rq[0] << 8) | data_rq[1];
+		//	Measurement_Value->eTVOC = ((uint8_t)data_rq[2] << 8) | data_rq[3];
+			Measurement_Value->Status = (uint8_t)data_rq[4];
+			Measurement_Value->ErrorID = (uint8_t)data_rq[5];
+			Measurement_Value->RawData = (uint16_t)((data_rq[6] << 8) | data_rq[7]);
+		}
+	}
 
-	/*	TVOC value, in parts per billion (ppb)
-	eC02 value, in parts per million (ppm) */
-	ECO2 = (uint16_t)((data_rq[0] << 8) | data_rq[1]);
-	eCO2_MovingAverage(&ECO2, &(Measurement_Value->eCO2), 10);
-	ETVOC = (uint16_t)((data_rq[2] << 8) | data_rq[3]);
-	eTVOC_MovingAverage(&ETVOC, &(Measurement_Value->eTVOC), 10);
-//	Measurement_Value->eCO2 = ((uint8_t)data_rq[0] << 8) | data_rq[1];
-//	Measurement_Value->eTVOC = ((uint8_t)data_rq[2] << 8) | data_rq[3];
-	Measurement_Value->Status = (uint8_t)data_rq[4];
-	Measurement_Value->ErrorID = (uint8_t)data_rq[5];
-	Measurement_Value->RawData = (uint16_t)((data_rq[6] << 8) | data_rq[7]);
-
-	return ret;
+	return CCS811_OK;
 }
 
 /*
  * @brief //Given a temp and humidity, write this data to the CCS811 for better compensation
 	 //This function expects the humidity and temp to come in as floats
- * @param  relativeHumidity HUMIDITY.
+ * @param  relativeHumidity HUMIDITY. (Warning! Compensation only applies when the relative humidity is <= 85%)
  * @param  temperature TEMPERATURE.
  * @retval None.
 */
 CCS811_Error_et CCS811_SetEnvironmentalData(float relativeHumidity, float temperature)
 {
 	CCS811_Error_et ret;
+
 	int rH = relativeHumidity * 1000; //42.348 becomes 42348
+	if (rH > 85000)
+		rH = 85000;
 	int temp = temperature * 1000; //23.2 becomes 23200
 
 	uint8_t envData[4];

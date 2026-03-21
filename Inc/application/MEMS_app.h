@@ -250,10 +250,10 @@ bool SendCntrlMsg;
 	uint16_t Hum_Out, HMin, HMax, H_Min, H_Max;
 	uint16_t Hum2_Out, AHMin, AHMax, AH_Min, AH_Max;
 	int16_t T_Out, TMin, TMax, T_Min, T_Max;
-	uint16_t T2_Out, T3_Out;	//Used by BLE in app_bluenrg_2.c User_Process() function
+	uint16_t T2_Out, T3_Out;	//Used by BLE and LoRa report functions
 	uint8_t	Humidity;			//Humidity: Relative HUmidity (RH,%)
 	float32_t TemperatureD, hum_value, temp_value, SI, HI, AH;
-	uint32_t Up_Time_H;						//Used by BLE in app_bluenrg_2.c User_Process() function
+	uint32_t Up_Time_H;						//Used by BLE and LoRa report functions
 	#if (GUI_SUPPORT==1)
 		float Humidity_percent_1_data[1];	//Used in UnicleoGUI
 	#endif
@@ -264,13 +264,13 @@ bool SendCntrlMsg;
 		VEML6075_MeasureTypeDef_st UVx_Values;
 		float32_t UVa, UVb, UV_Index;
 		uint32_t UV_IndexMin, UV_IndexMax, UV_Index_Min, UV_Index_Max;
-		uint32_t UV_Index_Out;				//Used by BLE in app_bluenrg_2.c User_Process() function
+		uint32_t UV_Index_Out;				//Used by BLE and LoRa report functions
 	#elif (LTR390UV)
 		#include "platform/LTR390UV_Driver.h"
 		LTR390UV_MeasureTypeDef_st UVx_Values;
 		float32_t Lux, UV_Index;
 		uint32_t LuxMin, LuxMax, Lux_Min, Lux_Max, UV_IndexMin, UV_IndexMax, UV_Index_Min, UV_Index_Max;
-		uint32_t Lux_Out, UV_Index_Out;		//Used by BLE in app_bluenrg_2.c User_Process() function
+		uint32_t Lux_Out, UV_Index_Out;		//Used by BLE and LoRa report functions
 	#endif
 	#if (GUI_SUPPORT==1)
 		float UVA_1_data[1], UVB_1_data[1];	//Used in UnicleoGUI
@@ -502,7 +502,7 @@ void Refresh_AQI(void);
 	void ReStore_MeanValues_BackupRTC(void);
 #endif
 
-#if (SENSOR_REMOTE_MODE)
+#if ((SENSOR_REMOTE_MODE) && (USE_BKUP_SRAM))
 	#if (CCS811)
 	void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
 					 CCS811_MeasureTypeDef_st *voc, SPS30_MeasureTypeDef_st *Particulate, VEML6075_MeasureTypeDef_st *LuxUVI);

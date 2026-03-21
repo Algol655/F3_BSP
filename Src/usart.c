@@ -181,3 +181,4 @@ void USART_Config(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE END 1 */
+

@@ -185,72 +185,72 @@ LPS25HB_Error_et LPS25HB_Init_New(uint8_t B_Addr)
 {
 	uint8_t tmp;
 
-	 tmp = (uint8_t)LPS25HB_REF_P_XL_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_REF_P_XL_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_REF_P_L_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_REF_P_L_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_REF_P_H_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_REF_P_H_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_RES_CONF_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_RES_CONF_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_CTRL_VAL1;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_REG1, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_CTRL_VAL2;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_REG2, 1, &tmp))
-	   return LPS25HB_ERROR;
-	 else
-	   HAL_Delay(3); 				//The Reboot Process takes about 2.2 ms to complete
-
-	 tmp = (uint8_t)LPS25HB_CTRL_VAL3;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_REG3, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_CTRL_VAL4;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_REG4, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_INTERRUPT_CFG_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_INTERRUPT_CFG_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_CTRL_FIFO_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_FIFO_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_STATUS_FIFO_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_STATUS_FIFO_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_THS_P_LOW_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_THS_P_LOW_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_THS_P_HIGH_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_THS_P_HIGH_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_RPDS_L_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_RPDS_L_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 tmp = (uint8_t)LPS25HB_RPDS_H_VAL;
-	 if(LPS25HB_WriteReg(B_Addr, LPS25HB_RPDS_H_REG, 1, &tmp))
-	   return LPS25HB_ERROR;
-
-	 if (LPS25HB_Get_DeviceID(LPS25HB_BADDR, &tmp))
+	tmp = (uint8_t)LPS25HB_REF_P_XL_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_REF_P_XL_REG, 1, &tmp))
 		return LPS25HB_ERROR;
 
-	 if (tmp != LPS25HB_WHO_AM_I_VAL)
+	tmp = (uint8_t)LPS25HB_REF_P_L_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_REF_P_L_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_REF_P_H_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_REF_P_H_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_RES_CONF_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_RES_CONF_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_CTRL_VAL1;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_REG1, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_CTRL_VAL2;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_REG2, 1, &tmp))
+		return LPS25HB_ERROR;
+	else
+		HAL_Delay(3); 				//The Reboot Process takes about 2.2 ms to complete
+
+	tmp = (uint8_t)LPS25HB_CTRL_VAL3;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_REG3, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_CTRL_VAL4;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_REG4, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_INTERRUPT_CFG_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_INTERRUPT_CFG_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_CTRL_FIFO_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_CTRL_FIFO_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_STATUS_FIFO_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_STATUS_FIFO_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_THS_P_LOW_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_THS_P_LOW_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_THS_P_HIGH_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_THS_P_HIGH_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_RPDS_L_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_RPDS_L_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	tmp = (uint8_t)LPS25HB_RPDS_H_VAL;
+	if(LPS25HB_WriteReg(B_Addr, LPS25HB_RPDS_H_REG, 1, &tmp))
+		return LPS25HB_ERROR;
+
+	if (LPS25HB_Get_DeviceID(LPS25HB_BADDR, &tmp))
+		return LPS25HB_ERROR;
+
+	if (tmp != LPS25HB_WHO_AM_I_VAL)
 		return LPS25HB_ERROR;
 
 	return LPS25HB_OK;

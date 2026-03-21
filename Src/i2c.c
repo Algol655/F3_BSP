@@ -231,7 +231,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 /*************************************************************************
  *                          MY I2C CODE
  ************************************************************************/
-uint32_t I2C_Timeout = 0x100;						// Value of Timeout when I2C communication fails
+uint32_t I2C_Timeout = 1000;						// Value of Timeout when I2C communication fails
 
 void I2C_Config(I2C_HandleTypeDef* i2cHandle)
 {
@@ -256,13 +256,15 @@ uint8_t I2C_ReadData(uint8_t B_Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Siz
   if( status != HAL_OK )
   {
     /* Execute user timeout callback */
-    // I2C_Error( B_Addr );
-    return 1;
+	if (HAL_I2C_GetError(&hi2c1) == HAL_I2C_ERROR_TIMEOUT)
+	{
+	  // Handle Timeout: Reset I2C
+	  I2CResetBus(&hi2c1);
+      return 1;
+    }
   }
-  else
-  {
-    return 0;
-  }
+
+  return 0;
 }
 
 /**
@@ -283,13 +285,44 @@ uint8_t I2C_WriteData(uint8_t B_Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Si
   if( status != HAL_OK )
   {
     /* Execute user timeout callback */
-    // I2C_EXPBD_Error( B_Addr );
-    return 1;
+	if (HAL_I2C_GetError(&hi2c1) == HAL_I2C_ERROR_TIMEOUT)
+	{
+	  // Handle Timeout: Reset I2C
+	  I2CResetBus(&hi2c1);
+      return 1;
+    }
   }
-  else
+
+  return 0;
+}
+
+/*******************************************************************************
+ * @brief  Read a register of the device through BUS in DMA mode
+ * @param  B_Addr Device address on BUS
+ * @param  Reg The target register address to read
+ * @param  pBuffer The data to be read
+ * @param  Size Number of bytes to be read
+ * @retval 0 in case of success
+ * @retval 1 in case of failure
+ *******************************************************************************/
+uint8_t I2C_ReadData_DMA(uint8_t B_Addr, uint8_t Reg, uint8_t* pBuffer, uint16_t Size)
+{
+  HAL_StatusTypeDef status = HAL_OK;
+
+  status = HAL_I2C_Mem_Read_DMA(&hi2c1, B_Addr, (uint16_t)Reg, I2C_MEMADD_SIZE_8BIT, &pBuffer[0], Size);
+  /* Check the communication status */
+  if( status != HAL_OK )
   {
-    return 0;
+    /* Execute user timeout callback */
+	if (HAL_I2C_GetError(&hi2c1) == HAL_I2C_ERROR_TIMEOUT)
+	{
+	  // Handle Timeout: Reset I2C
+	  I2CResetBus(&hi2c1);
+      return 1;
+    }
   }
+
+  return 0;
 }
 
 /**
@@ -310,19 +343,28 @@ uint8_t I2C_WriteData_DMA(uint8_t B_Addr, uint8_t Reg, uint8_t* pBuffer, uint16_
   if( status != HAL_OK )
   {
     /* Execute user timeout callback */
-    // I2C_EXPBD_Error( B_Addr );
-    return 1;
+	if (HAL_I2C_GetError(&hi2c1) == HAL_I2C_ERROR_TIMEOUT)
+	{
+	  // Handle Timeout: Reset I2C
+	  I2CResetBus(&hi2c1);
+      return 1;
+    }
   }
-  else
-  {
-    return 0;
-  }
+
+  return 0;
 }
 
 HAL_StatusTypeDef I2CResetBus(I2C_HandleTypeDef* i2cHandle)
 {
+#if defined(STM32F405xx)
+	__HAL_DMA_CLEAR_FLAG(&hdma_i2c1_rx, DMA_FLAG_TCIF0_4 | DMA_FLAG_HTIF0_4 | DMA_FLAG_TEIF0_4 | \
+							   DMA_FLAG_DMEIF0_4 | DMA_FLAG_FEIF0_4);
+	__HAL_DMA_CLEAR_FLAG(&hdma_i2c1_tx, DMA_FLAG_TCIF2_6 | DMA_FLAG_HTIF2_6 | DMA_FLAG_TEIF2_6 | \
+							   DMA_FLAG_DMEIF2_6 | DMA_FLAG_FEIF2_6);
+#elif (defined(STM32F105xC) || defined(STM32F042x6))
 	__HAL_DMA_CLEAR_FLAG(&hdma_i2c1_rx, DMA_FLAG_TC7 | DMA_FLAG_HT7 | DMA_FLAG_TE7);
 	__HAL_DMA_CLEAR_FLAG(&hdma_i2c1_tx, DMA_FLAG_TC6 | DMA_FLAG_HT6 | DMA_FLAG_TE6);
+#endif
     __HAL_I2C_DISABLE(i2cHandle);
     /* 1. Set SWRST bit in I2Cx_CR1 register. */
     i2cHandle->Instance->CR1 |=  I2C_CR1_SWRST;
@@ -345,3 +387,4 @@ HAL_StatusTypeDef I2CResetBus(I2C_HandleTypeDef* i2cHandle)
     return HAL_OK;
 }
 /* USER CODE END 1 */
+

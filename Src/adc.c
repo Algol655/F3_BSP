@@ -261,3 +261,4 @@ FlagStatus ADC_GetCalibrationStatus(ADC_TypeDef* ADCx)
   return  bitstatus;
 }
 /* USER CODE END 1 */
+

@@ -90,7 +90,7 @@ uint8_t Weather_Forecast(float32_t PressVal, float32_t TempVal, uint8_t HumVal)
 			Z_Value = 1;
 		if (Z_Value > 32)
 			Z_Value = 32;
-		Z_forecast = Wheather_Values.Z_ForecastEstimate = Z_Value;			//Used by BLE in app_bluenrg_2.c User_Process() function
+		Z_forecast = Wheather_Values.Z_ForecastEstimate = Z_Value;			//Used by BLE and LoRa report functions
 		forecast = Wheather_Values.ForecastEstimate = Z_Symbols[Z_Value-1];	//Used by GUI in lcd.c ReDrawPage_S0(uint8_t PageNumb) function
 		//Stores the weather values in the board data structure.
 		//They will be flashed within one hour, when the timeout expires in the

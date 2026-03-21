@@ -404,7 +404,7 @@ void read_analogs(void)
 				adc_values[1] = 0x00;
 //			memset(&ovfl_2[i][0], 0x00, 8);
 			Ovfl_Time1 = HAL_GetTick();
-			BIT_CLEAR(AnlgOvflStatusReg, i<<16);
+			BIT_CLEAR(AnlgOvflStatusReg, i+16);
 			//Get and filter the ADC2 i-th analog input
 			mux2_inputs[i] = (float32_t)(((((adc_values[1] & mask2)) * ((R1 + R2) / R2) * Vref)) / ADC_RESOLUTION);
 			if (((BLE_DataReady) || (LoRa_DataReady)) && !(Test_Mode))
@@ -431,7 +431,7 @@ void read_analogs(void)
 		} else
 		{
 			if ((HAL_GetTick() - Ovfl_Time1) > OVFL_TIMEOUT)
-				BIT_SET(AnlgOvflStatusReg, i<<16);
+				BIT_SET(AnlgOvflStatusReg, i+16);
 //			strcpy((char*)&ovfl_2[i][0], "OVFL");
 		}
 	}
@@ -657,7 +657,7 @@ void read_SMO_sensors(void)
 #if !(NO2_FROM_EC)
 	//Calculate NO2 Rs
 	a_NO2 = VRef - V2;
-	MiCS_6814_NO2_Rs = MiCS_6814_NO2_Rs_AD = (V2 * (float32_t)MiCS_6814_NO2_Rf)/a_NO2;
+	MiCS_6814_NO2_Rs = MiCS_6814_NO2_Rs_AD = ((V2 * (float32_t)MiCS_6814_NO2_Rf)/a_NO2);
 #endif
 	//Calculate NH3 Rs
 	a_NH3 = VRef - V3;
@@ -667,7 +667,7 @@ void read_SMO_sensors(void)
 	a_CO  = VRef - V4;
 	MiCS_6814_CO_Rs = MiCS_6814_CO_Rs_AD = (V4 * (float32_t)MiCS_6814_CO_Rf)/a_CO;
 #endif
-#endif	//((GSB_HW_VER == 20) || (GSB_HW_VER == 21))
+#endif	//(GSB_HW_VER >= 20)
 
 #if (SMO_SENSOR_TC)
 	//Apply the MiCS_6814 temperature/humidity correction
@@ -681,12 +681,10 @@ void read_SMO_sensors(void)
 #endif
 
 #if !(CH2O_FROM_EC)
+	//Apply the SMD1001 temperature and humidity correction
+	SMD1001_CH2O_Vs = SMD1001_CH2O_Vs/(SMD1001_CH2O_TC * SMD1001_CH2O_RHC);
 	//Calculate CH2O ppm
 	float32_t Arg_CH2O = SMD1001_CH2O_Vs/((float32_t)(SMD1001_CH2O_Vo/1000.0));	//SMD1001_CH2O_Vo is stored in mVolts!
-	//Apply the SMD1001 temperature correction
-	Arg_CH2O = Arg_CH2O/SMD1001_CH2O_TC;
-	//Apply the SMD1001 humidity correction
-	Arg_CH2O = Arg_CH2O/SMD1001_CH2O_RHC;
 	if (Arg_CH2O <= 1.45)
 	{
 		ppm_CH2O = SMD1001_CH2O_1(Arg_CH2O);
@@ -914,6 +912,9 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 
 #if (!AQ_POLINOMIAL_REGRESSION)
 	Measurement_Value->CH2O = CH2O_ppm2ugm3(ppm_CH2O);	//Calculate the CH2O concentration in ug/m3
+	#if !(CH2O_FROM_EC)
+		Measurement_Value->CH2O = SMD1001_CH2O(Measurement_Value->CH2O);	//Apply the calibration curve
+	#endif
 #else
 	CH2O_PReg = CH2O_ppm2ugm3(ppm_CH2O);
 	//Apply calibration using polynomial regression
