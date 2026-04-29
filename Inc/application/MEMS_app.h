@@ -336,6 +336,9 @@ bool SendCntrlMsg;
 		#endif
 	#endif
 #endif
+#if (DCF77_PRESENT==1)
+	#include "platform/DCF77_Driver.h"
+#endif
 #if (IMU_PRESENT==1)
 	#include "platform/LSM9DS1_Driver.h"
 	#include "application/MotionGC_Manager.h"

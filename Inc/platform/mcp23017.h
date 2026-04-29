@@ -20,7 +20,7 @@
 
 // User include starts here
 #include "i2c.h"
-#include "port.h"
+#include "platform/port.h"
 // User include ends here
 
 /************************************************************************/
@@ -55,11 +55,11 @@
 #define MASTER1_IODIRA		((uint8_t)0x00)			// IO7 - IO6 - IO5 - IO4 - IO3 - IO2 - IO1 - IO0
 #define MASTER1_IODIRB 		((uint8_t)0xFF)			// IO7 - IO6 - IO5 - IO4 - IO3 - IO2 - IO1 - IO0
 #define MASTER1_IPOLA 		((uint8_t)0x00)			// IP7 - IP6 - IP5 - IP4 - IP3 - IP2 - IP1 - IP0
-#define MASTER1_IPOLB 		((uint8_t)0xFF)			// IP7 - IP6 - IP5 - IP4 - IP3 - IP2 - IP1 - IP0
+#define MASTER1_IPOLB 		((uint8_t)0x00)			// IP7 - IP6 - IP5 - IP4 - IP3 - IP2 - IP1 - IP0
 #define MASTER1_GPINTENA 	((uint8_t)0x00) 		// GPINT7 - GPINT6 - GPINT5 - GPINT4 - GPINT3 - GPINT2 - GPINT1 - GPINT0
-#define MASTER1_GPINTENB 	((uint8_t)0xFF) 		// GPINT7 - GPINT6 - GPINT5 - GPINT4 - GPINT3 - GPINT2 - GPINT1 - GPINT0
+#define MASTER1_GPINTENB 	((uint8_t)0x00) 		// GPINT7 - GPINT6 - GPINT5 - GPINT4 - GPINT3 - GPINT2 - GPINT1 - GPINT0
 #define MASTER1_DEFVALA 	((uint8_t)0xFF)			// DEF7 - DEF6 - DEF5 - DEF4 - DEF3 - DEF2 - DEF1 - DEF0
-#define MASTER1_DEFVALB 	((uint8_t)0xFF)			// DEF7 - DEF6 - DEF5 - DEF4 - DEF3 - DEF2 - DEF1 - DEF0
+#define MASTER1_DEFVALB 	((uint8_t)0x00)			// DEF7 - DEF6 - DEF5 - DEF4 - DEF3 - DEF2 - DEF1 - DEF0
 #define MASTER1_INTCONA 	((uint8_t)0x00)  		// IOC7 - IOC6 - IOC5 - IOC4 - IOC3 - IOC2 - IOC1 - IOC0
 #define MASTER1_INTCONB 	((uint8_t)0x00)  		// IOC7 - IOC6 - IOC5 - IOC4 - IOC3 - IOC2 - IOC1 - IOC0
 #define MASTER1_IOCONA 		((uint8_t)0b01011100)	// BANK - MIRROR - SEQOP - DISSLW - DAEN - ODR - INTPOL - (null)
@@ -79,9 +79,9 @@
 #define MASTER2_IODIRA		((uint8_t)0x00)			// IO7 - IO6 - IO5 - IO4 - IO3 - IO2 - IO1 - IO0
 #define MASTER2_IODIRB 		((uint8_t)0xFF)			// IO7 - IO6 - IO5 - IO4 - IO3 - IO2 - IO1 - IO0
 #define MASTER2_IPOLA 		((uint8_t)0x00)			// IP7 - IP6 - IP5 - IP4 - IP3 - IP2 - IP1 - IP0
-#define MASTER2_IPOLB 		((uint8_t)0xFF)			// IP7 - IP6 - IP5 - IP4 - IP3 - IP2 - IP1 - IP0
+#define MASTER2_IPOLB 		((uint8_t)0x80)			// IP7 - IP6 - IP5 - IP4 - IP3 - IP2 - IP1 - IP0
 #define MASTER2_GPINTENA 	((uint8_t)0x00) 		// GPINT7 - GPINT6 - GPINT5 - GPINT4 - GPINT3 - GPINT2 - GPINT1 - GPINT0
-#define MASTER2_GPINTENB 	((uint8_t)0xFF) 		// GPINT7 - GPINT6 - GPINT5 - GPINT4 - GPINT3 - GPINT2 - GPINT1 - GPINT0
+#define MASTER2_GPINTENB 	((uint8_t)0x90) 		// GPINT7 - GPINT6 - GPINT5 - GPINT4 - GPINT3 - GPINT2 - GPINT1 - GPINT0
 #define MASTER2_DEFVALA 	((uint8_t)0xFF)			// DEF7 - DEF6 - DEF5 - DEF4 - DEF3 - DEF2 - DEF1 - DEF0
 #define MASTER2_DEFVALB 	((uint8_t)0x7F)			// DEF7 - DEF6 - DEF5 - DEF4 - DEF3 - DEF2 - DEF1 - DEF0
 #define MASTER2_INTCONA 	((uint8_t)0x00)  		// IOC7 - IOC6 - IOC5 - IOC4 - IOC3 - IOC2 - IOC1 - IOC0
@@ -89,7 +89,7 @@
 #define MASTER2_IOCONA 		((uint8_t)0b01011100)	// BANK - MIRROR - SEQOP - DISSLW - DAEN - ODR - INTPOL - (null)
 #define MASTER2_IOCONB 		((uint8_t)0b01011100)	// BANK - MIRROR - SEQOP - DISSLW - DAEN - ODR - INTPOL - (null) // IOCO IOCON is a device wide register and doesn't vary between banks
 #define MASTER2_GPPUA 		((uint8_t)0x00)			// PU7 - PU6 - PU5 - PU4 - PU3 - PU2 - PU1 - PU0
-#define MASTER2_GPPUB 		((uint8_t)0xFF)			// PU7 - PU6 - PU5 - PU4 - PU3 - PU2 - PU1 - PU0
+#define MASTER2_GPPUB 		((uint8_t)0xEF)			// PU7 - PU6 - PU5 - PU4 - PU3 - PU2 - PU1 - PU0
 #define MASTER2_INTFA 		((uint8_t)0xFF)			// INT7 - INT6 - INT5 - INT4 - INT3 - INT2 - INT1 - INT0
 #define MASTER2_INTFB 		((uint8_t)0xFF)			// INT7 - INT6 - INT5 - INT4 - INT3 - INT2 - INT1 - INT0
 #define MASTER2_INTCAPA 	((uint8_t)0x00)			// ICP7 - ICP6 - ICP5 - ICP4 - ICP3 - ICP2 - ICP1 - ICP0
@@ -102,18 +102,20 @@
 #define MCP23017_MASTER1_BADDR ((uint8_t)0x40)
 #define MCP23017_MASTER2_BADDR ((uint8_t)0x42)
 
+#define MEASURE_PERIOD_PULSE_DURATION	0U
+
 typedef enum
 {
 	MCP23017_OK	=	 0x00,
 	MCP23017_ERROR = 0x01
 } MCP23017_Error_et;
 
-uint8_t intcap1_a, intcap1_b, gpio1_a, gpio1_b;
-uint8_t intcap2_a, intcap2_b, gpio2_a, gpio2_b;
+uint8_t intf1_a, intf1_b, intcap1_a, intcap1_b, gpio1_a, gpio1_b;
+uint8_t intf2_a, intf2_b, intcap2_a, intcap2_b, gpio2_a, gpio2_b;
 uint8_t BADDR;
 uint8_t receive_data[22];
 uint8_t send_data1, send_data2;
-bool ioext_a;
+bool ioext_a, ioext_b;
 
 extern uint8_t L20_menu_items_row7[64];
 extern const uint8_t L20_menu_items_row4[64];

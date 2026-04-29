@@ -63,6 +63,9 @@
 	#include "platform/LSM9DS1_Driver.h"
 	extern LSM9DS1_MeasureTypeDef_st IMU_Values;
 #endif
+#if (DCF77_PRESENT==1)
+	#include "platform/DCF77_Driver.h"
+#endif
 
 const uint8_t UART_delay = 20;
 const uint8_t CDC_delay = 10;
@@ -70,8 +73,8 @@ const uint8_t debounce_delay = 20;
 
 uint16_t LedPc6Timer_TimeOut = 300;
 uint16_t ServiceTimer0_TimeOut = 1000;	//Used for CanOPEN timings, in milliseconds
-uint16_t ServiceTimer1_TimeOut = 300;	//Used for the debounce timer
-uint32_t io_exp_intcap, io_exp_gpio;
+uint16_t ServiceTimer1_TimeOut = 300;	//Used for the debounce timer: 30mS (300*0.1)
+uint32_t io_exp_intf, io_exp_intcap, io_exp_gpio;
 bool led_pc6_timer_expired = false;
 bool timer1_expired = false;
 bool timer3_expired = false;
@@ -1182,15 +1185,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		process_pn_menu_irq();
 		//break;
 	case GPIO_PIN_2:
-		HAL_NVIC_DisableIRQ(EXTI2_IRQn);	//It will be re-enabled in the process_IO_Expander_irq() function
-		//Disables the interrupt of the button IO_EXP input to debounce button input
-		//It will be re-enabled in the read_ports() function when the service_timer1 expires
-#if (IO_EXP_PRESENT==1)
-		static uint8_t send_data = 0x7F;
-
-		mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_GPINTENB, &send_data, 1);
-#endif
-		ServiceTimerStart(STim_1);
+		HAL_NVIC_DisableIRQ(EXTI2_IRQn);		//It will be re-enabled in the process_IO_Expander_irq() function
 		process_IO_Expander_irq();
 		break;
 	default:
@@ -1653,7 +1648,7 @@ void process_pn_menu_irq(void)
 	 HAL_NVIC_ClearPendingIRQ(EXTI0_IRQn);
 	 HAL_NVIC_EnableIRQ(EXTI0_IRQn);		//It was be disabled in the HAL_GPIO_EXTI_Callback() function
 }
-
+//#pragma GCC optimize ("O0")
 /* @fn		Function: process_timer3_irq(void)
  * @brief	Timer3 Interrupt Handler;
  * 			Executed when Timer3 expires (APPLICATION_RUN_CYCLE, period 5s)
@@ -1664,6 +1659,9 @@ void process_timer3_irq(void)
 {
 	static uint16_t DeltaT = 0;
 	extern FLASH_DATA_ORG FlashDataOrg;
+#if (DCF77_PRESENT)
+	static DCF77_dateTime_t DCF77_DateTime = {0};
+#endif
 #if ((SENSOR_REMOTE_MODE) && (USE_BKUP_SRAM))
 	#if (CCS811)
 	extern void StoreMinMax(LPS25HB_MeasureTypeDef_st *PressTemp, HTS221_MeasureTypeDef_st *HumTemp, ANLG_MeasureTypeDef_st *Measurement_Value,
@@ -1876,6 +1874,16 @@ void process_timer3_irq(void)
 		MinMaxStored = false;
 	}
 #endif
+#if (DCF77_PRESENT)
+	if (DCF77_timeReceived())
+	{
+		DCF77_DateTime = *((DCF77_dateTime_t*)(DCF77_lastTimeValue()));
+		DCF77_reset();
+		RTC_TimeRegulate(&hrtc, RTC_ByteToBcd2(DCF77_DateTime.hours), RTC_ByteToBcd2(DCF77_DateTime.minutes), 0, FORMAT_BCD);
+		RTC_DateRegulate(&hrtc, RTC_ByteToBcd2(DCF77_DateTime.years), RTC_ByteToBcd2(DCF77_DateTime.months),
+								RTC_ByteToBcd2(DCF77_DateTime.dayOfMonth), RTC_ByteToBcd2(DCF77_DateTime.dayOfWeek));
+	}
+#endif
 /*
  * In the "Sensor" application the button_manage() function, which activates the BLE
  * and sensor functions, is done after 5s the programming of the IMU, otherwise the
@@ -1994,11 +2002,14 @@ void process_timer7_irq(void)
  */
 void process_IO_Expander_irq(void)
 {
+	extern void DisplayDigitalInputsValues(void);
+	static uint8_t send_data = 0x00;
+
 #if (IO_EXP_PRESENT==1)
 	static uint16_t i = 0;
 
 	mcp23017_read_registers(MCP23017_MASTER1_BADDR, 0, 22);	//Read all MC23017_1 Registers
-    while (!I2C_done)
+    while (!I2C_done)	//Wait for the HAL_I2C_MemRxCpltCallback in mcp23017.c
 	{
     	Sleep(1);
     	if (++i > 100)
@@ -2007,9 +2018,8 @@ void process_IO_Expander_irq(void)
     		i= 0;
     	}
 	}
-// 	HAL_Delay(i2c_delay);
  	mcp23017_read_registers(MCP23017_MASTER2_BADDR, 0, 22);	//Read all MC23017_2 Registers
-	while (!I2C_done)
+	while (!I2C_done)	//Wait for the HAL_I2C_MemRxCpltCallback in mcp23017.c
 	{
     	Sleep(1);
     	if (++i > 100)
@@ -2018,31 +2028,50 @@ void process_IO_Expander_irq(void)
     		i= 0;
     	}
 	}
-// 	HAL_Delay(i2c_delay);
-//  Combine four 8-bit unsigned ints into one 32-bit unsigned int
+	/*
+	 * The following code is executed only after the call to the function
+	 * "HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)", in the mcp23017.c driver.
+	 */
+	//  Combine four 8-bit unsigned ints into one 32-bit unsigned int
+// 	io_exp_intf = ((intf2_b << 24) | (intf2_a << 16) | intf1_b << 8) | intf1_a));
+	io_exp_intf = ((intf2_b << 8) | (intf1_b));
 // 	io_exp_intcap = ((intcap2_b << 24) | (intcap2_a << 16) | (intcap1_b << 8) | (intcap1_a));
  	io_exp_intcap = ((intcap2_b << 8) | (intcap1_b));
 // 	io_exp_gpio = ((gpio2_b << 24) | (gpio2_a << 16) | (gpio1_b << 8) | (gpio1_a));
  	io_exp_gpio = ((gpio2_b << 8) | (gpio1_b));
+
+	//Disable interrupts on all inputs of the MCP23017. They will be re-enabled in the read_ports() function
+ 	send_data = 0x00;
+	mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_GPINTENB, &send_data, 1);
+	mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_GPINTENB, &send_data, 1);
+	//When the STim_1 timer expires, the button's interrupt line will be re-enabled,
+	//thus ensuring the button's debounce time.
+	ServiceTimerStart(STim_1);
+
 	input_changed = true;
 	refresh = true;
  // Format Display String
 	if (Test_Mode)
 	{
-		for (uint8_t i=0; i <= num_digital_in; i++)
-		{
-			if (!BIT_CHECK(io_exp_gpio,i))
+	 	send_data = 0xFF;
+	 	mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_GPINTENB, &send_data, 1);
+	 	mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_GPINTENB, &send_data, 1);
+	 	if ((Test_InputMode) && (input_changed))
+	 	{
+		 	input_changed = false;
+			for (uint8_t i=0; i <= num_digital_in; i++)
 			{
-				L20_menu_items_row7[i*3+3]=0x30;
+				if (!BIT_CHECK(io_exp_gpio,i))
+				{
+					L20_menu_items_row7[i*3+3]=0x30;
+				}
+				else
+				{
+					L20_menu_items_row7[i*3+3]=0x31;
+				}
 			}
-			else
-			{
-				L20_menu_items_row7[i*3+3]=0x31;
-			}
-		}
-		CDC_Transmit_FS((uint8_t*)L20_menu_items_row7,strlen((const char*)L20_menu_items_row7));
-		HAL_Delay(CDC_delay);
-		CDC_Transmit_FS((uint8_t*)L20_menu_items_row4,strlen((const char*)L20_menu_items_row4));
+			DisplayDigitalInputsValues();
+	 	}
 	}
 
 	HAL_NVIC_EnableIRQ(EXTI2_IRQn);		//It was be disabled in the HAL_GPIO_EXTI_Callback() function

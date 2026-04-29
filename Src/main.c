@@ -331,6 +331,10 @@ int main(void)
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	  ADC_Config(&hadc1);						//Configure the ADC peripheral
 #endif
+#if (DCF77_PRESENT==1)
+	  DCF77_reset();
+	  DCF77_enable();
+#endif
 	AB_Init();									//Initialize Sensor System
 #if (USE_BKUP_SRAM)
 	ReStore_MeanValues_BackupRTC();
@@ -357,7 +361,7 @@ int main(void)
 #elif (LoRa_SUPPORT)
   	MX_SX127X_LoRa_Init();
 	#if (SENSOR_END_NODE_APP)
-  		button_manage();
+		button_manage();
 	#endif
 #endif
 	leds_test = true;							//Blink LEDs if init Ok

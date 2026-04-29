@@ -10,7 +10,7 @@
 
 uint8_t DeviceName[5] ="S191";
 uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
-uint8_t SW_Version[5] ="2900";
+uint8_t SW_Version[5] ="2901";
 uint32_t Vendor_ID  = 0x2316F;
 uint32_t Prdct_Code = 10000324;
 uint32_t Rev_Number = 0;

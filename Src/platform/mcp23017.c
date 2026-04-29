@@ -17,7 +17,30 @@
 
 // User include starts here
 #include "platform/mcp23017.h"
+#if (DCF77_PRESENT)
+	#include "platform/DCF77_Driver.h"
+#endif
 // User include ends here
+
+/*******************************************************************************************
+ *********** READING FLOW OF THE INPUT LINES OF THE TWO MCP23017 I/O EXPANDERS *************
+ *******************************************************************************************
+ * In port.c:
+ * 1) In "HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)" the function "process_IO_Expander_irq()" is called.
+ * 2) In "process_IO_Expander_irq(void)" the function "mcp23017_read_registers(MCP23017_MASTER1_BADDR, 0, 22)"
+ *    is called to read ALL registers of the MCP23017.
+ * In mcp23017.c:
+ * 3) In "mcp23017_read_registers(uint8_t base_address, uint8_t reg, uint8_t size)" the function
+ *    "HAL_I2C_Mem_Read_DMA(&hi2c1,(uint16_t)base_address,reg,I2C_MEMADD_SIZE_8BIT,(uint8_t*)receive_data,size)" is called.
+ * 4) Calling the function "HAL_I2C_Mem_Read_DMA(&hi2c1,(uint16_t)base_address,reg,I2C_MEMADD_SIZE_8BIT,(uint8_t*)receive_data,size)"
+ *    generates the I2C receive CallBack "HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)".
+ * 5) In the I2C receive CallBack "HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)"
+ *    the values ​​of the MCP23017 receive registers are copied.
+ * 6) In the "read_ports()" function, called in the main loop of "main.c", the two read registers of the two MCP23017,
+ *    after having been possibly modified by internal settings/notifications, are compacted into a single 16-bit register.
+ * 7) in the "read_ports()" function the "DinCheck(io_exp_gpio1)" function is called for any post-processing actions
+ *    that must be performed based on the values ​​assumed by the input lines of the two MCP23017.
+ */
 
 /*! ------------------------------------------------------------------------------------------------------------------
  *  \struct     MCP23017
@@ -158,10 +181,17 @@ void mcp23017_read_registers(uint8_t base_address, uint8_t reg, uint8_t size)
 	bool TimeOut = false;
 
 	ioext_a = false;
+	ioext_b = false;
 	I2C_done = false;
 	if (base_address == MCP23017_MASTER1_BADDR)
 	{
 		ioext_a = true;
+		ioext_b = false;
+	} else
+	if (base_address == MCP23017_MASTER2_BADDR)
+	{
+		ioext_a = false;
+		ioext_b = true;
 	}
 	HAL_I2C_Mem_Read_DMA(&hi2c1,(uint16_t)base_address,reg,I2C_MEMADD_SIZE_8BIT,(uint8_t*)receive_data,size);
 	while ((HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) && (!TimeOut))
@@ -194,9 +224,7 @@ void mcp23017_write_registers(uint8_t base_address, uint8_t reg, uint8_t* t_data
 	static uint32_t delay = 0x88CFFF; //27ns x cycle -> about 0.4s
 	bool TimeOut = false;
 
-//	ioext_a = false;
 	HAL_I2C_Mem_Write_DMA(&hi2c1,(uint16_t)base_address,reg,I2C_MEMADD_SIZE_8BIT,(uint8_t*)t_data,size);
-//	HAL_Delay(i2c_delay);
 	while ((HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) && (!TimeOut))
 	{
     	if (++i > delay)
@@ -209,10 +237,6 @@ void mcp23017_write_registers(uint8_t base_address, uint8_t reg, uint8_t* t_data
 		I2CResetBus(&hi2c1);
 		TimeOut = false;
 	}
-/*	if (base_address == MCP23017_MASTER1_BADDR)
-	{
-		ioext_a = true;
-	}*/
 }
 
 /*! -----------------------------------------------------------------------------------------
@@ -222,22 +246,31 @@ void mcp23017_write_registers(uint8_t base_address, uint8_t reg, uint8_t* t_data
  */
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
+	/*
+	 * Input port reads (gpiox_y) will be repeated in the "read_ports()" function to allow for
+	 * a correct read after the state of the input line that generated the interrupt has stabilized.
+	 */
 	if (hi2c->Instance == hi2c1.Instance)
 	{
 		if (ioext_a)
 		{
+			intf1_a = receive_data[0x0E];
+			intf1_b = receive_data[0x0F];
 			intcap1_a = receive_data[0x10];
 			intcap1_b = receive_data[0x11];
 			gpio1_a = receive_data[0x12];
 			gpio1_b = receive_data[0x13];
 			ioext_a = false;
-		}
-		else
+		} else
+		if (ioext_b)
 		{
+			intf2_a = receive_data[0x0E];
+			intf2_b = receive_data[0x0F];
 			intcap2_a = receive_data[0x10];
 			intcap2_b = receive_data[0x11];
 			gpio2_a = receive_data[0x12];
 			gpio2_b = receive_data[0x13];
+			ioext_b = false;
 		}
 		while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY)
 		{
@@ -282,6 +315,7 @@ MCP23017_Error_et MX_MCP23017_Init()
     		i= 0;
     	}
 	}
+
 	HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
 	return MCP23017_OK;
@@ -295,7 +329,7 @@ void write_port(uint16_t port_number, uint8_t value)
 {
 	switch (port_number)
 	{
-		case 0x3131:						//Bank A Port 1 (Out1)
+		case 0x3131:						//Bank A Port 1 (Out1, Digital I/O A0_1)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data1,0);		//Enable uP_OUT_1 -> HS_OUT_1 = VC_BATT
@@ -306,7 +340,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_OLATA, &send_data1, 1);
 			break;
-		case 0x3132:						//Bank A Port 2 (Out2)
+		case 0x3132:						//Bank A Port 2 (Out2, Digital I/O A1_1)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data1,1);		//Enable uP_OUT_2 -> HS_OUT_2 = VC_BATT
@@ -317,7 +351,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_OLATA, &send_data1, 1);
 			break;
-		case 0x3133:						//Bank A Port 3 (Out3)
+		case 0x3133:						//Bank A Port 3 (Out3, Digital I/O A2_1)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data1,2);		//Enable uP_OUT_3 -> HS_OUT_3 = VC_BATT
@@ -328,7 +362,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_OLATA, &send_data1, 1);
 			break;
-		case 0x3134:						//Bank A Port 4 (Out4)
+		case 0x3134:						//Bank A Port 4 (Out4, Digital I/O A3_1)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data1,3);		//Enable uP_OUT_4 -> HS_OUT_4 = VC_BATT
@@ -339,7 +373,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_OLATA, &send_data1, 1);
 			break;
-		case 0x3135:						//Bank A Port 5 (Out5)
+		case 0x3135:						//Bank A Port 5 (Out5, Digital I/O A4_1)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data1,4);		//Enable uP_OUT_5 -> HS_OUT_5 = VC_BATT
@@ -350,7 +384,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_OLATA, &send_data1, 1);
 			break;
-		case 0x3231:						//Bank B Port 1 (Out6)
+		case 0x3231:						//Bank B Port 1 (Out6, Digital I/O A5_1)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data1,5);		//Enable uP_OUT_6 -> HS_OUT_6 = VC_BATT
@@ -361,7 +395,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_OLATA, &send_data1, 1);
 			break;
-		case 0x3232:						//Bank B Port 2 (Out7)
+		case 0x3232:						//Bank B Port 2 (Out7, Digital I/O A6_1)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data1,6);		//Enable uP_OUT_7 -> HS_OUT_7 = VC_BATT
@@ -372,7 +406,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_OLATA, &send_data1, 1);
 			break;
-		case 0x3233:						//Bank B Port 3 (Out8)
+		case 0x3233:						//Bank B Port 3 (Out8, Digital I/O A7_1)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data1,7);		//Enable uP_OUT_8 -> HS_OUT_8 = VC_BATT
@@ -383,7 +417,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER1_BADDR, MCP23017_OLATA, &send_data1, 1);
 			break;
-		case 0x3234:						//Bank B Port 4 (Out9)
+		case 0x3234:						//Bank B Port 4 (Out9, Digital I/O A0_2)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data2,0);		//Enable uP_OUT_9 -> HS_OUT_9 = VC_BATT
@@ -394,7 +428,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_OLATA, &send_data2, 1);
 			break;
-		case 0x3235:						//Bank B Port 5 (Out10)
+		case 0x3235:						//Bank B Port 5 (Out10, Digital I/O A1_2)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data2,1);		//Enable uP_OUT_10 -> HS_OUT_10 = VC_BATT
@@ -405,7 +439,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_OLATA, &send_data2, 1);
 			break;
-		case 0x3331:						//Bank C Port 1 (Out11)
+		case 0x3331:						//Bank C Port 1 (Out11, Digital I/O A2_2)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data2,2);		//Enable uP_OUT_11 -> HS_OUT_11 = VC_BATT
@@ -416,7 +450,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_OLATA, &send_data2, 1);
 			break;
-		case 0x3332:						//Bank C Port 2 (Out12)
+		case 0x3332:						//Bank C Port 2 (Out12, Digital I/O A3_2)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data2,3);		//Enable uP_OUT_12 -> HS_OUT_12 = VC_BATT
@@ -427,7 +461,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_OLATA, &send_data2, 1);
 			break;
-		case 0x3333:						//Bank C Port 3 (Out13)
+		case 0x3333:						//Bank C Port 3 (Out13, Digital I/O A4_2)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data2,4);		//Enable uP_OUT_13 -> HS_OUT_13 = VC_BATT
@@ -438,7 +472,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_OLATA, &send_data2, 1);
 			break;
-		case 0x3334:						//Bank C Port 4 (Out14)
+		case 0x3334:						//Bank C Port 4 (Out14, Digital I/O A5_2)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data2,5);		//Enable uP_OUT_14 -> HS_OUT_14 = VC_BATT
@@ -449,7 +483,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_OLATA, &send_data2, 1);
 			break;
-		case 0x3335:						//Bank C Port 5 (Out15)
+		case 0x3335:						//Bank C Port 5 (Out15, Digital I/O A6_2)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data2,6);		//Enable uP_OUT_15 -> HS_OUT_15 = VC_BATT
@@ -460,7 +494,7 @@ void write_port(uint16_t port_number, uint8_t value)
 			}
 			mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_OLATA, &send_data2, 1);
 			break;
-		case 0x3431:						//Bank D Port 1 (Out16)
+		case 0x3431:						//Bank D Port 1 (Out16, Digital I/O A7_2)
 			if (value == 0x31)
 			{
 				BIT_SET(send_data2,7);		//Enable uP_OUT_16 -> HS_OUT_16 = VC_BATT
@@ -475,64 +509,118 @@ void write_port(uint16_t port_number, uint8_t value)
 			break;
 	}
 }
-
+//#pragma GCC optimize ("O0")
 /* @fn 		DinCheck()
  * @brief 	Check if there was an event from a digital input and manage it
  * @return	null
  * */
-void DinCheck(uint16_t b)
+void DinCheck(uint16_t b, uint16_t c)
 {
-	if (b & 0x0001)
+#if (MEASURE_PERIOD_PULSE_DURATION)
+	/*
+	 * The following variables are only needed when using the code section
+	 * for measuring the period and pulse duration (in the high state).
+	 */
+	static uint32_t timestore[60] = {0};
+	static uint32_t timestore_l[60] = {0};
+	static uint32_t timediff[60] = {0};
+	static uint32_t timediff_l[60] = {0};
+	static uint16_t cc[120] = {0};
+	static uint8_t i = 0;
+	static uint8_t j = 0;
+	static uint8_t k = 0;
+#endif
+
+	if (b & 0x0001)		//IN1,  Digital I/O B0_1
 	{
 	}
-	if (b & 0x0002)
+	if (b & 0x0002)		//IN2,  Digital I/O B1_1
 	{
 	}
-	if (b & 0x0004)
+	if (b & 0x0004)		//IN3,  Digital I/O B2_1
 	{
 	}
-	if (b & 0x0008)
+	if (b & 0x0008)		//IN4,  Digital I/O B3_1
 	{
 	}
-	if (b & 0x0010)
+	if (b & 0x0010)		//IN5,  Digital I/O B4_1
 	{
 	}
-	if (b & 0x0020)
+	if (b & 0x0020)		//IN6,  Digital I/O B5_1
 	{
 	}
-	if (b & 0x0040)
+	if (b & 0x0040)		//IN7,  Digital I/O B6_1
 	{
 	}
-	if (b & 0x0080)
+	if (b & 0x0080)		//IN8,  Digital I/O B7_1
 	{
 	}
-	if (b & 0x0100)
+	if (b & 0x0100)		//IN9,  Digital I/O B0_2
 	{
 	}
-	if (b & 0x0200)
+	if (b & 0x0200)		//IN10, Digital I/O B1_2
 	{
 	}
-	if (b & 0x0400)
+	if (b & 0x0400)		//IN11, Digital I/O B2_2
 	{
 	}
-	if (b & 0x0800)
+	if (b & 0x0800)		//IN12, Digital I/O B3_2
 	{
 	}
-	if (b & 0x1000)
+	if (b & 0x1000)		//IN13, Digital I/O B4_2
+	{
+#if (DCF77_PRESENT)
+	#if (MEASURE_PERIOD_PULSE_DURATION)
+		cc[k] = c;
+		if (k++ > 119)
+			k=0;
+	#endif
+		currentTick = HAL_GetTick();
+		if ((c & 0x1000) && (!pinState))
+		{
+		#if (MEASURE_PERIOD_PULSE_DURATION)
+			timestore[i] = currentTick;
+			/*
+			 * This is the code section that measures the period and pulse duration in the high state.
+			 */
+			if (i++ > 59)
+			{
+				for (j=0; j<59; j++)
+				{
+					timediff[j] = timestore[j+1]-timestore[j];
+					timediff_l[j] = timestore_l[j+1]-timestore[j];
+				}
+				i = 0;
+			}
+			/*
+			 * End the code section that measures the period and pulse duration in the high state.
+			 */
+		#endif
+			pinState = 1;
+		} else
+		if (pinState)
+		{
+		#if (MEASURE_PERIOD_PULSE_DURATION)
+			timestore_l[i] = currentTick;
+		#endif
+			pinState = 0;
+		}
+
+		DCF77_handleInterrupt(currentTick, pinState);
+#endif
+	}
+	if (b & 0x2000)		//IN14, Digital I/O B5_2
 	{
 	}
-	if (b & 0x2000)
+	if (b & 0x0400)		//IN15, Digital I/O B6_2
 	{
 	}
-	if (b & 0x0400)
-	{
-	}
-	if (b & 0x8000)
+	if (b & 0x8000)		//IN16, Digital I/O B7_2
 	{
 		button_manage();
 	}
 }
-
+//#pragma GCC optimize ("Os")
 /*
  * @fn      read_ports()
  * @brief   Read all the input port status
@@ -541,24 +629,43 @@ void DinCheck(uint16_t b)
 void read_ports()
 {
 	static uint16_t io_exp_gpio1 = 0;
-	static uint8_t send_data = 0xFF;
+	static uint16_t io_exp_intf1 = 0;
+//	static uint16_t io_exp_intcap1 = 0;
+	extern uint32_t io_exp_intf;
+//	extern uint32_t io_exp_intcap;
+	static uint8_t send_data1 = (uint8_t)MASTER2_GPINTENB & 0x10;	//Exclude lines that require a debounce time.
+	static uint8_t send_data2 = (uint8_t)MASTER2_GPINTENB;
 
+	io_exp_intf1 = (uint16_t)io_exp_intf;
+//	io_exp_intcap1 = (uint16_t)io_exp_intcap;
+
+	if (input_changed | refresh)	//Check only if a digital input is changed
+	{
+		/*
+		 * In interrupt operation, the reading of the MCP23017 input registers MUST be repeated
+		 * or done here to allow the state of the input line that generated the interrupt to stabilize.
+		 */
+		mcp23017_read_register(MCP23017_MASTER1_BADDR, MCP23017_GPIOB, &gpio1_b, 1);
+		mcp23017_read_register(MCP23017_MASTER2_BADDR, MCP23017_GPIOB, &gpio2_b, 1);
+
+		gpio1_b = (gpio1_b | internal_notifies_0);
+		gpio2_b = (gpio2_b | internal_notifies_1);
+
+		io_exp_gpio1 = ((gpio2_b << 8) | (gpio1_b));
+		DinCheck(io_exp_intf1, io_exp_gpio1);
+		//Re-enable interrupts on all input lines except those that require a debounce time.
+		//They was be disabled in the "process_IO_Expander_irq(void)" function
+		mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_GPINTENB, &send_data1, 1);
+		input_changed = false;
+		refresh = false;
+	}
+	//When the STim_1 timer expires, the button's interrupt line will be re-enabled,
+	//thus ensuring the button's debounce time.
 	if (ServiceTimer1.Expired)
 	{
 		ServiceTimer1.Expired = false;
-		//Clears pending interrupts on port B
-		mcp23017_read_registers(MCP23017_MASTER2_BADDR, MCP23017_INTCAPB, 1);
-		//Re-enables the interrupt of the button IO_EXP input
-		//It was be disabled in the HAL_GPIO_EXTI_Callback() function
-		mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_GPINTENB, &send_data, 1);
-	}
-	gpio1_b = (gpio1_b | internal_notifies_0);
-	gpio2_b = (gpio2_b | internal_notifies_1);
- 	io_exp_gpio1 = ((gpio2_b << 8) | (gpio1_b));
-	if (input_changed | refresh)	//Check only if a digital input is changed
-	{
-		DinCheck(io_exp_gpio1);
-		input_changed = false;
-		refresh = false;
+		//Re-enable interrupts on all input lines, even those that require a debounce time.
+		//They was be disabled in the "process_IO_Expander_irq(void)" function.
+		mcp23017_write_registers(MCP23017_MASTER2_BADDR, MCP23017_GPINTENB, &send_data2, 1);
 	}
 }

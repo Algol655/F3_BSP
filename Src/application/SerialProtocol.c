@@ -144,10 +144,10 @@ int HandleUSB_MSG(uint8_t* Buff)
 	extern uint8_t DataLoggerActive;
 //	uint8_t PresentationString[] = {"MEMS shield demo,201,8.0.0,8.2.0,IKS01A2"};
 	uint8_t PresentationString[] = {"MEMS shield demo,201,"FW_VERSION","LIB_VERSION",IKS01A2"};
-#endif
-#if (PARTICULATE_SENSOR_PRESENT==1)
-	extern SPS30_Error_et sps30_start_measurement();
-	extern SPS30_Error_et sps30_stop_measurement();
+	#if (PARTICULATE_SENSOR_PRESENT==1)
+		extern SPS30_Error_et sps30_start_measurement();
+		extern SPS30_Error_et sps30_stop_measurement();
+	#endif
 #endif
 	static uint32_t P_EpochTime = 0;	//Previous epoch value
 	static uint32_t C_EpochTime = 0;	//Current epoch counter value

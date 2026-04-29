@@ -366,6 +366,16 @@ void DisplayAnalogValues()
 #endif
 }
 
+void DisplayDigitalInputsValues()
+{
+#if	(INPUT_TEST==1)
+	CDC_Tx_FS((uint8_t*)L20_menu_items_row5,strlen((const char*)L20_menu_items_row5));
+	CDC_Tx_FS((uint8_t*)L20_menu_items_row4,strlen((const char*)L20_menu_items_row4));
+	CDC_Tx_FS((uint8_t*)L20_menu_items_row7,strlen((const char*)L20_menu_items_row7));
+	CDC_Tx_FS((uint8_t*)L20_menu_items_row4,strlen((const char*)L20_menu_items_row4));
+#endif
+}
+
 #pragma GCC optimize ("Os")
 void GetNumericString(bool nopoint, bool nominus)
 {
@@ -527,6 +537,7 @@ void top_menu()
 	leds_test = true;
 	FirstTime = false;
 	Test_Mode = true;
+	Test_InputMode = false;
 	led_pc6_timer = 0;
 
 	CDC_Tx_FS((uint8_t*)mystring0,strlen((const char*)mystring0));	//Transmit welcome string
@@ -626,6 +637,7 @@ void top_menu()
 				CDC_Tx_FS((uint8_t*)mystring4,strlen((const char*)mystring4));
 				FirstTime = true;
 				Test_Mode = false;
+				Test_InputMode = false;
 //				leds_test = false;
 				led_off(LED_ALL);
 #if	(CAN1_TEST==1)
@@ -972,14 +984,13 @@ void L20_menu()
 {
 	app.usbbuf[app.usblen-1] = 0;
 	Test_Mode = true;
+	Test_InputMode = true;
 	output = 0;
 
 	memset(&mystring3[0], 0, sizeof(mystring3));
 	CDC_Tx_FS((uint8_t*)L20_menu_items_row1,strlen((const char*)L20_menu_items_row1));
 	CDC_Tx_FS((uint8_t*)L20_menu_items_row2,strlen((const char*)L20_menu_items_row2));
 	CDC_Tx_FS((uint8_t*)L20_menu_items_row3,strlen((const char*)L20_menu_items_row3));
-	CDC_Tx_FS((uint8_t*)L20_menu_items_row4,strlen((const char*)L20_menu_items_row4));
-	CDC_Tx_FS((uint8_t*)L20_menu_items_row5,strlen((const char*)L20_menu_items_row5));
 	CDC_Tx_FS((uint8_t*)L20_menu_items_row4,strlen((const char*)L20_menu_items_row4));
 	do
 	{
@@ -989,6 +1000,7 @@ void L20_menu()
 		{
 			case 0x1B:
 				memcpy(&mystring3[0], (const uint8_t *) "ESC", 3);
+				Test_InputMode = false;
 				top_menu();
 				break;
 			default:
@@ -1470,7 +1482,7 @@ void L80_menu()
 	uint32_t last_date_time_adjust = 0;
 	int32_t RTC_Calib;
 #endif
-#if (WRITE_FLASH==1)
+#if ((WRITE_FLASH) || (RTC_CALIB))
 	extern FLASH_DATA_ORG FlashDataOrg;
 #endif
 #if (UWB_MODE==1)

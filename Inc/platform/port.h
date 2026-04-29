@@ -406,7 +406,7 @@ SENSOR_STATUS Sensor_Status;
 HAL_StatusTypeDef MCP23017_status, LSM9DS1_status, LPS25HB_status, HTS221_status, CCS811_status, VEML6075_status;
 HAL_StatusTypeDef LPS22HB_status, SHT4x_status, ENS160_status, SPS30_status, VEML7700_status, LTR390UV_status;
 HAL_StatusTypeDef TLCD_status, GLCD_status, ANLG_status;
-bool Test_Mode, leds_test, timer5s_expired, conversion_ended, RiskReport;
+bool Test_Mode, Test_InputMode, leds_test, timer5s_expired, conversion_ended, RiskReport;
 bool input_changed, I2C_done, can_tx_done, refresh, WarmUpPeriod_expired, ColdRestart, BakUpSRamWiped, BLE_DataReady, LoRa_DataReady;
 bool display_imu_data, send_lcl_imu_data, send_lcl_imu_data_to_ble, lcl_imu_data_rdy;
 bool display_prs_data, send_lcl_prs_data, lcl_prs_data_rdy;
