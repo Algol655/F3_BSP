@@ -71,7 +71,7 @@ V. 2.08.03	(Rilasciata il 2026/01/02)
 4) Corretta la rappresentazione del numero di errori dell'ADC nel registro di stato (StatusReg) (Ok)
 5) Corretto il set/clear dei bit 31..16 nel registro AnlgOvflStatusReg (Ok)
 
-V. 2.09.00	(Rilasciata il 2026/17/03)
+V. 2.09.00	(Rilasciata il 2026/03/17)
 1) Aggiornamento a CubeMX 6.17.0, CubeIDE 2.1.1
 2) Corretta la compensazione dell'umidità nel driver del sensore di VOC CCS811
    (La compensazione si applica solo quando l'umidità relativa è <= 85%) (Ok)
@@ -86,7 +86,14 @@ V. 2.09.00	(Rilasciata il 2026/17/03)
 8) Nella versione con LCD corretta la visualizzazione del sensore CH2O quando il sensore TVOC è in failure
    (L'indicazione di "FAIL" sul campo TVOC si ripercuoteva erroneamente anche sul campo del sensore CH2O) (Ok)
 
-V. 2.09.01	(Rilasciata il 2026/29/04)
+V. 2.09.01	(Rilasciata il 2026/04/29)
 1) Ottimizzata la funzione MX_BlueNRG_2_Process(), come già fatto in SensusL (Ok)
 2) Migliorata la gestione degli interrupt dell'IO expander MCP23017 (Ok)
 3) Migliorata la funzione di test degli ingressi digitali nell'ambiente di test/configurazione (Ok)
+
+V. 2.09.02	(Rilasciata il 2026/06/09)
+1) Migliorata la compensazione in funzione della temperatura dei sensori elettrochimici Winsen MExx (Ok)
+2) Alcuni miglioramenti nella gestione del convertitore AD per i sensori analogici (Ok)
+3) Miglorate le curve di calibrazione e quelle per la compensazione in funzione della tempratura e umidità 
+   del sensore di formaldeide SMD1001 (Ok)
+4) Migliorato il filtraggio dei canali analogici (Ok)

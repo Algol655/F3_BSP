@@ -127,7 +127,7 @@ const uint8_t mystring8c[] = "\r\n\n  ** Restart the board to make the changes e
 		const uint8_t mystring18a[] = "  The current C6H6 read by the ME4-C6H6 sensor is:";
 		const uint8_t mystring18b[] = "  Enter the C6H6 ADC offset in mV: ";
 	#endif	//OUTDOOR_MODE
-	const uint8_t mystring18c[] = "\r\n\n  The current reference is:";
+	const uint8_t mystring18c[] = "\r\n\n  The current ADC offset is:";
 #endif	//GAS_SENSOR_MODULE_PRESENT
 const uint8_t top_menu_items_row1[]="\r\n\n+-------------------+\r\n";
 const uint8_t top_menu_items_row2[]="|  SERVICE CONSOLE  |\r\n";

@@ -131,7 +131,7 @@ FLASH_DATA_ORG FlashDataOrg = {.b_date_offset = 0x00, .b_time_offset = 0x04,
 .b_status.s34_offset = 0xF0, .b_status.s35_offset = 0xF4, .b_status.s36_offset = 0xF8, .b_status.s37_offset = 0xFC,
 .b_status.s38_offset = 0x100, .b_status.s39_offset = 0x104, .b_status.s3a_offset = 0x108, .b_status.s3b_offset = 0x10C,
 .b_status.s3c_offset = 0x110, .b_status.s3d_offset = 0x114, .b_status.s3e_offset = 0x118, .b_status.s3f_offset = 0x11C,
-.b_status.s40_offset = 0x120, .b_status.s41_offset = 0x124, .b_status.s42_offset = 0x128, .b_status.s43_offset = 0x12C
+.b_status.s40_offset = 0x120, .b_status.s41_offset = 0x124, .b_status.s42_offset = 0x128, .b_status.s43_offset = 0x12C,
 .b_status.s44_offset = 0x130, .b_status.s45_offset = 0x134, .b_status.s46_offset = 0x138, .b_status.s47_offset = 0x13C,
 .b_status.s48_offset = 0x140, .b_status.s49_offset = 0x144, .b_status.s4a_offset = 0x148, .b_status.s4b_offset = 0x14C
 #endif
@@ -386,7 +386,7 @@ int main(void)
 #endif
 #if (HUMIDITY_SENSOR_PRESENT==1)
 	//Acquire data from humidity sensor and fill Msg stream
-		if (lcl_hum_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. Pressure/Temp and Time-Stamp data are acquired in timer3 irq
+		if (lcl_hum_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. Humidity sensor and Time-Stamp data are acquired in timer3 irq
 		{
 			lcl_hum_data_rdy = false;
 			Humidity_Sensor_Handler(&HUM_Values, &dataseq1[0]);
@@ -394,7 +394,7 @@ int main(void)
 #endif
 #if (UVx_SENSOR_PRESENT==1)
 	//Acquire data from UVx sensor and fill Msg stream
-		if (lcl_uvx_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. Pressure/Temp and Time-Stamp data are acquired in timer3 irq
+		if (lcl_uvx_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. UVx sensor and Time-Stamp data are acquired in timer3 irq
 		{
 			lcl_uvx_data_rdy = false;
 			UVx_Sensor_Handler(&UVx_Values, &dataseq1[0]);
@@ -402,7 +402,7 @@ int main(void)
 #endif
 #if (ALS_SENSOR_PRESENT==1)
 	//Acquire data from UVx sensor and fill Msg stream
-		if (lcl_als_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. Pressure/Temp and Time-Stamp data are acquired in timer3 irq
+		if (lcl_als_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. ALS sensor and Time-Stamp data are acquired in timer3 irq
 		{
 			lcl_als_data_rdy = false;
 //			ALS_Sensor_Handler(&ALS_Values, &dataseq1[0]);
@@ -410,7 +410,7 @@ int main(void)
 #endif
 #if (VOC_SENSOR_PRESENT==1)
 	//Acquire data from VOC sensor and fill Msg stream
-		if (lcl_voc_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. Pressure/Temp and Time-Stamp data are acquired in timer3 irq
+		if (lcl_voc_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. VOC sensor and Time-Stamp data are acquired in timer3 irq
 		{
 			lcl_voc_data_rdy = false;
 			VOC_Sensor_Handler(&VOC_Values, &dataseq1[0]);
@@ -418,7 +418,7 @@ int main(void)
 #endif
 #if (PARTICULATE_SENSOR_PRESENT==1)
 	//Acquire data from Particulate Matter sensor and fill Msg stream
-		if (lcl_pms_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. Pressure/Temp and Time-Stamp data are acquired in timer3 irq
+		if (lcl_pms_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. PMx sensor and Time-Stamp data are acquired in timer3 irq
 		{
 			lcl_pms_data_rdy = false;
 			Particulate_Sensor_Handler(&PMS_Values, &dataseq1[0]);
@@ -426,7 +426,7 @@ int main(void)
 #endif
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	//Acquire data from analog Gas sensor board and fill Msg stream
-		if (lcl_gas_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. Pressure/Temp and Time-Stamp data are acquired in timer3 irq
+		if (lcl_gas_data_rdy && Sensors_Enabled)	//Set in process_timer3_irq. Analog sensors and Time-Stamp data are acquired in timer3 irq
 		{
 			lcl_gas_data_rdy = false;
 			Gas_Sensor_Handler(&GAS_Values, &dataseq1[0]);

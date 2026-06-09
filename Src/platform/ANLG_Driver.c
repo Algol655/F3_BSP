@@ -9,22 +9,33 @@
 #include "compiler/compiler.h"
 
 /*
+ * The elements of the "scaleX_Factor[n]" vector represent the integration window of the corresponding first-order IIR filter.
+ * They are calculated with the following approximate formula, valid for first-order IIR filters:
+ * scaleX_Factor[i] = 2/(N+1)
+ * where N is the number of readings (i.e., the sampling frequency) taken in the integration window, expressed in seconds.
+ * For example, if we want to filter (with a first-order IIR filter) with an integration window of 1 minutes,
+ * since in our case a reading is taken every 5 seconds, we would have:
+ * N = 60/5 = 12
+ * and therefore approximately:
+ * scaleX_Factor[i] = 2/(12+1) = 0.15.
+ *
  * When the MiCS-6814_BreakOut_Board is installed (only compatible with the Gas_Sensor_Board V1.0)
  * then the analog input C2_1 (NH3) must be more filtered.
  */
 float32_t filter1_Value[16] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-#if (GSB_HW_VER == 10)				   //CH2O   O3     NO2    NH3    CO     SO2    C6H6   08    09    10    11    12    13    14    15    16
-	const float32_t scale1_Factor[16] = {0.007, 0.005, 0.007, 0.007, 0.007, 0.007, 0.007, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05};
-#elif (GSB_HW_VER == 20)			   //CH2O   O3     03    NH3    05    SO2    07    08    C6H6   10    NO2    12    CO     14    15    3.3V/2
-	const float32_t scale1_Factor[16] = {0.007, 0.005, 0.05, 0.007, 0.05, 0.007, 0.05, 0.05, 0.007, 0.05, 0.007, 0.05, 0.007, 0.05, 0.05, 0.05};
-#elif (GSB_HW_VER > 20)			   	   //CH2O   O3     03    NH3    05    SO2    NO2    08    09    C6H6   CO     12    13     14    15    3.3V/2
-	const float32_t scale1_Factor[16] = {0.007, 0.005, 0.05, 0.007, 0.05, 0.007, 0.007, 0.05, 0.05, 0.007, 0.007, 0.05, 0.05, 0.05, 0.05, 0.05};
+#if (GSB_HW_VER == 10)				   //CH2O  O3    NO2   NH3   CO    SO2   C6H6  08    09    10    11    12    13    14    15    16
+	const float32_t scale1_Factor[16] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
+#elif (GSB_HW_VER == 20)			   //CH2O  O3    03    NH3   05    SO2   07    08    C6H6  10    NO2   12    CO    14    15    3.3V/2
+	const float32_t scale1_Factor[16] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
+#elif (GSB_HW_VER > 20)			   	   //CH2O  O3    03    NH3   05    SO2   NO2   08    09    C6H6  CO    12    13    14    15    3.3V/2
+	const float32_t scale1_Factor[16] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
 #else
-	const float32_t scale1_Factor[16] = {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05};
+	const float32_t scale1_Factor[16] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15};
 #endif
 float32_t filter2_Value[16] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-const float32_t scale2_Factor[16] = {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05};
-const float32_t R1 = 1500.0; const float32_t R2 = 56000.0; float32_t Vref = 3.32;
+								   //01    02    03    04    05    06    07    08    09    10    11    12    13    14    15    16
+const float32_t scale2_Factor[16] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15};
+const float32_t R1 = 90.0; const float32_t R2 = 56000.0; float32_t Vref = 3.32;
 //float R1 = 9108.0; float R2 = 47000.0; float Vref = 3.3;
 const uint16_t ADC_RESOLUTION = 4096;	//ADC_RESOLUTION is 4096 for 12 bit, 1024 for 10 bit and 256 for 8 bit
 uint8_t ain1_buf[16], ain2_buf[16];
@@ -275,7 +286,7 @@ void Ain2_Check(uint8_t* b, uint8_t* a, AIN2_FUNCTION An_Func)
 				if ((HAL_GetTick() - ErrorTimeOut) >= OVFL_TIMEOUT)
 				{
 					ErrorTimerStarted = false;
-					b[6] = 0;
+					b[14] = 0;
 					memset(&mux1_inputs[0], 0, sizeof(mux1_inputs));
 					HAL_ADC_DeInit(&hadc1);
 					MX_ADC1_Init();
@@ -300,7 +311,7 @@ void Ain2_Check(uint8_t* b, uint8_t* a, AIN2_FUNCTION An_Func)
 		case AIN_15_2_:
 		{
 			mask = *a;
-			if (mask > 116)						//If the read value corresponds to a voltage > 1.5V then
+			if (mask > 115)						//If the read value corresponds to a voltage > 1.49V then
 			{									//the Gas Sensor Board is not installed or is faulty, so..
 				BIT_CLEAR(SensorStatusReg,21);	//Clear Gas Sensor Module presence in SensorStatusRegister
 				BIT_CLEAR(SensorStatusReg,22);	//Clear Gas Sensor Full Equipped Module presence in SensorStatusRegister
@@ -372,12 +383,11 @@ void read_analogs(void)
 			if (((BLE_DataReady) || (LoRa_DataReady)) && !(Test_Mode))
 			{
 				filter1_Value[i] = filter1_Value[i] + scale1_Factor[i] * (mux1_inputs[i] - filter1_Value[i]);
-				mux1_inputs[i] = filter1_Value[i];
 			} else		//This eliminates the initial transient of the filter
 			{
 				filter1_Value[i] = filter1_Value[i] + 1.0 * (mux1_inputs[i] - filter1_Value[i]);
-				mux1_inputs[i] = filter1_Value[i];
 			}
+			mux1_inputs[i] = filter1_Value[i];
 
 			ain1_values[i] = ((adc_values[0] & mask1) >> mask1_shift);	//Only the ADC msb 11..5 are used
 			//Check for ain1 variations
@@ -410,12 +420,11 @@ void read_analogs(void)
 			if (((BLE_DataReady) || (LoRa_DataReady)) && !(Test_Mode))
 			{
 				filter2_Value[i] = filter2_Value[i] + scale2_Factor[i] * (mux2_inputs[i] - filter2_Value[i]);
-				mux2_inputs[i] = filter2_Value[i];
 			} else		//This eliminates the initial transient of the filter
 			{
 				filter2_Value[i] = filter2_Value[i] + 1.0 * (mux2_inputs[i] - filter2_Value[i]);
-				mux2_inputs[i] = filter2_Value[i];
 			}
+			mux2_inputs[i] = filter2_Value[i];
 
 			ain2_values[i] = ((adc_values[1] & mask2) >>  mask2_shift);	//Only the ADC msb 11..5 are used
 			//Check for ain2 variations
@@ -593,7 +602,7 @@ void read_SMO_sensors(void)
 	extern uint8_t Humidity;
 	float32_t TOut, HOut;
 #if !(CH2O_FROM_EC)
-	float32_t SMD1001_CH2O_TC, SMD1001_CH2O_RHC;
+	float32_t SMD1001_CH2O_TC_RHC;	//SMD1001 Temp_Hum compensation
 #endif
 #endif	//SMO_SENSOR_TC
 
@@ -642,16 +651,9 @@ void read_SMO_sensors(void)
 #if !(CH2O_FROM_EC)
 	//Calculate CH2O Vs.
 	SMD1001_CH2O_Vs = SMD1001_CH2O_Vs_AD = V0;
-//	if (SMD1001_CH2O_Vs < (SMD1001_CH2O_Vo/1000.0))	//The voltage value detected (Vs) cannot be less
-//		SMD1001_CH2O_Vs = (SMD1001_CH2O_Vo/1000.0);	//than that in pure air (Vo) (See SMD1001 data sheet)
 #if (SMO_SENSOR_TC)
-	//Calculate the SMD1001 temperature correction
-	if (TOut < 10.0)
-		SMD1001_CH2O_TC = SMD1001_CH2O_TC1(TOut);
-	else
-		SMD1001_CH2O_TC = SMD1001_CH2O_TC2(TOut);
-	//Calculate the SMD1001 humidity correction
-	SMD1001_CH2O_RHC = SMD1001_CH2O_RHC(HOut);
+	//Calculate the SMD1001 temperature_humidity correction
+	SMD1001_CH2O_TC_RHC = SMD1001_CH2O_TC(TOut) * SMD1001_CH2O_RHC(HOut);
 #endif	//SMO_SENSOR_TC
 #endif	//!(CH2O_FROM_EC)
 #if !(NO2_FROM_EC)
@@ -681,21 +683,27 @@ void read_SMO_sensors(void)
 #endif
 
 #if !(CH2O_FROM_EC)
-	//Apply the SMD1001 temperature and humidity correction
-	SMD1001_CH2O_Vs = SMD1001_CH2O_Vs/(SMD1001_CH2O_TC * SMD1001_CH2O_RHC);
-	//Calculate CH2O ppm
 	float32_t Arg_CH2O = SMD1001_CH2O_Vs/((float32_t)(SMD1001_CH2O_Vo/1000.0));	//SMD1001_CH2O_Vo is stored in mVolts!
-	if (Arg_CH2O <= 1.45)
-	{
-		ppm_CH2O = SMD1001_CH2O_1(Arg_CH2O);
-	} else
-	if ((Arg_CH2O <= 1.83) && (Arg_CH2O > 1.45))
-	{
-		ppm_CH2O = SMD1001_CH2O_2(Arg_CH2O);
-	} else
-	{
-		ppm_CH2O = SMD1001_CH2O_3(Arg_CH2O);
-	}
+	/*
+	 * The voltage value detected by the ADC (Vs) cannot be less than that in pure air (Vo) (See SMD1001 data sheet),
+	 * so the Vs/Vo ratio (Arg_CH2O) cannot be less than 1. The interpolation defined by "#define SMD1001_CH2O"
+	 * reduces this value to 0.9.
+	 * Furthermore, this interpolation is not defined for Vs/Vo values ​​> 2.9.
+	 */
+	if (Arg_CH2O < 0.9)
+		Arg_CH2O = 0.9;
+#if (USE_SMD1001_MODIFIED_CURVE == 1)
+	if (Arg_CH2O > 14.0)
+		Arg_CH2O = 14.0;
+#else
+	if (Arg_CH2O > 2.9)
+		Arg_CH2O = 2.9;
+#endif
+
+	//Apply the SMD1001 temperature and humidity correction
+	Arg_CH2O = Arg_CH2O/SMD1001_CH2O_TC_RHC;
+	//Calculate CH2O ppm
+	ppm_CH2O = SMD1001_CH2O(Arg_CH2O);
 
 	if (ppm_CH2O < 0)
 		ppm_CH2O = 0;
@@ -730,23 +738,56 @@ void read_EC_sensors(void)
 	extern int8_t CO_Corr;		//In mVolts: 1 = 1mV Correction
 #if (EC_SENSOR_TC)
 	extern double_t Temperature;
-	float32_t SO2_TC, C6H6_TC, TOut;
+	float32_t SO2_TC, SO2_ZC, C6H6_TC, C6H6_ZC, TOut;
 	#if (NO2_FROM_EC)
-		float32_t NO2_TC;
+		float32_t NO2_TC, NO2_ZC;
 	#endif
 	#if (CO_FROM_EC)
-		float32_t CO_TC;
+		float32_t CO_TC, CO_ZC;
 	#endif
 
-	// Compute the temperature compensation coefficients
+	// Compute the ME4_SO2 sensor temperature compensation coefficients
 	TOut = (float32_t)Temperature;
 	SO2_TC = ME4_SO2_TC(TOut);		//ME4_SO2 sensor Temperature Compensation
+	SO2_ZC = ME4_SO2_ZC2(TOut);		//ME4_SO2 sensor zero output temperature compensation from 0°C to 20°C (Default)
+	if (TOut < 0.0)
+		SO2_ZC = ME4_SO2_ZC1(TOut);	//ME4_SO2 sensor zero output temperature compensation < 0°C
+	else
+	if ((TOut > 20.0) && (TOut <= 40.0))
+		SO2_ZC = ME4_SO2_ZC3(TOut);	//ME4_SO2 sensor zero output temperature compensation from 20°C to 40°C
+	else
+	if (TOut > 40.0 )
+		SO2_ZC = ME4_SO2_ZC4(TOut);	//ME4_SO2 sensor zero output > 40°C temperature compensation
+
+	// Compute the ME4_NO2 sensor temperature compensation coefficients
 	#if (NO2_FROM_EC)
 		NO2_TC = ME4_NO2_TC(TOut);	//ME4_NO2 sensor Temperature Compensation
+		NO2_ZC = ME4_NO2_ZC2(TOut);	//ME4_NO2 sensor zero output temperature compensation from 0°C to 20°C (Default)
+		if (TOut < 0.0)
+			NO2_ZC = ME4_NO2_ZC1(TOut);	//ME4_NO2 sensor zero output temperature compensation < 0°C
+		else
+		if ((TOut > 20.0) && (TOut <= 40.0))
+			NO2_ZC = ME4_NO2_ZC3(TOut);	//ME4_NO2 sensor zero output temperature compensation from 20°C to 40°C
+		else
+		if (TOut > 40.0 )
+			NO2_ZC = ME4_NO2_ZC4(TOut);	//ME4_NO2 sensor zero output > 40°C temperature compensation
 	#endif
+
+	// Compute the ME4_C6H6 sensor temperature compensation coefficients
 	C6H6_TC = ME4_C6H6_TC(TOut);	//ME4_C6H6 sensor Temperature Compensation
+	C6H6_ZC = 0.0;					//ME4_C6H6 sensor zero output temperature compensation
+
+	// Compute the ME4_CO sensor temperature compensation coefficients.
+	// See the comment starting on line 93 of the ANLG_Driver.h header!!!
 	#if (CO_FROM_EC)
 		CO_TC = ME4_CO_TC(TOut);	//ME4_CO sensor Temperature Compensation
+		CO_ZC = ME4_CO_ZC2(TOut);	//ME4_CO sensor zero output temperature compensation from 0°C to 20°C (to 40°C) (Default)
+		if (TOut < 0.0)
+			CO_ZC = ME4_CO_ZC1(TOut);	//ME4_NO2 sensor zero output temperature compensation < 0°C
+		else
+//		if (TOut > 20.0 )
+		if (TOut > 40.0 )
+			CO_ZC = ME4_CO_ZC3(TOut);	//ME4_NO2 sensor zero output >20°C temperature compensation
 	#endif
 #endif	//EC_SENSOR_TC
 
@@ -772,24 +813,24 @@ void read_EC_sensors(void)
 #endif
 
 #if (EC_SENSOR_TC)
-	V5 = V5/SO2_TC;
+	V5 = ((V5/SO2_TC) - SO2_ZC);
 	#if (GSB_HW_VER == 10)
-		V6 = V6/C6H6_TC;
+		V6 = ((V6/C6H6_TC) - C6H6_ZC);
 	#elif (GSB_HW_VER == 20)
-		V8 = V8/C6H6_TC;
+		V8 = ((V8/C6H6_TC) - C6H6_ZC);
 		#if (NO2_FROM_EC)
-			V10 = V10/NO2_TC;
+			V10 = ((V10/NO2_TC) - NO2_ZC);
 		#endif
 		#if (CO_FROM_EC)
-			V12 = V12/CO_TC;
+			V12 = ((V12/CO_TC) - CO_ZC);
 		#endif
 	#elif (GSB_HW_VER == 21)
 		#if (NO2_FROM_EC)
-			V6 = V6/NO2_TC;
+			V6 = ((V6/NO2_TC) - NO2_ZC);
 		#endif
-		V9 = V9/C6H6_TC;
+		V9 = ((V9/C6H6_TC) - C6H6_ZC);
 		#if (CO_FROM_EC)
-			V10 = V10/CO_TC;
+			V10 = ((V10/CO_TC) - CO_ZC);
 		#endif
 	#endif
 #endif
@@ -848,7 +889,7 @@ void read_EC_sensors(void)
 	#endif
 #endif
 }
-#endif
+#endif	//OUTDOOR_MODE
 
 /*
   * @brief  Updates the total analog values read from gas sensors.
@@ -857,47 +898,6 @@ void read_EC_sensors(void)
  */
 ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 {
-	/* The integration window of the CH2O, O3, NO2, NH3 analog sensors is set at 10 minutes (300/5)
-	 * and the integration window of the CO, SO2 analog sensors is set at 5 minutes (300/5)
-	 * to prevent intense but short-term polluting events from distorting the
-	 * calculation of the air quality in the long term.
-	 * (Eg: the housewife who throws the white wine into the roast or use
-	 * a product containing alcohol for cleaning...!! :))
-	 *
-	 * The moving average filter has two time constants (the integration windows):
-	 * the first (used when the current value is greater than the average value
-	 * calculated up to then) is given by the value of the "AverageWindow_5m" constant.
-	 * The second (used when the current value is less than or equal to the average
-	 * value calculated up to then) is given by the value of the "AverageWindow_1m" constant.
-	 */
-	static const uint32_t AverageWindow_10m = 120;	//Analog sensors integration window is fixed at 10 minutes
-	static const uint32_t AverageWindow_5m = 60;	//Analog sensors integration window is fixed at 5 minutes
-	static const uint32_t AverageWindow_1m = 12;	//Analog sensors integration window1 is fixed at 1 minutes
-	static float32_t ch2o_avg = 0.0;
-	static float32_t no2_avg = 0.0; static float32_t nh3_avg = 0.0;
-	static float32_t co_avg = 0.0;
-	static float32_t ch2o_avg1 = 0.0;
-	static float32_t no2_avg1 = 0.0; static float32_t nh3_avg1 = 0.0;
-	static float32_t co_avg1 = 0.0;
-	static float32_t ch2o_new_sample, no2_new_sample, nh3_new_sample, co_new_sample;
-#if (OUTDOOR_MODE)
-	static float32_t o3_avg = 0.0; static float32_t o3_avg1 = 0.0;
-	static float32_t so2_avg = 0.0; static float32_t so2_avg1 = 0.0;
-	static float32_t o3_new_sample, so2_new_sample;
-#endif
-#if (AQ_POLINOMIAL_REGRESSION)
-	float32_t CH2O_PReg, NO2_PReg, NH3_PReg, CO_PReg;
-	extern float32_t a0_CO; extern float32_t a1_CO; extern float32_t a2_CO; extern float32_t a3_CO;
-	extern float32_t a0_CH2O; extern float32_t a1_CH2O; extern float32_t a2_CH2O; extern float32_t a3_CH2O;
-	extern float32_t a0_NO2; extern float32_t a1_NO2; extern float32_t a2_NO2; extern float32_t a3_NO2;
-	extern float32_t a0_NH3; extern float32_t a1_NH3; extern float32_t a2_NH3; extern float32_t a3_NH3;
-	#if (OUTDOOR_MODE)
-		float32_t O3_PReg, SO2_PReg;
-		extern float32_t a0_O3; extern float32_t a1_O3; extern float32_t a2_O3; extern float32_t a3_O3;
-		extern float32_t a0_SO2; extern float32_t a1_SO2; extern float32_t a2_SO2; extern float32_t a3_SO2;
-//		extern float32_t a0_C6H6; extern float32_t a1_C6H6; extern float32_t a2_C6H6; extern float32_t a3_C6H6;
-	#endif
-#endif
 	ANLG_Error_et ret = 0;
 
 	if(!Test_Mode)
@@ -910,102 +910,13 @@ ANLG_Error_et ANLG_Get_Measurement(ANLG_MeasureTypeDef_st *Measurement_Value)
 #endif
 	}
 
-#if (!AQ_POLINOMIAL_REGRESSION)
 	Measurement_Value->CH2O = CH2O_ppm2ugm3(ppm_CH2O);	//Calculate the CH2O concentration in ug/m3
-	#if !(CH2O_FROM_EC)
-		Measurement_Value->CH2O = SMD1001_CH2O(Measurement_Value->CH2O);	//Apply the calibration curve
-	#endif
-#else
-	CH2O_PReg = CH2O_ppm2ugm3(ppm_CH2O);
-	//Apply calibration using polynomial regression
-	Measurement_Value->CH2O = a3_CH2O*pow(CH2O_PReg, 3.0) + a2_CH2O*pow(CH2O_PReg, 2.0) + a1_CH2O*CH2O_PReg + a0_CH2O;
-#endif
-	ch2o_new_sample = Measurement_Value->CH2O;
-	ch2o_avg = approxMovingAverage(ch2o_avg, ch2o_new_sample, AverageWindow_10m);
-	ch2o_avg1 = approxMovingAverage(ch2o_avg1, ch2o_new_sample, AverageWindow_1m);
-	if (ch2o_avg1 > ch2o_avg)
-		Measurement_Value->CH2O = ch2o_avg;
-	else
-		Measurement_Value->CH2O = ch2o_avg1;
-
-#if (OUTDOOR_MODE)
-	#if (!AQ_POLINOMIAL_REGRESSION)
-		Measurement_Value->O3 = O3_ppm2ugm3(ppm_O3);	//Calculate the O3 concentration in ug/m3
-	#else
-		O3_PReg = O3_ppm2ugm3(ppm_O3);
-		//Apply calibration using polynomial regression
-		Measurement_Value->O3 = a3_O3*pow(O3_PReg, 3.0) + a2_O3*pow(O3_PReg, 2.0) + a1_O3*O3_PReg + a0_O3;
-	#endif
-	o3_new_sample = Measurement_Value->O3;
-	o3_avg = approxMovingAverage(o3_avg, o3_new_sample, AverageWindow_10m);
-	o3_avg1 = approxMovingAverage(o3_avg1, o3_new_sample, AverageWindow_1m);
-	if (o3_avg1 > o3_avg)
-		Measurement_Value->O3 = o3_avg;
-	else
-		Measurement_Value->O3 = o3_avg1;
-#endif
-
-#if (!AQ_POLINOMIAL_REGRESSION)
 	Measurement_Value->NO2 = NO2_ppm2ugm3(ppm_NO2);		//Calculate the NO2 concentration in ug/m3
-#else
-	NO2_PReg = NO2_ppm2ugm3(ppm_NO2);
-	//Apply calibration using polynomial regression
-	Measurement_Value->NO2 = a3_NO2*pow(NO2_PReg, 3.0) + a2_NO2*pow(NO2_PReg, 2.0) + a1_NO2*NO2_PReg + a0_NO2;
-#endif
-	no2_new_sample = Measurement_Value->NO2;
-	no2_avg = approxMovingAverage(no2_avg, no2_new_sample, AverageWindow_10m);
-	no2_avg1 = approxMovingAverage(no2_avg1, no2_new_sample, AverageWindow_1m);
-	if (no2_avg1 > no2_avg)
-		Measurement_Value->NO2 = no2_avg;
-	else
-		Measurement_Value->NO2 = no2_avg1;
-
-#if (!AQ_POLINOMIAL_REGRESSION)
 	Measurement_Value->NH3 = NH3_ppm2ugm3(ppm_NH3);		//Calculate the NH3 concentration in ug/m3
-#else
-	NH3_PReg = NH3_ppm2ugm3(ppm_NH3);
-	//Apply calibration using polynomial regression
-	Measurement_Value->NH3 = a3_NH3*pow(NH3_PReg, 3.0) + a2_NH3*pow(NH3_PReg, 2.0) + a1_NH3*NH3_PReg + a0_NH3;
-#endif
-	nh3_new_sample = Measurement_Value->NH3;
-	nh3_avg = approxMovingAverage(nh3_avg, nh3_new_sample, AverageWindow_10m);
-	nh3_avg1 = approxMovingAverage(nh3_avg1, nh3_new_sample, AverageWindow_1m);
-	if (nh3_avg1 > nh3_avg)
-		Measurement_Value->NH3 = nh3_avg;
-	else
-		Measurement_Value->NH3 = nh3_avg1;
-
-#if (!AQ_POLINOMIAL_REGRESSION)
 	Measurement_Value->CO = CO_ppm2mgm3(ppm_CO);		//Calculate the CO concentration in mg/m3
-#else
-	CO_PReg = CO_ppm2mgm3(ppm_CO);
-	//Apply calibration using polynomial regression
-	Measurement_Value->CO = a3_CO*pow(CO_PReg, 3.0) + a2_CO*pow(CO_PReg, 2.0) + a1_CO*CO_PReg + a0_CO;
-#endif
-	co_new_sample = Measurement_Value->CO;
-	co_avg = approxMovingAverage(co_avg, co_new_sample, AverageWindow_5m);
-	co_avg1 = approxMovingAverage(co_avg1, co_new_sample, AverageWindow_1m);
-	if (co_avg1 > co_avg)
-		Measurement_Value->CO = co_avg;
-	else
-		Measurement_Value->CO = co_avg1;
-
 #if (OUTDOOR_MODE)
-	#if (!AQ_POLINOMIAL_REGRESSION)
-		Measurement_Value->SO2 = SO2_ppm2ugm3(ppm_SO2);		//Calculate the SO2 concentration in ug/m3
-	#else
-		SO2_PReg = SO2_ppm2ugm3(ppm_SO2);
-		//Apply calibration using polynomial regression
-		Measurement_Value->SO2 = a3_SO2*pow(SO2_PReg, 3.0) + a2_SO2*pow(SO2_PReg, 2.0) + a1_SO2*SO2_PReg + a0_SO2;
-	#endif
-	so2_new_sample = Measurement_Value->SO2;
-	so2_avg = approxMovingAverage(so2_avg, so2_new_sample, AverageWindow_5m);
-	so2_avg1 = approxMovingAverage(so2_avg1, so2_new_sample, AverageWindow_1m);
-	if (so2_avg1 > so2_avg)
-		Measurement_Value->SO2 = so2_avg;
-	else
-		Measurement_Value->SO2 = so2_avg1;
-
+	Measurement_Value->O3 = O3_ppm2ugm3(ppm_O3);		//Calculate the O3 concentration in ug/m3
+	Measurement_Value->SO2 = SO2_ppm2ugm3(ppm_SO2);		//Calculate the SO2 concentration in ug/m3
 	Measurement_Value->C6H6  = 0;						//Calculate the C6H6 concentration in ug/m3
 //	Measurement_Value->C6H6  = C6H6_ppm2ugm3(ppm_C6H6);	//Calculate the C6H6 concentration in ug/m3
 #endif

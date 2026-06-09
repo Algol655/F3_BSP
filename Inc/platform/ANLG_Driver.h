@@ -17,14 +17,22 @@
 //#define GSB_HW_VER			(20U)		//Gas Sensor Board HW Version 2.0
 //#define GSB_HW_VER			(21U)		//Gas Sensor Board HW Version 2.1
 
-#define SMD1001_CH2O_1(x)	((0.4351F * x) - 0.4364F)	//y(ppm) = 0.4351(Vs/Vo) - 0.4364 -> when Vs/Vo <= 1.45
-#define SMD1001_CH2O_2(x)	((0.8111F * x) - 0.9918F)	//y(ppm) = 0.8111(Vs/Vo) - 0.9918 -> when 1,45 < Vs/Vo <= 1.83
-#define SMD1001_CH2O_3(x)	((0.8164F * x) - 0.9584F)	//y(ppm) = 0.7859(Vs/Vo) - 0.9001 -> when Vs/Vo > 1.83
-#define SMD1001_CH2O_TC1(x)	((-0.0210F * x) + 1.2650F)	//T < 10°C SMD1001_CH2O sensor temperature compensation (0.4ppm Vs/Vo - °C relationship, see data sheet)
-#define SMD1001_CH2O_TC2(x)	((-0.0088F * x) + 1.1855F)	//T >= 10°C SMD1001_CH2O sensor temperature compensation (0.4ppm Vs/Vo - °C relationship, see data sheet)
-#define SMD1001_CH2O_RHC(x)	((-0.0047F * x) + 1.2795F)	//SMD1001_CH2O sensor humidity compensation (0.4ppm Vs/Vo - RH relationship, see data sheet)
-#define SMD1001_CH2O(x)		((4.36598e-8F * pow(x, 3.0F)) + (-9.1977e-5F * pow(x, 2.0F)) + (0.0740F * x) + 8.3836F)	//Cubic regression for the SMD1001
-																													//sensor calibration. x in ug/m3
+#define USE_SMD1001_MODIFIED_CURVE	(2U)
+#if (USE_SMD1001_MODIFIED_CURVE == 1)
+	//SMD1001_CH2O sensor expanded Vs/Vo-ppm relationship: y(ppm) = -2.45723e-4(Vs/Vo)^3 + 8.29257e-3(Vs/Vo)^2 - -8.83605e-4(Vs/Vo) - 6.27613e-4 (10x modified curve following field trials)
+	#define SMD1001_CH2O(x)	((-2.45723e-4F * pow(x, 3.0F)) + (8.29257e-3F * pow(x, 2.0F)) + (-8.83605e-4F * x) - 6.27613e-4F)
+#elif (USE_SMD1001_MODIFIED_CURVE == 2)
+	//SMD1001_CH2O sensor expanded Vs/Vo-ppm relationship: y(ppm) = -3.07154e-5(Vs/Vo)^3 + 1.9810e-3(Vs/Vo)^2 + 3.61234e-3(Vs/Vo) + 9.73013e-4 (20x modified curve following field trials)
+	#define SMD1001_CH2O(x)	((-3.07154e-5F * pow(x, 3.0F)) + (1.9810e-3F * pow(x, 2.0F)) + (3.61234e-3F * x) + 9.73013e-4F)
+#else
+	//SMD1001_CH2O sensor Vs/Vo-ppm relationship: y(ppm) = -2.45723e-1(Vs/Vo)^3 + 1,49271(Vs/Vo)^2 - 2,09865(Vs/Vo) + 8.58155e-1 (See sensor data sheet)
+	#define SMD1001_CH2O(x)	((-2.45723e-1F * pow(x, 3.0F)) + (1.49271F * pow(x, 2.0F)) + (-2.09861F * x) + 8.58155e-1F)
+#endif
+//SMD1001_CH2O sensor temperature compensation: y((Vs/Vo)/(Vs/Vo at 20°C)) = -0,00000456232(T)^3 + 0,000345486(T)^2 - 0,016034(T) + 1,22874 (see data sheet)
+#define SMD1001_CH2O_TC(x)	((-4.56232e-6F * pow(x, 3.0F)) + (3.45486e-4F * pow(x, 2.0F)) + (-1.6034e-2F * x) + 1.22874)
+//SMD1001_CH2O sensor humidity compensation: y((Vs/Vo)/(Vs/Vo at 60%RH)) = 0,000022082(RH)^2 - 0,00732913(RH) + 1,36025 (see data sheet)
+#define SMD1001_CH2O_RHC(x)	((2.2082e-5F * pow(x, 2.0F)) + (-7.32913e-3F * x) + 1.36025)
+
 #define ZE08_CH2O(x)	((3.125F * x) - 1.25F)	//y(ppm) = 3.125(Vadc) - 1.25
 #define CH2O_MOL_WEIGHT	30.026F //Formaldehyde Molecular weight, g/mol
 #define CH2O_ppm2ugm3(x)	((CH2O_MOL_WEIGHT * x * 1000.0F)/24.45F)	//ppm to ug/m3 CH2O conversion
@@ -49,7 +57,11 @@
 #define ME4_SO2(x)		(x / (ME4_SO2_SENSITIVITY * SO2_RGAIN))	//y(ppm) = x(Vadc) / (ME4_SO2_Sensitivity * SO2_RGAIN)
 #define SO2_MOL_WEIGHT	64.06F	//Sulfur Dioxide Molecular weight, g/mol
 #define SO2_ppm2ugm3(x)	((SO2_MOL_WEIGHT * x * 1000.0F)/24.45F)	//ppm to ug/m3 SO2 conversion
-#define ME4_SO2_TC(x)	((0.005F * x) + 0.9F)		//ME4_SO2 sensor temperature compensation
+#define ME4_SO2_TC(x)	((-0.000023163F * pow(x, 2.0F)) + (0.0052F * x) + 0.9159F)	//ME4_SO2 sensor temperature compensation
+#define ME4_SO2_ZC1(x)	((0.00029023F * x) + 0.019987F)			//ME4_SO2 sensor zero output temperature compensation <= 0°C
+#define ME4_SO2_ZC2(x)	((-0.0010939F * x) + 0.021877F)			//ME4_SO2 sensor zero output temperature compensation from 0°C to 20°C
+#define ME4_SO2_ZC3(x)	((0.0019812F * x) - 0.039623F)			//ME4_SO2 sensor zero output temperature compensation from 20°C to 40°C
+#define ME4_SO2_ZC4(x)	((0.017042F * x) - 0.6423F)				//ME4_SO2 sensor zero output temperature compensation > 40°C
 #define ME4_SO2_RESOLUTION	0.01F		//The ME4_SO2 sensor data sheet resolution is 0.1ppm, but the circuit implemented
 										//in Sensus191 extends the resolution to 0.01ppm.
 #if (GSB_HW_VER == 10)
@@ -61,7 +73,15 @@
 #define ME4_NO2(x)		(x / (ME4_NO2_SENSITIVITY * NO2_RGAIN))	//y(ppm) = x(Vadc) / (ME4_NO2_Sensitivity * NO2_RGAIN)
 #define NO2_MOL_WEIGHT	46.01F	//Nitrogen Dioxide Molecular weight, g/mol
 #define NO2_ppm2ugm3(x)	((NO2_MOL_WEIGHT * x * 1000.0F)/24.45F)	//ppm to ug/m3 SO2 conversion
-#define ME4_NO2_TC(x)	((0.0045F * x) + 0.91F)		//ME4_NO2 sensor temperature compensation
+#define ME4_NO2_TC(x)	((0.0045649F * x) + 0.90993F)			//ME4_NO2 sensor temperature compensation
+//#define ME4_NO2_ZC1(x)	((-0.00061106F * x) + 0.011839F)		//ME4_NO2 sensor zero output temperature compensation <= 0°C
+//#define ME4_NO2_ZC2(x)	((0.0032845F * x) + 0.011839F)			//ME4_NO2 sensor zero output temperature compensation from 0°C to 20°C
+//#define ME4_NO2_ZC3(x)	((-0.0017759F * x) + 0.11305F)			//ME4_NO2 sensor zero output temperature compensation from 20°C to 40°C
+//#define ME4_NO2_ZC4(x)	((0.022075F * x) - 0.84098F)			//ME4_NO2 sensor zero output temperature compensation > 40°C
+#define ME4_NO2_ZC1(x)	0.0										//ME4_NO2 sensor zero output temperature compensation <= 0°C
+#define ME4_NO2_ZC2(x)	0.0										//ME4_NO2 sensor zero output temperature compensation from 0°C to 20°C
+#define ME4_NO2_ZC3(x)	0.0										//ME4_NO2 sensor zero output temperature compensation from 20°C to 40°C
+#define ME4_NO2_ZC4(x)	((0.018522F * x) - 0.74092F)			//ME4_NO2 sensor zero output temperature compensation > 40°C
 #define ME4_NO2_RESOLUTION	0.01F		//The ME4_NO2 sensor data sheet resolution is 0.1ppm, the circuit implemented
 										//in Sensus191 extends the resolution to 0.01ppm
 #if (GSB_HW_VER == 10)
@@ -80,7 +100,16 @@
 #define ME4_CO(x)		(x / (ME4_CO_SENSITIVITY * CO_RGAIN))	//y(ppm) = x(Vadc) / (ME4_CO_Sensitivity * CO_RGAIN)
 #define CO_MOL_WEIGHT	28.01F	//Carbon monoxide Molecular weight, g/mol
 #define CO_ppm2mgm3(x)	((CO_MOL_WEIGHT * x)/24.45F)			//ppm to mg/m3 CO conversion
-#define ME4_CO_TC(x)	((0.005F * x) + 0.9F)		//ME4_CO sensor temperature compensation. At the moment == to SO2_TC (!!!)
+#define ME4_CO_TC(x)	((0.0074681F * x) + 0.84955F)			//ME4_CO sensor temperature compensation.
+#define ME4_CO_ZC1(x)	((0.00025446F * x) + 0.015264F)			//ME4_CO sensor zero output temperature compensation <= 0°C
+/*
+ * It seems that the zero output temperature compensation curve reported in the datasheet does not correspond to the behavior
+ * of the real sensor.
+ * A better approximation of the real behavior is obtained by extending the validity of the ME4_CO_ZC2 correction up to 40°C
+ * and starting the validity of the ME4_CO_ZC3 correction at 40°C.
+ */
+#define ME4_CO_ZC2(x)	((0.00036926F * x) + 0.020353F)			//ME4_CO sensor zero output temperature compensation from 0°C to 20°C (to 40°C)
+#define ME4_CO_ZC3(x)	((0.010933F * x) - 0.18837F)			//ME4_CO sensor zero output temperature compensation from > 20°C (> 40°C)
 #define ME4_CO_RESOLUTION	1.0F		//The ME4_CO sensor data sheet resolution is 1ppm
 
 /*
@@ -105,8 +134,7 @@
 //#define MiCS_6814_CO(x)	(4.4922F * (pow(x, -1.182F)))		//y(ppm) = 4.4922((Rs/Ro)*E(-1.1182))
 #define MiCS_6814_CO(x)	(4.385F * (pow(x, -1.179F)))			//y(ppm) = 4.385((Rs/Ro)*E(-1.179))
 
-//#define OVFL_TIMEOUT (4000U)	//Time that an analog channel can overflow before being notified
-#define OVFL_TIMEOUT (0)		//Time that an analog channel can overflow before being notified
+#define OVFL_TIMEOUT (100)		//Time that an analog channel can overflow before being notified
 #define SMO_SENSOR_TC (1)		//If 1 the SMO sensors temperature/humidity compensation are calculated
 #define ZE_SENSOR_TC (0)		//If 1 the EC-ZE sensors temperature/humidity compensation are calculated
 #define EC_SENSOR_TC (1)		//If 1 the EC-ME sensors temperature/humidity compensation are calculated

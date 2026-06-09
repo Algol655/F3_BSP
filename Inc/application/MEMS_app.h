@@ -253,7 +253,7 @@ bool SendCntrlMsg;
 	uint16_t T2_Out, T3_Out;	//Used by BLE and LoRa report functions
 	uint8_t	Humidity;			//Humidity: Relative HUmidity (RH,%)
 	float32_t TemperatureD, hum_value, temp_value, SI, HI, AH;
-	uint32_t Up_Time_H;						//Used by BLE and LoRa report functions
+	uint32_t Up_Time_H;			//Used by BLE and LoRa report functions
 	#if (GUI_SUPPORT==1)
 		float Humidity_percent_1_data[1];	//Used in UnicleoGUI
 	#endif

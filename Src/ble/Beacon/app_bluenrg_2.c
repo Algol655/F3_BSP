@@ -175,14 +175,14 @@ const uint8_t AdvCodes[] =
  * For example, when N_ADV_CODES is equal to 60, Beacons with Adv_Code 0xXX created by
  * the "MX_BlueNRG_2_Process" function, will be sent every minute.
  * Since each Adv_Code specified in the Adv_Codes[] array is sent every second,
- * then the Status Report Beacon, with Adv_Code = 0x80, will be sent every second.
+ * then the Status Report Beacon, with Adv_Code = 0x80, will be sent approximately every second.
  */
 #define N_ADV_CODES 60
 //#define N_ADV_CODES 5
 /*
  * SecondaryBeaconSwitchTime specifies how often a set of Secondary Beacons,
  * created by the "MX_BlueNRG_2_Process" function, will be sent.
- * In this case a set of Secondary Beacons will be sent every hour.
+ * In this case a set of Secondary Beacons will be sent approximately every hour.
  */
 uint16_t SecondaryBeaconSwitchTime = (uint16_t)((3600 / N_ADV_CODES) / (ADV_INTERV_MAX / 1600));
 //uint16_t SecondaryBeaconSwitchTime = 10;
@@ -466,10 +466,11 @@ void MX_BlueNRG_2_Process(void)
 	#endif	//PARTICULATE_SENSOR_PRESENT
 		}
 
-			ret = aci_gap_update_adv_data(sizeof(manuf_data), (uint8_t *)manuf_data);
-			if(ret != 0) {
-				PRINT_DBG ("Error in aci_gap_update_adv_data() 0x%04x\r\n", ret);
-				while(1);
+		ret = aci_gap_update_adv_data(sizeof(manuf_data), (uint8_t *)manuf_data);
+		if(ret != 0)
+		{
+			PRINT_DBG ("Error in aci_gap_update_adv_data() 0x%04x\r\n", ret);
+			while(1);
 		}
 	/* USER CODE END BlueNRG_2_Process_PreTreatment */
 	}

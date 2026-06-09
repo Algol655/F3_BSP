@@ -55,8 +55,8 @@ typedef enum ADCD_status_typedef
 	ADCD_FAIL,
 } ADCD_StatusTypeDef;
 
-#define num_ad_chs  (3)			//Number of AD channels employed
-#define num_anlg_mux_in (16)	//Number of analog signal to be converted
+#define num_ad_chs  (3U)		//Number of AD channels employed
+#define num_anlg_mux_in (16U)	//Number of analog signal to be converted
 #if (GSB_HW_VER == 1)
 	#define mux_channels_enabled (0b00000000000000000000000000111111)	//mux1 -> 0..15, mux2 -> 17..31
 #elif (GSB_HW_VER == 10)

@@ -143,7 +143,8 @@ void Error_Handler(void);
 #define PRESSURE_SENSOR_PRESENT (1)
 #define HUMIDITY_SENSOR_PRESENT (1)
 #define UVx_SENSOR_PRESENT		(1)		//In V2.x board uses the LTR390 sensor for both Ambient Light (ALS) and UV Index (UVI). In V1.x board use VEML6075 as UVI sensor
-#define ALS_SENSOR_PRESENT		(0)		//In V2.x board uses the VEML7700 sensor only for Ambient Light (ALS). Not present in V1.x board version
+#define ALS_SENSOR_PRESENT		(0)		//The version 2.x board can only use the VEML7700 sensor for Ambient Light (ALS).
+										//However, it must be set to "1" if it is to transmit via BLE or LoRa. Not present in V1.x board version
 #define VOC_SENSOR_PRESENT		(1)
 #define PARTICULATE_SENSOR_PRESENT (1)
 #define GAS_SENSOR_MODULE_PRESENT  (1)	//Must be understood as "USE_ADC"
@@ -172,6 +173,7 @@ void Error_Handler(void);
 #define TFT_SUPPORT		(0)				//1 to support a TouchScreen TFT Graphic LCD. TLCD_SUPPORT and GLCD_SUPPORT must both be zero!
 #define BLE_SUPPORT		(0)				//1: Sensor data are sent to the BLE module. GUI_SUPPORT must be zero
 #define LoRa_SUPPORT	(0)				//1: Sensor data are sent to the LoRa module. GUI_SUPPORT must be zero
+#define HS_TX_MODE		(0)				//HighSpeed Beacon Mode: Valid only in LoRa mode. Set to 1 for testing purposes only!
 #define GUI_SUPPORT		(0)				//Set to 1 when STM UNICLEO Graphical User Interface is used to Display/Control sensors data
 										//Warning!! You have to enable all sensors when Unicleo mode is enabled and BLE_SUPPORT must be zero
 										//Warning!! When UnicleoGUI == 1 the possibility of displaying the data on a local display is excluded

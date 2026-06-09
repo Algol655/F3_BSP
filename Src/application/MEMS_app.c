@@ -10,7 +10,7 @@
 
 uint8_t DeviceName[5] ="S191";
 uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
-uint8_t SW_Version[5] ="2901";
+uint8_t SW_Version[5] ="2902";
 uint32_t Vendor_ID  = 0x2316F;
 uint32_t Prdct_Code = 10000324;
 uint32_t Rev_Number = 0;
@@ -1046,9 +1046,10 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 	static const double_t c3 = 84.0;
 	static const double_t K = 273.15;	//K is the conversion value °C to °K
 	static double_t val1, val2, val3;
+	static float32_t p_TempD = 0;
 #endif
 	extern FLASH_DATA_ORG FlashDataOrg;
-	static uint16_t p_T_Out = 0; static double p_Temp = 0; static float32_t p_TempD = 0;
+	static uint16_t p_T_Out = 0; static double p_Temp = 0;
 	static uint8_t p_Hum = 0; 	static uint16_t p_Hum_Out = 0;
 	static float32_t p_temp_value = 0.0; static float32_t p_hum_value = 0.0;
 	static float32_t TemperatureP = 0.0;
@@ -1153,7 +1154,9 @@ void Humidity_Sensor_Handler(SHT4x_MeasureTypeDef_st *HumTemp, uint8_t* Buff)
 		ServiceTimerStart(STim_3);
 		ServiceTimerStart(STim_4);
 	}
+#if (PRESSURE_SENSOR_PRESENT)
 	Weather_Forecast((float)Pressure, (float)Temperature, Humidity);
+#endif
 #if (GUI_SUPPORT==1)
 	Temperature_C_1_data[0] = temp_value;	//For UnicleoGUI
 	Temperature_C_2_data[0] = HI;			//For UnicleoGUI
@@ -1472,50 +1475,56 @@ void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* B
  */
 void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 {
-	static const uint32_t AverageWindow_8h = 5760;	//3600*8/5: Number of readings in 8 hour
-	static const uint32_t AverageWindow_1h = 720;	//3600*1/5: Number of readings in 1 hour
+
+	static const uint32_t AverageWindow_8h = 5760;	//8h Analog sensors Moving Average Filter integration window = 3600*8/5: Number of readings in 8 hour
+	static const uint32_t AverageWindow_1h = 720;	//1h Analog sensors Moving Average Filter integration window = 3600*1/5: Number of readings in 1 hour
+//	static const uint32_t AverageWindow_10m = 120;	//10 minutes Analog sensors Moving Average Filter integration window = 10*60/5: Number of readings in 10m
+//	static const uint32_t AverageWindow_5m = 60;	//5 minutes Analog sensors Moving Average Filter integration window = 5*60/5: Number of readings in 5m
+//	static const uint32_t AverageWindow_1m = 12;	//1 minutes Analog sensors Moving Average Filter integration window = 1*60/5: Number of readings in 1m
+/*
+ * IIR_Alfa_Xm are calculated with the following approximate formula, valid for first-order IIR filters:
+ * IIR_Alfa_Xm = 2/(AverageWindow_Xm+1)
+ */
+	static const float32_t IIR_Alfa_5m = 2.0/(60.0 + 1.0);	//5 minutes Analog sensors 1° order IIR integration window
+	static const float32_t IIR_Alfa_1m = 2.0/(12.0 + 1.0);	//1 minutes Analog sensors 1° order IIR integration window
+	static float32_t ch2o_avg = 0.0;
+	static float32_t no2_avg = 0.0;
+	static float32_t co_avg = 0.0;
+	static float32_t nh3_avg = 0.0;
+	static float32_t ch2o_new_sample, no2_new_sample, nh3_new_sample, co_new_sample;
 #if (OUTDOOR_MODE)
+	static const float32_t IIR_Alfa_10m = 2.0/(120.0 + 1.0);	//10 minutes Analog sensors 1° order IIR Filter integration window
 	static const uint32_t AverageWindow_24h = 17280;	//3600*24/5: Number of readings in 24 hour
+	static float32_t o3_avg = 0.0; static float32_t o3_1h_avg = 0.0;
+	static float32_t so2_avg = 0.0; static float32_t so2_1h_avg = 0.0;
+	static float32_t c6h6_avg = 0.0; static float32_t c6h6_24h_avg = 0.0;
+	static float32_t o3_new_sample, so2_new_sample, c6h6_new_sample;
 #endif
 	static float32_t co_8h_avg = 0.0;
 	static float32_t ch2o_8h_avg = 0.0;
 	static float32_t no2_1h_avg = 0.0;
 	static float32_t nh3_8h_avg = 0.0;
-#if (OUTDOOR_MODE)
-	static float32_t o3_1h_avg = 0.0;
-	static float32_t so2_1h_avg = 0.0;
-	static float32_t c6h6_24h_avg = 0.0;
-#endif
-#if (USE_BKUP_SRAM)
-	static bool Gases_mean_init = true;
-#endif
-
-	// Caution!!! Only for linear relationships between analog value and gas concentration
-	// it is possible to apply the correction here!!
-	// For non-linear relations the correction is applied in the "read_SMO_sensors ()" function
-	CO = (uint16_t)lrintf(anlg->CO);
-	CO_Out = (uint16_t)lrintf(anlg->CO * 100);	//Used by BLE and LoRa report functions
-	CH2O = (uint16_t)lrintf(anlg->CH2O);
-//	CH2O = (uint16_t)(lrintf(anlg->CH2O) + CH2O_Corr);
-	NO2 = (uint16_t)lrintf(anlg->NO2);
-	NH3 = (uint16_t)lrintf(anlg->NH3);
-#if (OUTDOOR_MODE)
-	O3 = (uint16_t)lrintf(anlg->O3);
-	SO2 = (uint16_t)lrintf(anlg->SO2);
-	C6H6 = (uint16_t)lrintf(anlg->C6H6);
-//	O3 = (uint16_t)(lrintf(anlg->O3) + O3_Corr);
-//	SO2 = (uint16_t)(lrintf(anlg->SO2) + SO2_Corr);
-//	C6H6 = (uint16_t)(lrintf(anlg->C6H6) + C6H6_Corr);
+#if (AQ_POLINOMIAL_REGRESSION)
+	float32_t CH2O_PReg, NO2_PReg, NH3_PReg, CO_PReg;
+	extern float32_t a0_CO; extern float32_t a1_CO; extern float32_t a2_CO; extern float32_t a3_CO;
+	extern float32_t a0_CH2O; extern float32_t a1_CH2O; extern float32_t a2_CH2O; extern float32_t a3_CH2O;
+	extern float32_t a0_NO2; extern float32_t a1_NO2; extern float32_t a2_NO2; extern float32_t a3_NO2;
+	extern float32_t a0_NH3; extern float32_t a1_NH3; extern float32_t a2_NH3; extern float32_t a3_NH3;
+	#if (OUTDOOR_MODE)
+		float32_t O3_PReg, SO2_PReg, C6H6_PReg;
+		extern float32_t a0_O3; extern float32_t a1_O3; extern float32_t a2_O3; extern float32_t a3_O3;
+		extern float32_t a0_SO2; extern float32_t a1_SO2; extern float32_t a2_SO2; extern float32_t a3_SO2;
+		extern float32_t a0_C6H6; extern float32_t a1_C6H6; extern float32_t a2_C6H6; extern float32_t a3_C6H6;
+	#endif
 #endif
 
-	//Moving Average on AverageWindow readings for Air quality values estimation.
-	//From World Health Organization Ambient (outdoor) air pollution Fact Sheet.
-	//https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
 #if (USE_BKUP_SRAM)					//Restores the average values if a watch-dog event has occurred
+	static bool Gases_mean_init = true;
+
 	if (Gases_mean_init)			//or following a short power-cycle (<1 min)
 	{
-		co_8h_avg = (float32_t)CO_8h_Mean;
 		ch2o_8h_avg = (float32_t)CH2O_8h_Mean;
+		co_8h_avg = (float32_t)CO_8h_Mean;
 		no2_1h_avg = (float32_t)NO2_1h_Mean;
 		nh3_8h_avg = (float32_t)NH3_8h_Mean;
 	#if (OUTDOOR_MODE)
@@ -1526,40 +1535,149 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 		Gases_mean_init = false;
 	}
 #endif
+
+/*
+ *	Moving Average on AverageWindow readings for Air quality values estimation.
+ *	From World Health Organization Ambient (outdoor) air pollution Fact Sheet.
+ *	https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+ */
+
+/*
+ * Formaldehyde sensor handler
+ */
+#if (AQ_POLINOMIAL_REGRESSION)
+	CH2O_PReg = anlg->CH2O;
+	//Apply calibration using polynomial regression
+	anlg->CH2O = a3_CH2O*pow(CH2O_PReg, 3.0) + a2_CH2O*pow(CH2O_PReg, 2.0) + a1_CH2O*CH2O_PReg + a0_CH2O;
+#endif
+	ch2o_new_sample = anlg->CH2O;
+
+	ch2o_avg = ch2o_avg + IIR_Alfa_5m * (ch2o_new_sample - ch2o_avg);
+	CH2O = (uint16_t)lrintf(ch2o_avg);
+
+	ch2o_8h_avg = approxMovingAverage(ch2o_8h_avg, anlg->CH2O, AverageWindow_8h);
+	anlg->ch2o_8h_mean = ch2o_8h_avg;
+
+	CH2O_8h_Mean = (uint16_t)lrintf(anlg->ch2o_8h_mean);
+	CH2O_8h_MeanMax = (CH2O_8h_Mean > CH2O_8h_MeanMax) ? CH2O_8h_Mean : CH2O_8h_MeanMax;
+
+/*
+ * Carbon Monoxide sensor handler
+ */
+#if (AQ_POLINOMIAL_REGRESSION)
+	CO_PReg = anlg->CO;
+	//Apply calibration using polynomial regression
+	anlg->CO = a3_CO*pow(CO_PReg, 3.0) + a2_CO*pow(CO_PReg, 2.0) + a1_CO*CO_PReg + a0_CO;
+#endif
+	co_new_sample = anlg->CO;
+
+	co_avg = co_avg + IIR_Alfa_1m * (co_new_sample - co_avg);
+	CO = (uint16_t)lrintf(co_avg);
+	CO_Out = (uint16_t)lrintf(co_avg * 100);	//Used by BLE and LoRa report functions
+
 //	co_8h_avg = approxMovingAverage(co_8h_avg, anlg->CO, AverageWindow_8h);				//in mg/m3
 	co_8h_avg = approxMovingAverage(co_8h_avg, (anlg->CO * 100.0), AverageWindow_8h);	//in ug/m3*10
 	anlg->co_8h_mean = co_8h_avg;
-	ch2o_8h_avg = approxMovingAverage(ch2o_8h_avg, anlg->CH2O, AverageWindow_8h);
-	anlg->ch2o_8h_mean = ch2o_8h_avg;
-	no2_1h_avg = approxMovingAverage(no2_1h_avg, anlg->NO2, AverageWindow_1h);
-	anlg->no2_1h_mean = no2_1h_avg;
-	nh3_8h_avg = approxMovingAverage(nh3_8h_avg, anlg->NH3, AverageWindow_8h);
-	anlg->nh3_8h_mean = nh3_8h_avg;
-#if (OUTDOOR_MODE)
-	o3_1h_avg = approxMovingAverage(o3_1h_avg, anlg->O3, AverageWindow_1h);
-	anlg->o3_1h_mean = o3_1h_avg;
-	so2_1h_avg = approxMovingAverage(so2_1h_avg, anlg->SO2, AverageWindow_1h);
-	anlg->so2_1h_mean = so2_1h_avg;
-	c6h6_24h_avg = approxMovingAverage(c6h6_24h_avg, anlg->C6H6, AverageWindow_24h);
-	anlg->c6h6_24h_mean = c6h6_24h_avg;
-#endif
 
 	CO_8h_Mean = (uint16_t)lrintf(anlg->co_8h_mean);
 	CO_8h_Mean_t = (uint16_t)lrintf(anlg->co_8h_mean/100.0);	//Used only for AQI calculation
 	CO_8h_MeanMax = (CO_8h_Mean > CO_8h_MeanMax) ? CO_8h_Mean : CO_8h_MeanMax;
-	CH2O_8h_Mean = (uint16_t)lrintf(anlg->ch2o_8h_mean);
-	CH2O_8h_MeanMax = (CH2O_8h_Mean > CH2O_8h_MeanMax) ? CH2O_8h_Mean : CH2O_8h_MeanMax;
+
+/*
+ * Nitrogen Dioxide sensor handler
+ */
+#if (AQ_POLINOMIAL_REGRESSION)
+	NO2_PReg = anlg->NO2;
+	//Apply calibration using polynomial regression
+	anlg->NO2 = a3_NO2*pow(NO2_PReg, 3.0) + a2_NO2*pow(NO2_PReg, 2.0) + a1_NO2*NO2_PReg + a0_NO2;
+#endif
+	no2_new_sample = anlg->NO2;
+
+	no2_avg = no2_avg + IIR_Alfa_1m * (no2_new_sample - no2_avg);
+	NO2 = (uint16_t)lrintf(no2_avg);
+
+	no2_1h_avg = approxMovingAverage(no2_1h_avg, anlg->NO2, AverageWindow_1h);
+	anlg->no2_1h_mean = no2_1h_avg;
+
 	NO2_1h_Mean = (uint16_t)lrintf(anlg->no2_1h_mean);
 	NO2_1h_MeanMax = (NO2_1h_Mean > NO2_1h_MeanMax) ? NO2_1h_Mean : NO2_1h_MeanMax;
+
+/*
+ * Ammonia sensor handler
+ */
+#if (AQ_POLINOMIAL_REGRESSION)
+	NH3_PReg = anlg->NH3;
+	//Apply calibration using polynomial regression
+	anlg->NH3 = a3_NH3*pow(NH3_PReg, 3.0) + a2_NH3*pow(NH3_PReg, 2.0) + a1_NH3*NH3_PReg + a0_NH3;
+#endif
+	nh3_new_sample = anlg->NH3;
+
+	nh3_avg = nh3_avg + IIR_Alfa_1m * (nh3_new_sample - nh3_avg);
+	NH3 = (uint16_t)lrintf(nh3_avg);
+
+	nh3_8h_avg = approxMovingAverage(nh3_8h_avg, anlg->NH3, AverageWindow_8h);
+	anlg->nh3_8h_mean = nh3_8h_avg;
+
 	NH3_8h_Mean = (uint16_t)lrintf(anlg->nh3_8h_mean);
 	NH3_8h_MeanMax = (NH3_8h_Mean > NH3_8h_MeanMax) ? NH3_8h_Mean : NH3_8h_MeanMax;
+
 #if (OUTDOOR_MODE)
-	O3_1h_Mean = (uint16_t)lrintf(anlg->o3_1h_mean);
-	O3_1h_MeanMax = (O3_1h_Mean > O3_1h_MeanMax) ? O3_1h_Mean : O3_1h_MeanMax;
-	SO2_1h_Mean = (uint16_t)lrintf(anlg->so2_1h_mean);
-	SO2_1h_MeanMax = (SO2_1h_Mean > SO2_1h_MeanMax) ? SO2_1h_Mean : SO2_1h_MeanMax;
-	C6H6_24h_Mean = (uint16_t)lrintf(anlg->c6h6_24h_mean);
-	C6H6_24h_MeanMax = (C6H6_24h_Mean > C6H6_24h_MeanMax) ? C6H6_24h_Mean : C6H6_24h_MeanMax;
+	/*
+	 * Ozone sensor handler
+	 */
+	#if (AQ_POLINOMIAL_REGRESSION)
+		O3_PReg = anlg->O3;
+		//Apply calibration using polynomial regression
+		anlg->O3 = a3_O3*pow(O3_PReg, 3.0) + a2_O3*pow(O3_PReg, 2.0) + a1_O3*O3_PReg + a0_O3;
+	#endif
+		o3_new_sample = anlg->O3;
+
+		o3_avg = o3_avg + IIR_Alfa_10m * (o3_new_sample - o3_avg);
+		O3 = (uint16_t)lrintf(o3_avg);
+
+		o3_1h_avg = approxMovingAverage(o3_1h_avg, anlg->O3, AverageWindow_1h);
+		anlg->o3_1h_mean = o3_1h_avg;
+
+		O3_1h_Mean = (uint16_t)lrintf(anlg->o3_1h_mean);
+		O3_1h_MeanMax = (O3_1h_Mean > O3_1h_MeanMax) ? O3_1h_Mean : O3_1h_MeanMax;
+
+	/*
+	 * Sulphur Dioxide sensor handler
+	 */
+	#if (AQ_POLINOMIAL_REGRESSION)
+		SO2_PReg = anlg->SO2;
+		//Apply calibration using polynomial regression
+		anlg->SO2 = a3_SO2*pow(SO2_PReg, 3.0) + a2_SO2*pow(SO2_PReg, 2.0) + a1_SO2*SO2_PReg + a0_SO2;
+	#endif
+		so2_new_sample = anlg->SO2;
+
+		so2_avg = so2_avg + IIR_Alfa_1m * (so2_new_sample - so2_avg);
+		SO2 = (uint16_t)lrintf(so2_avg);
+
+		so2_1h_avg = approxMovingAverage(so2_1h_avg, anlg->SO2, AverageWindow_1h);
+		anlg->so2_1h_mean = so2_1h_avg;
+
+		SO2_1h_Mean = (uint16_t)lrintf(anlg->so2_1h_mean);
+		SO2_1h_MeanMax = (SO2_1h_Mean > SO2_1h_MeanMax) ? SO2_1h_Mean : SO2_1h_MeanMax;
+
+	/*
+	 * Benzene sensor handler
+	 */
+	#if (AQ_POLINOMIAL_REGRESSION)
+		C6H6_PReg = anlg->C6H6;
+		//Apply calibration using polynomial regression
+		anlg->C6H6 = a3_C6H6*pow(C6H6_PReg, 3.0) + a2_C6H6*pow(C6H6_PReg, 2.0) + a1_C6H6*C6H6_PReg + a0_C6H6;
+	#endif
+		c6h6_new_sample = anlg->C6H6;
+
+		c6h6_avg = c6h6_avg + IIR_Alfa_1m * (c6h6_new_sample - c6h6_avg);
+		C6H6 = (uint16_t)lrintf(c6h6_avg);
+
+		c6h6_24h_avg = approxMovingAverage(c6h6_24h_avg, anlg->C6H6, AverageWindow_24h);
+		anlg->c6h6_24h_mean = c6h6_24h_avg;
+
+		C6H6_24h_Mean = (uint16_t)lrintf(anlg->c6h6_24h_mean);
+		C6H6_24h_MeanMax = (C6H6_24h_Mean > C6H6_24h_MeanMax) ? C6H6_24h_Mean : C6H6_24h_MeanMax;
 #endif
 
 #if (GUI_SUPPORT==1)
