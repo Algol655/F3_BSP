@@ -452,6 +452,7 @@ int32_t max(int32_t args, ...);
 int32_t min(int32_t args, ...);
 uint32_t reverse_Digits(uint32_t num);
 void reverse_String(char *s);
+uint16_t float_to_half(float x);
 int usleep(useconds_t usec);
 void Sleep(uint32_t Delay);
 unsigned long portGetTickCnt(void);

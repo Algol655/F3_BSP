@@ -10,7 +10,7 @@
 
 uint8_t DeviceName[5] ="S191";
 uint8_t HW_Version[5] ="1000";	//Only the first two digits are used!!
-uint8_t SW_Version[5] ="2902";
+uint8_t SW_Version[5] ="2903";
 uint32_t Vendor_ID  = 0x2316F;
 uint32_t Prdct_Code = 10000324;
 uint32_t Rev_Number = 0;
@@ -37,7 +37,7 @@ uint32_t Ser_Number = 1;
 	uint16_t VOC_Correction = 0;		//In ppb
 	uint16_t CO2_Correction = 0;		//In ppm
 	#if (CCS811)
-		uint32_t CCS811_VOC_Ro = 0;			//In ohm
+		uint32_t CCS811_VOC_Ro = 0;		//In ohm
 		uint32_t CCS811_VOC_Ro_Stored = 0;
 		bool CCS811_Save_Baseline_Reserved = false;
 	#endif
@@ -454,7 +454,9 @@ void AB_Init(void)
 
 #if (GAS_SENSOR_MODULE_PRESENT==1)
 	/* AnlgSensorUnit_Init() */
-    write_port(0x3332, 0x31);		//Gas Sensor Board Power-On
+    write_port(0x3332, 0x30);		//Gas Sensor Board Reset Cycle: Power off
+    HAL_Delay(1000);
+    write_port(0x3332, 0x31);		//Gas Sensor Board Reset Cycle: Power on
 	BIT_SET(SensorStatusReg,21);	//Set Gas Sensor Module presence in SensorStatusRegister
 	NumberOfDevices++;				//Increment number of sensors mounted
 	//Initialize Gases sensors Max values variables
@@ -1475,7 +1477,6 @@ void Particulate_Sensor_Handler(SPS30_MeasureTypeDef_st *Particulate, uint8_t* B
  */
 void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 {
-
 	static const uint32_t AverageWindow_8h = 5760;	//8h Analog sensors Moving Average Filter integration window = 3600*8/5: Number of readings in 8 hour
 	static const uint32_t AverageWindow_1h = 720;	//1h Analog sensors Moving Average Filter integration window = 3600*1/5: Number of readings in 1 hour
 //	static const uint32_t AverageWindow_10m = 120;	//10 minutes Analog sensors Moving Average Filter integration window = 10*60/5: Number of readings in 10m
@@ -1485,18 +1486,19 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
  * IIR_Alfa_Xm are calculated with the following approximate formula, valid for first-order IIR filters:
  * IIR_Alfa_Xm = 2/(AverageWindow_Xm+1)
  */
-	static const float32_t IIR_Alfa_5m = 2.0/(60.0 + 1.0);	//5 minutes Analog sensors 1° order IIR integration window
-	static const float32_t IIR_Alfa_1m = 2.0/(12.0 + 1.0);	//1 minutes Analog sensors 1° order IIR integration window
-	static float32_t ch2o_avg = 0.0;
+//	static const float32_t IIR_Alfa_1m = 2.0/(12.0 + 1.0);		//1 minutes Analog sensors 1° order IIR integration window
+	static const float32_t IIR_Alfa_5m = 2.0/(60.0 + 1.0);		//5 minutes Analog sensors 1° order IIR integration window
+	static const float32_t IIR_Alfa_10m = 2.0/(120.0 + 1.0);	//10 minutes Analog sensors 1° order IIR Filter integration window
+	static float32_t ch2o_avg = 0.0; static float32_t ch2o_avg1 = 0.0;
 	static float32_t no2_avg = 0.0;
 	static float32_t co_avg = 0.0;
 	static float32_t nh3_avg = 0.0;
-	static float32_t ch2o_new_sample, no2_new_sample, nh3_new_sample, co_new_sample;
+	static volatile float32_t ch2o_new_sample, no2_new_sample, nh3_new_sample, co_new_sample;
 #if (OUTDOOR_MODE)
-	static const float32_t IIR_Alfa_10m = 2.0/(120.0 + 1.0);	//10 minutes Analog sensors 1° order IIR Filter integration window
-	static const uint32_t AverageWindow_24h = 17280;	//3600*24/5: Number of readings in 24 hour
-	static float32_t o3_avg = 0.0; static float32_t o3_1h_avg = 0.0;
-	static float32_t so2_avg = 0.0; static float32_t so2_1h_avg = 0.0;
+	static const float32_t IIR_Alfa_15m = 2.0/(180.0 + 1.0);	//15 minutes Analog sensors 1° order IIR Filter integration window
+	static const uint32_t AverageWindow_24h = 17280;			//3600*24/5: Number of readings in 24 hour
+	static float32_t o3_avg = 0.0; static float32_t o3_avg1 = 0.0; static float32_t o3_1h_avg = 0.0;
+	static float32_t so2_avg = 0.0; static float32_t so2_avg1 = 0.0; static float32_t so2_1h_avg = 0.0;
 	static float32_t c6h6_avg = 0.0; static float32_t c6h6_24h_avg = 0.0;
 	static float32_t o3_new_sample, so2_new_sample, c6h6_new_sample;
 #endif
@@ -1518,6 +1520,122 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	#endif
 #endif
 
+#if (USE_CROSS_SENS_MATR)
+#define TEST_MODE (0U)
+	// System data
+	float32_t A_data[CROSS_SENS_MATR_DIM * CROSS_SENS_MATR_DIM] = CROSS_INTERFERENCE_COEFF_MATRIX;	// Matrix of coefficients
+#if (TEST_MODE)
+	float32_t B_data[CROSS_SENS_MATR_DIM] = {20.0, 97.579, 1.526, 23.579, 892.632, 0.126, 12.0};	// Test vector of known terms
+#else
+	float32_t B_data[CROSS_SENS_MATR_DIM];							// Vector of known terms
+#endif
+	/*
+	 * Copy the raw data to B_data (Vector of known terms)
+	 */
+#if (OUTDOOR_MODE)
+	B_data[0] = anlg->CH2O;
+	B_data[3] = anlg->NO2;
+	B_data[4] = anlg->CO * 1000.0;
+	B_data[6] = anlg->NH3;
+	B_data[1] = anlg->O3;
+	B_data[2] = anlg->SO2;
+	B_data[5] = anlg->C6H6;
+#else
+	B_data[0] = anlg->CH2O;
+	B_data[1] = anlg->NO2;
+	B_data[2] = anlg->CO * 1000.0;
+	B_data[3] = anlg->NH3;
+#endif
+	float32_t X_data[CROSS_SENS_MATR_DIM]; 							// Result vector (Vector of unknowns)
+	float32_t A_inv_data[CROSS_SENS_MATR_DIM * CROSS_SENS_MATR_DIM];// Inverse matrix
+
+	// Initializing array instances
+	arm_matrix_instance_f32 A;
+	arm_matrix_instance_f32 A_inv;
+	arm_matrix_instance_f32 B;
+	arm_matrix_instance_f32 X;
+
+	arm_mat_init_f32(&A, CROSS_SENS_MATR_DIM, CROSS_SENS_MATR_DIM, (float32_t *)A_data);
+	arm_mat_init_f32(&A_inv, CROSS_SENS_MATR_DIM, CROSS_SENS_MATR_DIM, (float32_t *)A_inv_data);
+	arm_mat_init_f32(&B, CROSS_SENS_MATR_DIM, 1, (float32_t *)B_data);
+	arm_mat_init_f32(&X, CROSS_SENS_MATR_DIM, 1, (float32_t *)X_data);
+
+	// Calculating the inverse matrix
+	arm_status status = arm_mat_inverse_f32(&A, &A_inv);
+
+	if (status == ARM_MATH_SUCCESS)
+	{
+		// Multiply by B to obtain the solution X.
+		// X = A_inv * B
+		arm_mat_mult_f32(&A_inv, &B, &X);
+	} else
+	{
+		// The matrix is ​​singular (determinant = 0) and non-invertible
+	}
+#if (TEST_MODE==0)
+	/*
+	 * Copy the real data into the structure anlg->..
+	 */
+	#if (OUTDOOR_MODE)
+		if (X_data[0] < 0.0)
+			anlg->CH2O = 0.0;
+		else
+			anlg->CH2O = X_data[0];
+
+		if (X_data[3] < 0.0)
+			anlg->NO2 = 0.0;
+		else
+			anlg->NO2 = X_data[3];
+
+		if (X_data[4] < 0.0)
+			anlg->CO = 0.0;
+		else
+			anlg->CO = X_data[4]/1000.0;
+
+		if (X_data[6] < 0.0)
+			anlg->NH3 = 0.0;
+		else
+			anlg->NH3 = X_data[6];
+
+		if (X_data[1] < 0.0)
+			anlg->O3 = 0.0;
+		else
+			anlg->O3 = X_data[1];
+
+		if (X_data[2] < 0.0)
+			anlg->SO2 = 0.0;
+		else
+			anlg->SO2 = X_data[2];
+
+		if (X_data[5] < 0.0)
+			anlg->C6H6 = 0.0;
+		else
+//			anlg->C6H6 = X_data[5];
+			anlg->C6H6 = 0.0;
+	#else
+		if (X_data[0] < 0.0)
+			anlg->CH2O = 0.0;
+		else
+			anlg->CH2O = X_data[0];
+
+		if (X_data[1] < 0.0)
+			anlg->NO2 = 0.0;
+		else
+			anlg->NO2 = X_data[1];
+
+		if (X_data[2] < 0.0)
+			anlg->CO = 0.0;
+		else
+			anlg->CO = X_data[2]/1000.0;
+
+		if (X_data[3] < 0.0)
+			anlg->NH3 = 0.0;
+		else
+			anlg->NH3 = X_data[3];
+	#endif	// OUTDOOR_MODE
+#endif	// TEST_MODE==0
+#endif	// USE_CROSS_SENS_MATR
+
 #if (USE_BKUP_SRAM)					//Restores the average values if a watch-dog event has occurred
 	static bool Gases_mean_init = true;
 
@@ -1536,6 +1654,32 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	}
 #endif
 
+#if (AQ_POLINOMIAL_REGRESSION)
+	CH2O_PReg = anlg->CH2O;
+	//Apply calibration using polynomial regression
+	anlg->CH2O = a3_CH2O*pow(CH2O_PReg, 3.0) + a2_CH2O*pow(CH2O_PReg, 2.0) + a1_CH2O*CH2O_PReg + a0_CH2O;
+	CO_PReg = anlg->CO;
+	//Apply calibration using polynomial regression
+	anlg->CO = a3_CO*pow(CO_PReg, 3.0) + a2_CO*pow(CO_PReg, 2.0) + a1_CO*CO_PReg + a0_CO;
+	NO2_PReg = anlg->NO2;
+	//Apply calibration using polynomial regression
+	anlg->NO2 = a3_NO2*pow(NO2_PReg, 3.0) + a2_NO2*pow(NO2_PReg, 2.0) + a1_NO2*NO2_PReg + a0_NO2;
+	NH3_PReg = anlg->NH3;
+	//Apply calibration using polynomial regression
+	anlg->NH3 = a3_NH3*pow(NH3_PReg, 3.0) + a2_NH3*pow(NH3_PReg, 2.0) + a1_NH3*NH3_PReg + a0_NH3;
+	#if (OUTDOOR_MODE)
+		O3_PReg = anlg->O3;
+		//Apply calibration using polynomial regression
+		anlg->O3 = a3_O3*pow(O3_PReg, 3.0) + a2_O3*pow(O3_PReg, 2.0) + a1_O3*O3_PReg + a0_O3;
+		SO2_PReg = anlg->SO2;
+		//Apply calibration using polynomial regression
+		anlg->SO2 = a3_SO2*pow(SO2_PReg, 3.0) + a2_SO2*pow(SO2_PReg, 2.0) + a1_SO2*SO2_PReg + a0_SO2;
+		C6H6_PReg = anlg->C6H6;
+		//Apply calibration using polynomial regression
+		anlg->C6H6 = a3_C6H6*pow(C6H6_PReg, 3.0) + a2_C6H6*pow(C6H6_PReg, 2.0) + a1_C6H6*C6H6_PReg + a0_C6H6;
+	#endif
+#endif
+
 /*
  *	Moving Average on AverageWindow readings for Air quality values estimation.
  *	From World Health Organization Ambient (outdoor) air pollution Fact Sheet.
@@ -1543,18 +1687,21 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
  */
 
 /*
- * Formaldehyde sensor handler
+ * Formaldehyde sensor handler. Here we use an IIR filter with a double time constant:
+ * the larger time constant is used to filter increasing values, the smaller one for decreasing values.
  */
-#if (AQ_POLINOMIAL_REGRESSION)
-	CH2O_PReg = anlg->CH2O;
-	//Apply calibration using polynomial regression
-	anlg->CH2O = a3_CH2O*pow(CH2O_PReg, 3.0) + a2_CH2O*pow(CH2O_PReg, 2.0) + a1_CH2O*CH2O_PReg + a0_CH2O;
-#endif
 	ch2o_new_sample = anlg->CH2O;
 
-	ch2o_avg = ch2o_avg + IIR_Alfa_5m * (ch2o_new_sample - ch2o_avg);
-	CH2O = (uint16_t)lrintf(ch2o_avg);
+	ch2o_avg = ch2o_avg + IIR_Alfa_10m * (ch2o_new_sample - ch2o_avg);
+	ch2o_avg1 = ch2o_avg1 + IIR_Alfa_5m * (ch2o_new_sample - ch2o_avg1);
+	if (ch2o_avg < ch2o_avg1)
+		CH2O = (uint16_t)lrintf(ch2o_avg);
+	else
+		CH2O = (uint16_t)lrintf(ch2o_avg1);
 
+	/*
+	 * 8-hour window moving averages take raw input data
+	 */
 	ch2o_8h_avg = approxMovingAverage(ch2o_8h_avg, anlg->CH2O, AverageWindow_8h);
 	anlg->ch2o_8h_mean = ch2o_8h_avg;
 
@@ -1564,17 +1711,15 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 /*
  * Carbon Monoxide sensor handler
  */
-#if (AQ_POLINOMIAL_REGRESSION)
-	CO_PReg = anlg->CO;
-	//Apply calibration using polynomial regression
-	anlg->CO = a3_CO*pow(CO_PReg, 3.0) + a2_CO*pow(CO_PReg, 2.0) + a1_CO*CO_PReg + a0_CO;
-#endif
 	co_new_sample = anlg->CO;
 
-	co_avg = co_avg + IIR_Alfa_1m * (co_new_sample - co_avg);
+	co_avg = co_avg + IIR_Alfa_5m * (co_new_sample - co_avg);
 	CO = (uint16_t)lrintf(co_avg);
 	CO_Out = (uint16_t)lrintf(co_avg * 100);	//Used by BLE and LoRa report functions
 
+	/*
+	 * 8-hour window moving averages take raw input data
+	 */
 //	co_8h_avg = approxMovingAverage(co_8h_avg, anlg->CO, AverageWindow_8h);				//in mg/m3
 	co_8h_avg = approxMovingAverage(co_8h_avg, (anlg->CO * 100.0), AverageWindow_8h);	//in ug/m3*10
 	anlg->co_8h_mean = co_8h_avg;
@@ -1586,17 +1731,16 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 /*
  * Nitrogen Dioxide sensor handler
  */
-#if (AQ_POLINOMIAL_REGRESSION)
-	NO2_PReg = anlg->NO2;
-	//Apply calibration using polynomial regression
-	anlg->NO2 = a3_NO2*pow(NO2_PReg, 3.0) + a2_NO2*pow(NO2_PReg, 2.0) + a1_NO2*NO2_PReg + a0_NO2;
-#endif
 	no2_new_sample = anlg->NO2;
 
-	no2_avg = no2_avg + IIR_Alfa_1m * (no2_new_sample - no2_avg);
+	no2_avg = no2_avg + IIR_Alfa_5m * (no2_new_sample - no2_avg);
 	NO2 = (uint16_t)lrintf(no2_avg);
 
-	no2_1h_avg = approxMovingAverage(no2_1h_avg, anlg->NO2, AverageWindow_1h);
+	/*
+	 * One-hour window moving averages take pre-filtered input data
+	 */
+	no2_1h_avg = approxMovingAverage(no2_1h_avg, no2_avg, AverageWindow_1h);
+//	no2_1h_avg = approxMovingAverage(no2_1h_avg, anlg->NO2, AverageWindow_1h);
 	anlg->no2_1h_mean = no2_1h_avg;
 
 	NO2_1h_Mean = (uint16_t)lrintf(anlg->no2_1h_mean);
@@ -1605,16 +1749,14 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 /*
  * Ammonia sensor handler
  */
-#if (AQ_POLINOMIAL_REGRESSION)
-	NH3_PReg = anlg->NH3;
-	//Apply calibration using polynomial regression
-	anlg->NH3 = a3_NH3*pow(NH3_PReg, 3.0) + a2_NH3*pow(NH3_PReg, 2.0) + a1_NH3*NH3_PReg + a0_NH3;
-#endif
 	nh3_new_sample = anlg->NH3;
 
-	nh3_avg = nh3_avg + IIR_Alfa_1m * (nh3_new_sample - nh3_avg);
+	nh3_avg = nh3_avg + IIR_Alfa_5m * (nh3_new_sample - nh3_avg);
 	NH3 = (uint16_t)lrintf(nh3_avg);
 
+	/*
+	 * 8-hour window moving averages take raw input data
+	 */
 	nh3_8h_avg = approxMovingAverage(nh3_8h_avg, anlg->NH3, AverageWindow_8h);
 	anlg->nh3_8h_mean = nh3_8h_avg;
 
@@ -1623,38 +1765,46 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 
 #if (OUTDOOR_MODE)
 	/*
-	 * Ozone sensor handler
+	 * Ozone sensor handler. Here we use an IIR filter with a double time constant:
+	 * the larger time constant is used to filter increasing values, the smaller one for decreasing values.
 	 */
-	#if (AQ_POLINOMIAL_REGRESSION)
-		O3_PReg = anlg->O3;
-		//Apply calibration using polynomial regression
-		anlg->O3 = a3_O3*pow(O3_PReg, 3.0) + a2_O3*pow(O3_PReg, 2.0) + a1_O3*O3_PReg + a0_O3;
-	#endif
 		o3_new_sample = anlg->O3;
 
-		o3_avg = o3_avg + IIR_Alfa_10m * (o3_new_sample - o3_avg);
-		O3 = (uint16_t)lrintf(o3_avg);
+		o3_avg = o3_avg + IIR_Alfa_15m * (o3_new_sample - o3_avg);
+		o3_avg1 = o3_avg1 + IIR_Alfa_5m * (o3_new_sample - o3_avg1);
+		if (o3_avg < o3_avg1)
+			O3 = (uint16_t)lrintf(o3_avg);
+		else
+			O3 = (uint16_t)lrintf(o3_avg1);
 
-		o3_1h_avg = approxMovingAverage(o3_1h_avg, anlg->O3, AverageWindow_1h);
+		/*
+		 * One-hour window moving averages take pre-filtered input data
+		 */
+		o3_1h_avg = approxMovingAverage(o3_1h_avg, o3_avg, AverageWindow_1h);
+//		o3_1h_avg = approxMovingAverage(o3_1h_avg, anlg->O3, AverageWindow_1h);
 		anlg->o3_1h_mean = o3_1h_avg;
 
 		O3_1h_Mean = (uint16_t)lrintf(anlg->o3_1h_mean);
 		O3_1h_MeanMax = (O3_1h_Mean > O3_1h_MeanMax) ? O3_1h_Mean : O3_1h_MeanMax;
 
 	/*
-	 * Sulphur Dioxide sensor handler
+	 * Sulphur Dioxide sensor handler. Here we use an IIR filter with a double time constant:
+	 * the larger time constant is used to filter increasing values, the smaller one for decreasing values.
 	 */
-	#if (AQ_POLINOMIAL_REGRESSION)
-		SO2_PReg = anlg->SO2;
-		//Apply calibration using polynomial regression
-		anlg->SO2 = a3_SO2*pow(SO2_PReg, 3.0) + a2_SO2*pow(SO2_PReg, 2.0) + a1_SO2*SO2_PReg + a0_SO2;
-	#endif
 		so2_new_sample = anlg->SO2;
 
-		so2_avg = so2_avg + IIR_Alfa_1m * (so2_new_sample - so2_avg);
-		SO2 = (uint16_t)lrintf(so2_avg);
+		so2_avg = so2_avg + IIR_Alfa_15m * (so2_new_sample - so2_avg);
+		so2_avg1 = so2_avg1 + IIR_Alfa_5m * (so2_new_sample - so2_avg1);
+		if (so2_avg < so2_avg1)
+			SO2 = (uint16_t)lrintf(so2_avg);
+		else
+			SO2 = (uint16_t)lrintf(so2_avg1);
 
-		so2_1h_avg = approxMovingAverage(so2_1h_avg, anlg->SO2, AverageWindow_1h);
+		/*
+		 * One-hour window moving averages take pre-filtered input data
+		 */
+		so2_1h_avg = approxMovingAverage(so2_1h_avg, so2_avg, AverageWindow_1h);
+//		so2_1h_avg = approxMovingAverage(so2_1h_avg, anlg->SO2, AverageWindow_1h);
 		anlg->so2_1h_mean = so2_1h_avg;
 
 		SO2_1h_Mean = (uint16_t)lrintf(anlg->so2_1h_mean);
@@ -1663,14 +1813,12 @@ void Gas_Sensor_Handler(ANLG_MeasureTypeDef_st *anlg, uint8_t* Buff)
 	/*
 	 * Benzene sensor handler
 	 */
-	#if (AQ_POLINOMIAL_REGRESSION)
-		C6H6_PReg = anlg->C6H6;
-		//Apply calibration using polynomial regression
-		anlg->C6H6 = a3_C6H6*pow(C6H6_PReg, 3.0) + a2_C6H6*pow(C6H6_PReg, 2.0) + a1_C6H6*C6H6_PReg + a0_C6H6;
-	#endif
 		c6h6_new_sample = anlg->C6H6;
 
-		c6h6_avg = c6h6_avg + IIR_Alfa_1m * (c6h6_new_sample - c6h6_avg);
+		/*
+		 * 24-hour window moving averages take raw input data
+		 */
+		c6h6_avg = c6h6_avg + IIR_Alfa_5m * (c6h6_new_sample - c6h6_avg);
 		C6H6 = (uint16_t)lrintf(c6h6_avg);
 
 		c6h6_24h_avg = approxMovingAverage(c6h6_24h_avg, anlg->C6H6, AverageWindow_24h);

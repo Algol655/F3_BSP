@@ -210,7 +210,7 @@ const uint8_t L10_menu_items_row5[]="|   ESC.: MAIN MENU   |\r\n";
 		const uint8_t L50_menu_items_row5a[]="| CH2O  O3    03    NH3   05    SO2   NO2   08  "  ;
 		const uint8_t L50_menu_items_row5b[]="  09    C6H6  CO    12    13    14    15    3.3V/2|\r\n";
 	#elif ((GSB_HW_VER >= 20) && (OUTDOOR_MODE==0))
-		const uint8_t L50_menu_items_row5a[]="| CH2O  02    NO2   NH3   CO    06    07    08  "  ;
+		const uint8_t L50_menu_items_row5a[]="| CH2O  NO2   NH3   CO    05    06    07    08  "  ;
 		const uint8_t L50_menu_items_row5b[]="  09    10    11    12    13    14    15    3.3V/2|\r\n";
 	#else
 		const uint8_t L50_menu_items_row5a[]="| 01    02    03    04    05    06    07    08  "  ;
@@ -1714,7 +1714,7 @@ void L80_menu()
 				if ((strlen((const char*)(mystring3))) && (VOC_Values.eTVOC > 0))
 				{
 					eq_TVOCref = atoi((const char*)mystring3);
-					VOC_Correction = (uint32_t)(VOC_Values.eTVOC/eq_TVOCref);
+					VOC_Correction = (uint16_t)(VOC_Values.eTVOC/eq_TVOCref);
 					if (VOC_Correction < 1)
 						VOC_Correction = 1;
 					updated = true;
@@ -1726,7 +1726,7 @@ void L80_menu()
 				if ((strlen((const char*)(mystring3))) && (VOC_Values.eTVOC > 0))
 				{
 					eq_CO2ref = atoi((const char*)mystring3);
-					CO2_Correction = (uint32_t)(VOC_Values.eCO2/eq_CO2ref);
+					CO2_Correction = (uint16_t)(VOC_Values.eCO2/eq_CO2ref);
 					if (CO2_Correction < 1)
 						CO2_Correction = 1;
 					updated = true;

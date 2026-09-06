@@ -23,12 +23,14 @@
  * then the analog input C2_1 (NH3) must be more filtered.
  */
 float32_t filter1_Value[16] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-#if (GSB_HW_VER == 10)				   //CH2O  O3    NO2   NH3   CO    SO2   C6H6  08    09    10    11    12    13    14    15    16
-	const float32_t scale1_Factor[16] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
-#elif (GSB_HW_VER == 20)			   //CH2O  O3    03    NH3   05    SO2   07    08    C6H6  10    NO2   12    CO    14    15    3.3V/2
-	const float32_t scale1_Factor[16] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
-#elif (GSB_HW_VER > 20)			   	   //CH2O  O3    03    NH3   05    SO2   NO2   08    09    C6H6  CO    12    13    14    15    3.3V/2
-	const float32_t scale1_Factor[16] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
+#if (GSB_HW_VER == 10)							//CH2O  O3    NO2   NH3   CO    SO2   C6H6  08    09    10    11    12    13    14    15    16
+	const float32_t scale1_Factor[16] = 		 {0.08, 0.08, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
+#elif ((GSB_HW_VER == 20) && (OUTDOOR_MODE==1))	//CH2O  O3    03    NH3   05    SO2   07    08    C6H6  10    NO2   12    CO    14    15    3.3V/2
+	const float32_t scale1_Factor[16] = 		 {0.08, 0.08, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
+#elif ((GSB_HW_VER > 20) && (OUTDOOR_MODE==1))	//CH2O  O3    03    NH3   05    SO2   NO2   08    09    C6H6  CO    12    13    14    15    3.3V/2
+	const float32_t scale1_Factor[16] = 		 {0.08, 0.08, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
+#elif ((GSB_HW_VER >= 20) && (OUTDOOR_MODE==0)) //CH2O  NO2   NH3   CO    05   06     07    08
+	const float32_t scale1_Factor[16] = 		 {0.08, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.5};
 #else
 	const float32_t scale1_Factor[16] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15};
 #endif
@@ -608,7 +610,11 @@ void read_SMO_sensors(void)
 
 #if (SMO_SENSOR_TC)
 	TOut = (float32_t)Temperature;
+	if(TOut == 0.0)
+		TOut = 20.0;
 	HOut = (float32_t)Humidity;
+	if(HOut == 0.0)
+		HOut = 60.0;
 #endif
 
 #if !(CH2O_FROM_EC)
@@ -674,11 +680,11 @@ void read_SMO_sensors(void)
 #if (SMO_SENSOR_TC)
 	//Apply the MiCS_6814 temperature/humidity correction
 #if !(NO2_FROM_EC)
-	MiCS_6814_NO2_Rs = MiCS_6814_TC(MiCS_6814_NO2_Rs,TOut,HOut);
+	MiCS_6814_NO2_Rs = MiCS_6814_TC_NO2(MiCS_6814_NO2_Rs,TOut,HOut);
 #endif
-	MiCS_6814_NH3_Rs = MiCS_6814_TC(MiCS_6814_NH3_Rs,TOut,HOut);
+	MiCS_6814_NH3_Rs = MiCS_6814_TC_NH3(MiCS_6814_NH3_Rs,TOut,HOut);
 #if !(CO_FROM_EC)
-	MiCS_6814_CO_Rs = MiCS_6814_TC(MiCS_6814_CO_Rs,TOut,HOut);
+	MiCS_6814_CO_Rs = MiCS_6814_TC_CO(MiCS_6814_CO_Rs,TOut,HOut);
 #endif
 #endif
 
@@ -688,16 +694,20 @@ void read_SMO_sensors(void)
 	 * The voltage value detected by the ADC (Vs) cannot be less than that in pure air (Vo) (See SMD1001 data sheet),
 	 * so the Vs/Vo ratio (Arg_CH2O) cannot be less than 1. The interpolation defined by "#define SMD1001_CH2O"
 	 * reduces this value to 0.9.
-	 * Furthermore, this interpolation is not defined for Vs/Vo values ​​> 2.9.
+	 * Furthermore, this interpolation is not defined for Vs/Vo values ​​> 2.9 when USE_SMD1001_MODIFIED_CURVE == 0,
+	 * Vs/Vo values ​​> 14.0 when USE_SMD1001_MODIFIED_CURVE == 1, Vs/Vo values ​​> 42.7 when USE_SMD1001_MODIFIED_CURVE == 2
 	 */
 	if (Arg_CH2O < 0.9)
 		Arg_CH2O = 0.9;
 #if (USE_SMD1001_MODIFIED_CURVE == 1)
-	if (Arg_CH2O > 14.0)
-		Arg_CH2O = 14.0;
+	if (Arg_CH2O > 14.0)	//Vs/Vo > 14.0 is the saturation threshold of the Vs/Vo-ppm characteristic curve
+		Arg_CH2O = 14.0;	//when the expansion factor is equal to 1 (USE_SMD1001_MODIFIED_CURVE == 1)
+#elif (USE_SMD1001_MODIFIED_CURVE == 2)
+	if (Arg_CH2O > 42.7)	//Vs/Vo > 42.7 is the saturation threshold of the Vs/Vo-ppm characteristic curve
+		Arg_CH2O = 42.7;	//when the expansion factor is equal to 2 (USE_SMD1001_MODIFIED_CURVE == 2)
 #else
-	if (Arg_CH2O > 2.9)
-		Arg_CH2O = 2.9;
+	if (Arg_CH2O > 2.9)		//Vs/Vo > 2.9 is the saturation threshold of the Vs/Vo-ppm characteristic curve
+		Arg_CH2O = 2.9;		//when the expansion factor is equal to 0 (USE_SMD1001_MODIFIED_CURVE == 0)
 #endif
 
 	//Apply the SMD1001 temperature and humidity correction

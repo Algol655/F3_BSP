@@ -94,6 +94,19 @@ V. 2.09.01	(Rilasciata il 2026/04/29)
 V. 2.09.02	(Rilasciata il 2026/06/09)
 1) Migliorata la compensazione in funzione della temperatura dei sensori elettrochimici Winsen MExx (Ok)
 2) Alcuni miglioramenti nella gestione del convertitore AD per i sensori analogici (Ok)
-3) Miglorate le curve di calibrazione e quelle per la compensazione in funzione della tempratura e umidità 
+3) Miglorate le curve di calibrazione e quelle per la compensazione in funzione della temperatura e umidità 
    del sensore di formaldeide SMD1001 (Ok)
 4) Migliorato il filtraggio dei canali analogici (Ok)
+
+V. 2.09.03	(Rilasciata il 2026/09/06)
+1) Aggiunto il calcolo della cross-sensitivity dei sensori elettrochimici (Ok)
+2) Migliorata la compensazione in temperatura del sensore  SO2 (Ok)
+3) Migliorata la compensazione in temperatura del sensore  MiCS-6814 (Ok)
+4) Migliorato il filtraggio iniziale dei sensori O3, CH2O, SO2 (Ok)
+5) Aggiunto reset (power cycle) della Gas Sensor Board in AB_Init al posto del solo power-on (Ok)
+6) Aggiunto il filtraggio con doppia costante di tempo (up e down) dei sensori O3, CH2O, SO2 (Ok)
+7) Corretta la trasmissione dei valori Minimi e Massimi entro cinque minuti dopo la mezzanotte (Ok)
+8) Rimosse alcune criticità nel gestore dei sensori gassosi (Gas_Sensor_Handler(...))
+   (in port.c funzione "process_timer3_irq(void)" il setting a true delle variabili "lcl_gas_data_rdy" e 
+   "send_lcl_gas_data" ora viene fatto solo dopo che il timeout "WarmUpPeriod_expired" scade) (Ok)
+9) Corretta la relazione Vadc<->ppm del sensore O3 (Ok)

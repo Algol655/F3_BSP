@@ -739,14 +739,19 @@ void aci_hal_end_of_radio_activity_event(uint8_t Last_State, uint8_t Next_State,
 		Adv_Code = AdvCodes[beacon_number];
 		Adv_Code |= Adv_Code_Modifier;
 		/*
-		 * CycleNumber counts after how many transmissions of the primary "beacon set" (Adv_Code = 0b0xxx xxxx)
-		 * a secondary "beacon set" (here identified with Adc_Cobe = 0b1xxx xxxx) is transmitted
+		 * CycleNumber counts after how many transmissions of the primary "Set of beacons" (Adv_Code = 0b0xxx xxxx)
+		 * a secondary "Set of beacons" (here identified with Adv_Code = 0b1xxx xxxx) is transmitted
 		 */
 		if (++beacon_number == (uint8_t)N_ADV_CODES)
 		{
 			beacon_number = 0;
+			/*
+			 * MinMaxStored remains true for five minutes after midnight to give the process "MX_BlueNRG_2_Process(void)"
+			 * time to transmit all the Min Max values ​​of the sensors recorded during the day. This means that, for five
+			 * minutes after midnight, only type 2 Beacons are transmitted.
+			 */
 			if ((++SecondaryBeaconCicleNumber > SecondaryBeaconSwitchTime) || (MinMaxStored))
-			{	//The secondary "beacon set" 0b1xxx xxxx contains the daily min-max values. It is still transmitted at midnight.
+			{	//The secondary "Set of beacons" 0b1xxx xxxx contains the daily min-max values. It is still transmitted at midnight.
 				Adv_Code_Modifier = 0x80;
 				SecondaryBeaconCicleNumber = 0;
 			} else

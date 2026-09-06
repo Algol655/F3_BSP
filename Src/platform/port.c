@@ -765,6 +765,34 @@ void reverse_String(char *s)
 	}
 }
 
+/*
+ * Float32 to float16 (half float) conversion
+ * @param x float32 number to convert
+ * @return x number converted in half float
+ */
+uint16_t float_to_half(float x)
+{
+	uint32_t f32;
+	memcpy(&f32, &x, sizeof(float));
+
+	uint16_t sign = (f32 >> 16) & 0x8000;
+	int32_t exp = ((f32 >> 23) & 0xFF) - 127;
+	uint32_t mantissa = f32 & 0x7FFFFF;
+
+	if (exp > 15)
+	{ // Overflow -> Infinity
+		return sign | 0x7C00;
+	} else if (exp < -14)
+	{ // Underflow
+		return sign;
+	} else
+	{ // Normalized
+		exp += 15;
+		mantissa >>= 13;
+		return sign | (exp << 10) | mantissa;
+	}
+}
+
 /****************************************************************************//**
  * 								Time section
  *******************************************************************************/
@@ -1840,6 +1868,8 @@ void process_timer3_irq(void)
 			BIT_SET(SensorStatusReg,6);
 	#endif
 		}
+		lcl_gas_data_rdy = true;
+		send_lcl_gas_data = true;
 	} else
 	{
 		/*
@@ -1853,8 +1883,6 @@ void process_timer3_irq(void)
 		BIT_SET(SensorStatusReg,6);
 	#endif
 	}
-	lcl_gas_data_rdy = true;
-	send_lcl_gas_data = true;
 	display_gas_data = StartDataStrmng;
 #endif
 #if (SENSOR_REMOTE_MODE)

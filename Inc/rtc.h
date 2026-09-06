@@ -94,7 +94,7 @@ void enable_backup_rtc(void);
 void disable_backup_rtc(void);
 int8_t writeBkpRTC(uint8_t *data, uint16_t bytes, uint16_t offset);
 uint8_t readBkpRTC(uint8_t *data, uint16_t bytes, uint16_t offset);
-bool MidNight, MinMaxStored;
+bool MidNight, MidNightPastFive, MinMaxStored;
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
